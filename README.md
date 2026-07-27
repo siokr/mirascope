@@ -1,136 +1,100 @@
 # mirascope
 
-`mirascope` 是一个面向二次元内容消费场景的多端应用，目标是把小说、漫画、番剧的管理、阅读/观看、收藏和同步整合到一个统一产品里。
+`mirascope` 是一个本地优先的个人阅读与媒体管理应用。长期方向是统一管理小说、漫画和番剧；当前先把 Windows 本地 TXT 阅读做成真实可用、可测试、可公开演示的产品。
 
-当前仓库仍处于项目起步阶段，代码层面还是 Flutter 初始工程，但产品规划、MVP 拆解和技术架构文档已经建立完成。
+> 当前状态：项目处于规划完成、业务工程尚未启动的阶段。仓库中的 Flutter 代码仍是初始模板。下面的路线是计划，不代表对应功能已经实现。
 
----
+## 当前目标：MVP 0.1
 
-## 项目目标
-
-`mirascope` 想解决的不是单一阅读器问题，而是“一个账号、一个应用、统一管理所有二次元内容”的长期使用场景。
-
-首期聚焦：
-
-- 小说阅读
-- 漫画阅读
-- 本地书架/媒体库
-- 收藏与历史记录
-- 多设备同步
-
-后续再扩展：
-
-- 番剧播放
-- 下载系统
-- 搜索增强
-- 推荐、AI、社区等能力
-
----
-
-## 当前阶段
-
-目前项目状态：
-
-- 已完成产品总计划整理
-- 已完成 MVP 任务拆解
-- 已完成技术架构设计文档
-- 尚未开始正式业务代码重构
-
-这意味着仓库现在最有价值的部分是文档设计，而不是现有 Flutter 模板代码。
-
----
-
-## 文档导航
-
-项目文档统一放在 `docs/` 下，建议按下面顺序阅读：
-
-1. `plan.md`
-   - 项目总计划表
-   - 用来理解产品目标、版本路线和优先级
-2. `docs/mvp-task-list.md`
-   - MVP 详细任务清单
-   - 用来指导每周/每阶段的实际开发执行
-3. `docs/tech-architecture.md`
-   - 技术架构设计文档
-   - 用来统一客户端、服务端、核心引擎的职责边界
-4. `docs/README.md`
-   - 文档目录说明
-   - 用来快速查看文档体系和后续建议补充项
-5. `docs/dev-setup.md`
-   - 本地开发环境搭建文档
-   - 用来检查 Flutter / Go / Rust / PostgreSQL 的准备状态
-6. `docs/project-structure.md`
-   - 项目目录结构说明文档
-   - 用来指导 Phase 0 的 Flutter 工程分层和目录落地
-
----
-
-## 技术路线
-
-当前确定的主路线：
-
-- 客户端：`Flutter + Dart`
-- 后端：`Go`
-- 核心高性能模块：`Rust`
-- 数据库：`PostgreSQL`
-
-架构原则：
-
-- 本地优先
-- 统一媒体模型优先
-- 同步建立在本地数据正确之上
-- Rust 渐进式引入，不做过早下沉
-
----
-
-## 推荐开发顺序
-
-建议按以下顺序推进，而不是并行摊大：
-
-1. 重构 Flutter 工程骨架
-2. 建立本地数据模型与媒体库
-3. 完成小说 MVP
-4. 完成漫画 MVP
-5. 接入账号与同步
-6. 再进入番剧、下载和 Beta 打磨阶段
-
-这样做的原因是：先验证核心阅读体验，再扩展复杂能力，返工成本最低。
-
----
-
-## 仓库结构
-
-当前仓库已存在 Flutter 多端初始结构，后续建议逐步演进为：
+首个版本只承诺 Windows，并验证一条完整路径：
 
 ```text
-mirascope/
-  client/
-    flutter_app/
-  server/
-    golang_api/
-  core/
-    rust_engine/
-  database/
-    migrations/
-  docs/
-  scripts/
+导入 TXT -> 加入媒体库 -> 打开小说 -> 切换章节
+-> 退出或终止应用 -> 再次启动 -> 恢复阅读位置
 ```
 
-在正式拆分前，当前 Flutter 工程仍保留默认多端目录结构。
+范围包括：
 
----
+- Flutter 工程骨架；
+- 本地媒体库和数据库迁移；
+- UTF-8、UTF-16、GB18030 TXT 导入；
+- 章节识别和无章节回退；
+- 纵向滚动阅读器；
+- 字号、行距和基础主题；
+- 原子导入、重复检测、文件重新定位；
+- 阅读进度持久化与恢复；
+- 自动化测试、Windows 构建和演示证据。
 
-## 近期最重要的事
+不包括 EPUB、Android、漫画、账号同步、下载、番剧、在线内容源、Go 服务和 Rust 模块。
 
-如果接下来开始真正开发，优先级最高的不是继续扩文档，而是把下面几件事落地：
+## 为什么这样规划
 
-- 替换默认 Flutter 模板首页
-- 建立 `lib/src/` 分层结构
-- 确定 `Riverpod`、`go_router`、`Drift` 等基础选型
-- 把书架/媒体库作为第一批真实业务页面搭起来
+这个项目同时用于自己长期使用、求职展示和 GitHub 交流。首版优先证明：
 
----
+- 产品主链路能够真正使用；
+- 本地数据不会因异常轻易丢失；
+- 文件导入、迁移和恢复行为能够解释和测试；
+- 架构随需求演进，而不是为了展示技术栈提前堆叠。
 
-## 说明
+Go、PostgreSQL 和 Rust 都有明确的进入条件，但不是当前成熟度标签。
 
-当前 `README.md` 主要承担项目入口说明作用；产品规划和技术细节请以 `plan.md`、`docs/mvp-task-list.md`、`docs/tech-architecture.md` 为准。
+## 路线
+
+| 版本 | 目标 | 主要平台 |
+|---|---|---|
+| MVP 0.1 | 本地 TXT 小说闭环 | Windows |
+| MVP 0.2 | EPUB、Android、书签和公开 Release | Windows、Android |
+| Version 0.3 | 本地漫画导入与阅读 | 复用已支持平台 |
+| Version 0.4 | 账号、设备和同步 | 客户端 + Go/PostgreSQL |
+
+在线内容源、下载、番剧、其他平台和 Rust 属于后续候选方向，没有预设排期。
+
+## 当前仓库
+
+```text
+lib/                     Flutter 初始模板，待 Phase 0 重构
+docs/                    产品、架构、规格和执行文档
+test/                    Flutter 默认测试，待替换
+android/ ios/ ...        Flutter 生成的平台目录，不表示正式支持
+plan.md                  权威版本路线
+```
+
+## 文档
+
+建议按顺序阅读：
+
+1. [项目计划](plan.md)
+2. [MVP 执行清单](docs/mvp-task-list.md)
+3. [技术架构](docs/tech-architecture.md)
+4. [本地数据模型](docs/data-model.md)
+5. [小说阅读规格](docs/novel-reader-spec.md)
+6. [质量策略](docs/quality-strategy.md)
+7. [完整文档索引](docs/README.md)
+
+后续专题：
+
+- [本地漫画规格](docs/manga-reader-spec.md)
+- [同步协议](docs/sync-protocol.md)
+- [项目结构](docs/project-structure.md)
+- [开发环境](docs/dev-setup.md)
+- [发布检查清单](docs/release-checklist.md)
+- [架构决策记录](docs/decisions/README.md)
+
+## 开始开发
+
+当前 MVP 0.1 只需要 Flutter/Windows 工具链。环境要求见 [开发环境](docs/dev-setup.md)。
+
+```bash
+flutter pub get
+flutter run -d windows
+flutter analyze
+flutter test
+```
+
+目前运行结果仍是 Flutter 默认计数器应用；完成 `M01-002` 后才会成为 mirascope 应用骨架。
+
+## 贡献与交流
+
+在业务开发启动前，Issue 和讨论应优先围绕明确的当前版本问题。新增需求需要说明它服务哪条核心路径、验收方式、维护成本和内容合规影响。
+
+项目尚未发布正式贡献指南。提交代码前请先以 `plan.md` 和 `docs/mvp-task-list.md` 判断范围。
