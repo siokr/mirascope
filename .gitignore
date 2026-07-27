@@ -58,3 +58,6 @@ app.*.map.json
 .idea/usage.statistics.xml
 .idea/dictionaries/
 .idea/shelf/
+
+# Local Git worktrees
+/.worktrees/
