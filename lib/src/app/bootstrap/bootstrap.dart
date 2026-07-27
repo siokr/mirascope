@@ -12,8 +12,8 @@ Future<Widget> buildRootWidget({AppInitializer? initialize}) async {
   try {
     await (initialize ?? _initializeFoundation)();
     return const ProviderScope(child: MirascopeApp());
-  } on Object catch (error, stackTrace) {
-    appLogger.severe('startup_failed', error, stackTrace);
+  } on Object {
+    appLogger.severe('startup_failed');
     return const StartupErrorApp(code: 'startup_failed');
   }
 }

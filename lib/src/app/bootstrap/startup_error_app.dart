@@ -30,7 +30,7 @@ class StartupErrorApp extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    '初始化未完成，应用没有修改或删除本地数据。',
+                    '初始化未完成，请重启应用后重试；若问题持续，请记录错误代码。',
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),

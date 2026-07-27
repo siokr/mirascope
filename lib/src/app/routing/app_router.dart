@@ -14,7 +14,7 @@ GoRouter createAppRouter() {
       GoRoute(
         path: AppRoutes.library,
         builder: (context, state) =>
-            LibraryPage(onOpenSettings: () => context.go(AppRoutes.settings)),
+            LibraryPage(onOpenSettings: () => context.push(AppRoutes.settings)),
       ),
       GoRoute(
         path: AppRoutes.settings,
