@@ -1,130 +1,101 @@
-# mirascope 文档目录
+# mirascope 文档索引
 
-这份文档用于说明当前 `mirascope` 仓库里的文档分工，避免计划、架构、执行清单混在一起，后面越写越乱。
+## 1. 文档体系
 
----
+### 项目入口
 
-## 1. 当前文档结构
+- [`../README.md`](../README.md)：面向 GitHub 访问者的真实状态、当前目标和快速入口。
+- [`../plan.md`](../plan.md)：版本范围、平台策略、成功标准和风险的单一信息源。
 
-### `plan.md`
+### 当前执行
 
-定位：项目总计划表
+- [`mvp-task-list.md`](mvp-task-list.md)：当前版本任务、依赖、状态、交付物和验收。
+- [`quality-strategy.md`](quality-strategy.md)：测试层级、质量门槛和性能基准方法。
+- [`release-checklist.md`](release-checklist.md)：候选版本与 GitHub Release 检查。
 
-适合回答：
+### 架构与工程
 
-- 这个项目到底想做什么
-- MVP 和长期目标分别是什么
-- 版本路线如何安排
-- 优先级怎么排序
+- [`tech-architecture.md`](tech-architecture.md)：系统边界、依赖方向和阶段演进。
+- [`project-structure.md`](project-structure.md)：当前代码组织和未来拆分触发条件。
+- [`dev-setup.md`](dev-setup.md)：可复现开发环境和检查命令。
+- [`decisions/README.md`](decisions/README.md)：ADR 格式、状态和首批决策。
 
-### `docs/mvp-task-list.md`
+### 领域规格
 
-定位：MVP 执行清单
+- [`data-model.md`](data-model.md)：本地实体、关系、迁移和文件生命周期。
+- [`novel-reader-spec.md`](novel-reader-spec.md)：TXT/EPUB 导入与小说阅读行为。
+- [`manga-reader-spec.md`](manga-reader-spec.md)：Version 0.3 本地漫画边界。
+- [`sync-protocol.md`](sync-protocol.md)：Version 0.4 同步语义。
 
-适合回答：
+### 设计与实施记录
 
-- 当前阶段具体做什么
-- 哪些任务属于 P0 / P1 / P2
-- 一阶段做到什么程度算完成
+- [`superpowers/specs/2026-07-26-documentation-restructure-design.md`](superpowers/specs/2026-07-26-documentation-restructure-design.md)：本轮文档重构设计。
+- [`superpowers/plans/2026-07-26-documentation-restructure.md`](superpowers/plans/2026-07-26-documentation-restructure.md)：本轮实施计划。
 
-### `docs/tech-architecture.md`
+Flutter 生成的 `ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md` 是平台资源说明，不属于项目规划文档。
 
-定位：技术架构设计文档
+## 2. 推荐阅读顺序
 
-适合回答：
+### 了解项目
 
-- Flutter、Go、Rust 分别负责什么
-- 客户端怎么分层
-- 本地数据和同步系统怎么设计
-- 后续为什么这样扩展不会太痛苦
+1. 根 README；
+2. `plan.md`；
+3. `mvp-task-list.md`。
 
-### `docs/dev-setup.md`
+### 开始 MVP 0.1
 
-定位：本地开发环境搭建文档
+1. `dev-setup.md`；
+2. `tech-architecture.md`；
+3. `project-structure.md`；
+4. `data-model.md`；
+5. `novel-reader-spec.md`；
+6. `quality-strategy.md`。
 
-适合回答：
+### 准备后续版本
 
-- 当前机器的开发环境还缺什么
-- Flutter / Go / Rust / PostgreSQL 怎么准备
-- 开始 Phase 0 前应该先检查哪些工具链
+- Version 0.3 开始前复核漫画规格；
+- Version 0.4 开始前复核同步协议；
+- 每次发布使用发布检查清单。
 
-### `docs/project-structure.md`
+## 3. 单一信息源
 
-定位：项目目录结构说明文档
+| 信息 | 权威文件 |
+|---|---|
+| 版本包含与排除范围 | `plan.md` |
+| 当前任务和状态 | `mvp-task-list.md` |
+| 本地实体和字段语义 | `data-model.md` |
+| 小说导入与阅读行为 | `novel-reader-spec.md` |
+| 本地漫画行为 | `manga-reader-spec.md` |
+| 同步语义 | `sync-protocol.md` |
+| 质量门槛 | `quality-strategy.md` |
+| 目录职责 | `project-structure.md` |
+| 技术选择原因 | `decisions/` 中的 ADR |
 
-适合回答：
+其他文件应使用链接和摘要，不复制整套定义。
 
-- 仓库应该怎么分层
-- Flutter 客户端目录应该怎么拆
-- 每个目录该放什么、不该放什么
+## 4. 状态表达
 
----
+- **已实现**：代码、测试或发布物存在，且取得验证证据；
+- **开发中**：任务状态为 `in_progress`；
+- **计划**：已经进入版本范围，但尚未完成；
+- **候选**：尚未进入正式版本范围。
 
-## 2. 建议阅读顺序
+README 和 Release 不能把计划或候选能力写成已经支持。
 
-如果你是项目负责人或自己一个人推进，建议这样读：
+## 5. 更新触发条件
 
-1. 先读 `plan.md`
-2. 再读 `docs/mvp-task-list.md`
-3. 再读 `docs/tech-architecture.md`
-4. 开工前读 `docs/dev-setup.md`
-5. 开始搭工程时读 `docs/project-structure.md`
+- 版本范围变化：先更新 `plan.md`，再调整任务和专题规格；
+- 开始或完成任务：只更新 `mvp-task-list.md` 的对应状态和证据；
+- 领域语义变化：更新对应专题规格并检查迁移；
+- 技术选择变化：新增或替代 ADR；
+- 支持平台变化：更新计划、环境、质量和发布文档；
+- 发布版本：检查 README、已知问题、质量证据和所有链接。
 
-原因：
+## 6. 写作规则
 
-- 先看方向
-- 再看执行
-- 最后看实现
-
----
-
-## 3. 文档分工原则
-
-后面继续补文档时，建议遵守下面的边界：
-
-- `plan.md` 只写产品目标、范围、里程碑、优先级
-- `docs/mvp-task-list.md` 只写任务拆解、阶段目标、验收项
-- `docs/tech-architecture.md` 只写技术设计、模块边界、数据流
-- `docs/project-structure.md` 只写目录结构、代码组织和落地规则
-
-不要把下面这些内容重新混回总计划：
-
-- 具体接口字段
-- 代码目录实现细节
-- 每日开发流水账
-- 临时想到的功能点
-
----
-
-## 4. 建议下一批文档
-
-等真正开始写业务代码后，建议按顺序继续补：
-
-1. `docs/dev-setup.md`
-   - 本地开发环境搭建
-   - Flutter / Go / Rust / PostgreSQL 依赖说明
-2. `docs/project-structure.md`
-   - 客户端目录结构、模块边界和落地规则
-3. `docs/api-design.md`
-   - 登录、同步、设置等核心 API 设计
-4. `docs/data-model.md`
-   - 本地数据库与服务端数据模型说明
-5. `docs/release-checklist.md`
-   - MVP / Beta 发版检查项
-
----
-
-## 5. 当前最推荐的动作
-
-如果接下来开始动代码，建议优先做：
-
-- 把 Flutter 默认模板替换掉
-- 建立 `lib/src/app`、`lib/src/core`、`lib/src/features` 结构
-- 配好状态管理、路由、本地数据库
-- 先把书架和小说阅读链路做出来
-
----
-
-## 6. 一句话总结
-
-当前这套文档体系的目标，是先把 `mirascope` 从“想法很多”整理成“方向清楚、执行有序、架构可落地”的项目。
+- 使用具体行为和可验证条件，避免“体验良好”“基本稳定”；
+- 不写没有测量依据的性能数字；
+- 环境快照必须有日期和命令；
+- 不保留未解释的占位内容；
+- 未实现能力明确标为计划；
+- 变更文档时检查链接和跨文档版本边界。
