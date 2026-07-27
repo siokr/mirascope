@@ -11,7 +11,7 @@
 
 ## 2. 技术选择
 
-- 状态管理：Riverpod，业务 Provider 使用代码生成；
+- 状态管理：Riverpod 3，手写 Provider；
 - 路由：go_router，MVP 0.1 手写路由表；
 - 本地数据库：Drift + drift_flutter；
 - 代码生成：统一使用 build_runner；
@@ -19,7 +19,9 @@
 - 模型：首期手写不可变领域类，不引入 Freezed；
 - 路由：首期不引入路由代码生成。
 
-Drift 已经需要代码生成，因此 Riverpod 使用生成器不会引入第二套生成工作流。生成文件提交到仓库，并由 CI 或本地检查确认与源文件同步。
+Drift 使用 build_runner 生成数据库代码。Riverpod 不使用代码生成，因为
+当前 Riverpod 生成器与 Drift Dev 对 `analyzer` 的版本要求不兼容。
+Drift 生成文件提交到仓库，并由 CI 或本地检查确认与源文件同步。
 
 ## 3. 依赖方向
 
@@ -84,8 +86,8 @@ MVP 0.1 不创建 `manga`、`auth`、`sync`、`server` 或 Rust 目录。只在�
 - 业务规则保存在 Domain 或 Application；
 - 页面不能直接读取 Drift 数据库；
 - Repository 通过 Provider 注入，测试使用覆盖替换；
-- 有副作用的界面状态使用生成的类式 Notifier；
-- 纯派生或只读状态使用函数式 Provider；
+- 有副作用的界面状态使用手写 `NotifierProvider`；
+- 纯派生或只读状态使用 `Provider`、`FutureProvider` 或 `StreamProvider`；
 - 长生命周期基础设施显式 `keepAlive`，页面状态默认自动释放。
 
 ## 6. 路由
@@ -155,7 +157,6 @@ LibraryPage
 
 ```text
 flutter_riverpod
-riverpod_annotation
 go_router
 drift
 drift_flutter
@@ -167,13 +168,12 @@ logging
 
 ```text
 build_runner
-riverpod_generator
-riverpod_lint
-custom_lint
 drift_dev
 ```
 
-具体兼容版本在实施时通过当前 Flutter/Dart 约束和依赖解析确定，并写入 `pubspec.lock`。不得脱离解析结果手填互不兼容的版本组合。
+具体兼容版本在实施时通过当前 Flutter/Dart 约束和依赖解析确定，并写入
+`pubspec.lock`。不添加 `riverpod_annotation`、`riverpod_generator`、
+`riverpod_lint` 或 `custom_lint`。
 
 ## 11. 测试
 

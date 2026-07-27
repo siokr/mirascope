@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the Flutter counter template with a tested mirascope application foundation containing generated Riverpod wiring, theme, startup handling, and the four MVP 0.1 routes.
+**Goal:** Replace the Flutter counter template with a tested mirascope application foundation containing Riverpod wiring, theme, startup handling, and the four MVP 0.1 routes.
 
 **Architecture:** Keep `main.dart` thin and build the app through a bootstrap function. Centralize the `GoRouter` and theme under `src/app`, expose simple feature pages, and use Riverpod only for dependency/UI-state wiring. Drift dependencies are installed now, but database tables and repositories remain M01-005 work.
 
-**Tech Stack:** Flutter, Dart, Riverpod with code generation, go_router, Drift, build_runner, flutter_test.
+**Tech Stack:** Flutter, Dart, Riverpod 3 with handwritten providers, go_router, Drift with build_runner, flutter_test.
 
 ## Global Constraints
 
@@ -17,7 +17,7 @@
 - Drift-generated types must not be passed into widgets.
 - Freezed is not added.
 - No `manga`, `auth`, `sync`, `server`, or Rust directories are created.
-- Generated Dart files are committed.
+- Drift-generated Dart files are committed when database code is introduced.
 - Database tables, TXT import, and reader behavior are outside this plan.
 
 ---
@@ -27,15 +27,13 @@
 ### Modify
 
 - `pubspec.yaml`: add accepted runtime and generator dependencies.
-- `analysis_options.yaml`: enable `custom_lint`.
 - `lib/main.dart`: thin async entrypoint that runs bootstrap.
 - `docs/mvp-task-list.md`: mark M01-001, M01-002, and M01-003 with evidence-based status after verification.
 
 ### Create
 
 - `lib/src/app/app.dart`: `MirascopeApp` and `MaterialApp.router`.
-- `lib/src/app/app_name_provider.dart`: generated Riverpod smoke provider.
-- `lib/src/app/app_name_provider.g.dart`: generated provider output.
+- `lib/src/app/app_name_provider.dart`: handwritten Riverpod smoke provider.
 - `lib/src/app/bootstrap/bootstrap.dart`: startup initialization and failure mapping.
 - `lib/src/app/bootstrap/startup_error_app.dart`: startup failure UI.
 - `lib/src/app/router/app_router.dart`: centralized `GoRouter`.
@@ -69,38 +67,26 @@
 
 - Modify: `pubspec.yaml`
 - Modify: `pubspec.lock`
-- Modify: `analysis_options.yaml`
 - Create: `lib/src/app/app_name_provider.dart`
-- Create: `lib/src/app/app_name_provider.g.dart`
 - Create: `test/src/app/app_name_provider_test.dart`
 
 **Interfaces:**
 
 - Consumes: ADR 0001 and ADR 0003.
-- Produces: `appNameProvider`, a generated `Provider<String>` used as a code-generation smoke test.
+- Produces: `appNameProvider`, a handwritten `Provider<String>` used as a dependency-wiring smoke test.
 
 - [ ] **Step 1: Add runtime and development dependencies**
 
 Run:
 
 ```bash
-flutter pub add flutter_riverpod riverpod_annotation go_router drift drift_flutter path_provider logging
-flutter pub add --dev build_runner riverpod_generator riverpod_lint custom_lint drift_dev
+flutter pub add 'flutter_riverpod:^3.4.1' go_router drift drift_flutter path_provider logging
+flutter pub add 'dev:build_runner' 'dev:drift_dev'
 ```
 
 Expected: dependency resolution exits 0 and updates `pubspec.yaml` plus `pubspec.lock`.
 
-- [ ] **Step 2: Enable the Riverpod custom lint plugin**
-
-Add to `analysis_options.yaml` above `linter:`:
-
-```yaml
-analyzer:
-  plugins:
-    - custom_lint
-```
-
-- [ ] **Step 3: Write the failing provider test**
+- [ ] **Step 2: Write the failing provider test**
 
 Create `test/src/app/app_name_provider_test.dart`:
 
@@ -119,7 +105,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it fails**
+- [ ] **Step 3: Run the test to verify it fails**
 
 Run:
 
@@ -129,20 +115,17 @@ flutter test test/src/app/app_name_provider_test.dart
 
 Expected: FAIL because `app_name_provider.dart` or `appNameProvider` does not exist.
 
-- [ ] **Step 5: Implement the generated provider**
+- [ ] **Step 4: Implement the handwritten provider**
 
 Create `lib/src/app/app_name_provider.dart`:
 
 ```dart
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-part 'app_name_provider.g.dart';
-
-@riverpod
-String appName(Ref ref) => 'mirascope';
+final appNameProvider = Provider<String>((ref) => 'mirascope');
 ```
 
-- [ ] **Step 6: Generate code**
+- [ ] **Step 5: Verify the Drift generator toolchain**
 
 Run:
 
@@ -150,9 +133,9 @@ Run:
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-Expected: `lib/src/app/app_name_provider.g.dart` is generated without conflicts.
+Expected: build_runner exits 0. No generated Dart file is expected until M01-005 defines Drift tables.
 
-- [ ] **Step 7: Run the provider test**
+- [ ] **Step 6: Run the provider test**
 
 Run:
 
@@ -162,7 +145,7 @@ flutter test test/src/app/app_name_provider_test.dart
 
 Expected: PASS.
 
-- [ ] **Step 8: Run static analysis**
+- [ ] **Step 7: Run static analysis**
 
 Run:
 
@@ -172,10 +155,10 @@ flutter analyze
 
 Expected: no errors.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add pubspec.yaml pubspec.lock analysis_options.yaml lib/src/app/app_name_provider.dart lib/src/app/app_name_provider.g.dart test/src/app/app_name_provider_test.dart
+git add pubspec.yaml pubspec.lock lib/src/app/app_name_provider.dart test/src/app/app_name_provider_test.dart
 git commit -m "build: add Flutter foundation dependencies"
 ```
 
@@ -823,7 +806,7 @@ rg --files lib/src
 
 Expected:
 
-- generated Riverpod output is tracked;
+- build_runner completes and no unexpected generated files appear;
 - no counter-template identifiers remain;
 - no `manga`, `auth`, `sync`, `server`, or Rust source directories were added;
 - only expected formatting, generated, and task-status changes are present.
