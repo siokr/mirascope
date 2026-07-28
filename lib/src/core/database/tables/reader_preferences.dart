@@ -40,5 +40,6 @@ class ReaderPreferences extends Table {
     "CHECK (scope IN ('global', 'mediaItem'))",
     "CHECK ((scope = 'global' AND media_item_id IS NULL) OR "
         "(scope = 'mediaItem' AND media_item_id IS NOT NULL))",
+    "CHECK (reading_mode IS NULL OR reading_mode = 'vertical')",
   ];
 }

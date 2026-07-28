@@ -299,6 +299,21 @@ void main() {
       _constraintViolation,
     );
   });
+
+  test('unsupported reading mode storage string is rejected', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+
+    await expectLater(
+      _insertReaderPreference(
+        database,
+        id: 'invalid-reading-mode',
+        scope: 'global',
+        readingMode: 'horizontal',
+      ),
+      _constraintViolation,
+    );
+  });
 }
 
 Future<void> _insertMediaItem(
@@ -385,6 +400,7 @@ Future<void> _insertReaderPreference(
   required String id,
   required String scope,
   String? mediaItemId,
+  String? readingMode,
 }) {
   return database
       .into(database.readerPreferences)
@@ -393,6 +409,7 @@ Future<void> _insertReaderPreference(
           id: id,
           scope: scope,
           mediaItemId: Value(mediaItemId),
+          readingMode: Value(readingMode),
           updatedAt: _now,
         ),
       );
