@@ -1,0 +1,10 @@
+import 'library_item.dart';
+import 'media_item.dart';
+
+abstract interface class MediaLibraryRepository {
+  Stream<List<LibraryItem>> watchActiveLibrary();
+  Future<MediaItem?> findMediaItem(String mediaItemId);
+  Future<void> archive(String mediaItemId, DateTime archivedAt);
+  Future<void> restore(String mediaItemId);
+  Future<void> deleteApplicationData(String mediaItemId);
+}
