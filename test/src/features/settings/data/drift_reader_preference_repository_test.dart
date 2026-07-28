@@ -99,6 +99,7 @@ void main() {
       final database = createTestDatabase();
       addTearDown(database.close);
       await _insertMedia(database);
+      await _insertMedia(database, id: 'media-two');
       final repository = DriftReaderPreferenceRepository(database);
       await repository.save(
         _preference(
@@ -109,14 +110,14 @@ void main() {
       );
       await repository.save(
         _preference(
-          id: 'global-one',
+          id: 'global-two',
           scope: PreferenceScope.global,
           fontSize: 21,
         ),
       );
       await repository.save(
         _preference(
-          id: 'media-one-preference',
+          id: 'media-one-preference-v1',
           scope: PreferenceScope.mediaItem,
           mediaItemId: 'media-one',
           lineHeight: 1.7,
@@ -124,20 +125,33 @@ void main() {
       );
       await repository.save(
         _preference(
-          id: 'media-one-preference',
+          id: 'media-one-preference-v2',
           scope: PreferenceScope.mediaItem,
           mediaItemId: 'media-one',
           lineHeight: 1.9,
         ),
       );
+      await repository.save(
+        _preference(
+          id: 'media-two-preference',
+          scope: PreferenceScope.mediaItem,
+          mediaItemId: 'media-two',
+          lineHeight: 2.1,
+        ),
+      );
 
       final rows = await database.select(database.readerPreferences).get();
       final global = await repository.findGlobal();
-      final media = await repository.findForMedia('media-one');
+      final mediaOne = await repository.findForMedia('media-one');
+      final mediaTwo = await repository.findForMedia('media-two');
 
-      expect(rows, hasLength(2));
+      expect(rows, hasLength(3));
+      expect(global?.id, 'global-two');
       expect(global?.fontSize, 21);
-      expect(media?.lineHeight, 1.9);
+      expect(mediaOne?.id, 'media-one-preference-v2');
+      expect(mediaOne?.lineHeight, 1.9);
+      expect(mediaTwo?.id, 'media-two-preference');
+      expect(mediaTwo?.lineHeight, 2.1);
     },
   );
 
@@ -202,14 +216,17 @@ ReaderPreference _preference({
   );
 }
 
-Future<void> _insertMedia(AppDatabase database) async {
+Future<void> _insertMedia(
+  AppDatabase database, {
+  String id = 'media-one',
+}) async {
   await database
       .into(database.mediaItems)
       .insert(
         MediaItemsCompanion.insert(
-          id: 'media-one',
+          id: id,
           mediaType: 'novel',
-          title: 'Title one',
+          title: 'Title $id',
           createdAt: _now,
           updatedAt: _now,
         ),
