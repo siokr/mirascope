@@ -280,18 +280,33 @@ Because the Dart table class is named `ReadingProgressEntries`, override its tab
 String get tableName => 'reading_progress';
 ```
 
-Create named indexes in `AppDatabase` migration setup:
+Declare named indexes on their table classes so Drift generation and schema
+snapshots both include them:
 
-```sql
-CREATE INDEX media_items_type_updated_idx
-  ON media_items(media_type, updated_at);
-CREATE UNIQUE INDEX reader_preferences_global_idx
-  ON reader_preferences(scope) WHERE scope = 'global';
-CREATE UNIQUE INDEX reader_preferences_media_idx
-  ON reader_preferences(media_item_id) WHERE scope = 'mediaItem';
-CREATE INDEX import_records_fingerprint_idx
-  ON import_records(fingerprint);
+```dart
+@TableIndex(
+  name: 'media_items_type_updated_idx',
+  columns: {#mediaType, #updatedAt},
+)
+
+@TableIndex.sql(
+  "CREATE UNIQUE INDEX reader_preferences_global_idx "
+  "ON reader_preferences(scope) WHERE scope = 'global'",
+)
+@TableIndex.sql(
+  "CREATE UNIQUE INDEX reader_preferences_media_idx "
+  "ON reader_preferences(media_item_id) WHERE scope = 'mediaItem'",
+)
+
+@TableIndex(
+  name: 'import_records_fingerprint_idx',
+  columns: {#fingerprint},
+)
 ```
+
+Place the first annotation immediately above `MediaItems`, the two partial
+unique annotations immediately above `ReaderPreferences`, and the final
+annotation immediately above `ImportRecords`.
 
 - [ ] **Step 5: Implement `AppDatabase`**
 
@@ -320,7 +335,6 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) async {
       await migrator.createAll();
-      await _createV1Indexes();
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -328,8 +342,6 @@ class AppDatabase extends _$AppDatabase {
   );
 }
 ```
-
-`_createV1Indexes` executes the four exact index statements from Step 4.
 
 - [ ] **Step 6: Generate Drift code**
 
