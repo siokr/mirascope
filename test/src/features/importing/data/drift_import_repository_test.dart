@@ -42,6 +42,31 @@ void main() {
     expect(importRows.single.status, 'completed');
   });
 
+  test(
+    'successful import keeps an immutable snapshot of caller chapters',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
+      final repository = DriftImportRepository(database);
+      final callerChapters = [
+        _contentUnit(prefix: 'one', idSuffix: '1', orderIndex: 0),
+        _contentUnit(prefix: 'one', idSuffix: '2', orderIndex: 1),
+      ];
+      final value = _successfulImport(contentUnits: callerChapters);
+
+      callerChapters.clear();
+
+      expect(value.contentUnits, hasLength(2));
+      await repository.commitSuccessfulImport(value);
+      final rows = await database.select(database.contentUnits).get();
+      expect(rows.map((row) => row.id).toList(), [
+        'chapter-one-1',
+        'chapter-one-2',
+      ]);
+      expect(value.contentUnits.clear, throwsUnsupportedError);
+    },
+  );
+
   test('completed fingerprint lookup returns the mapped record', () async {
     final database = createTestDatabase();
     addTearDown(database.close);

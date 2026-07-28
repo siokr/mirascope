@@ -4,12 +4,12 @@ import '../../novel/domain/content_unit.dart';
 import 'import_record.dart';
 
 final class SuccessfulImport {
-  const SuccessfulImport({
+  SuccessfulImport({
     required this.mediaItem,
     required this.libraryEntry,
-    required this.contentUnits,
+    required List<ContentUnit> contentUnits,
     required this.importRecord,
-  });
+  }) : contentUnits = List<ContentUnit>.unmodifiable(contentUnits);
 
   final MediaItem mediaItem;
   final LibraryEntry libraryEntry;
