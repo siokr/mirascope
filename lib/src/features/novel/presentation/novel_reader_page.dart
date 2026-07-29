@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,14 +51,36 @@ class _ReaderScaffold extends StatefulWidget {
   State<_ReaderScaffold> createState() => _ReaderScaffoldState();
 }
 
-class _ReaderScaffoldState extends State<_ReaderScaffold> {
+class _ReaderScaffoldState extends State<_ReaderScaffold>
+    with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   var _lastChapterIndex = -1;
+  var _initialPositionRestored = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _scrollController.addListener(_recordScrollPosition);
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _scrollController.removeListener(_recordScrollPosition);
+    unawaited(widget.controller.flushProgress());
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      unawaited(widget.controller.flushProgress());
+    }
   }
 
   @override
@@ -70,7 +94,18 @@ class _ReaderScaffoldState extends State<_ReaderScaffold> {
           _lastChapterIndex = controller.currentIndex;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (_scrollController.hasClients) {
-              _scrollController.jumpTo(0);
+              if (!_initialPositionRestored) {
+                _initialPositionRestored = true;
+                final textLength = controller.chapter!.text.length;
+                final ratio = textLength == 0
+                    ? 0.0
+                    : controller.restoredCharacterOffset / textLength;
+                _scrollController.jumpTo(
+                  _scrollController.position.maxScrollExtent * ratio,
+                );
+              } else {
+                _scrollController.jumpTo(0);
+              }
             }
           });
         }
@@ -136,6 +171,22 @@ class _ReaderScaffoldState extends State<_ReaderScaffold> {
           ),
         );
       },
+    );
+  }
+
+  void _recordScrollPosition() {
+    if (!_scrollController.hasClients || widget.controller.chapter == null) {
+      return;
+    }
+    final maximum = _scrollController.position.maxScrollExtent;
+    final fraction = maximum <= 0
+        ? 0.0
+        : (_scrollController.offset / maximum).clamp(0.0, 1.0);
+    final characterOffset = (widget.controller.chapter!.text.length * fraction)
+        .round();
+    widget.controller.updatePosition(
+      characterOffset: characterOffset,
+      fraction: fraction,
     );
   }
 

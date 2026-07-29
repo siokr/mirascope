@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,8 +32,14 @@ final novelReaderControllerProvider = FutureProvider.autoDispose
       final controller = NovelReaderController(
         mediaItemId: mediaItemId,
         repository: await ref.watch(novelReaderRepositoryProvider.future),
+        progressRepository: ref.watch(readingProgressRepositoryProvider),
+        idGenerator: const UuidIdGenerator(),
+        clock: () => DateTime.now().toUtc(),
       );
-      ref.onDispose(controller.dispose);
+      ref.onDispose(() {
+        unawaited(controller.close());
+        controller.dispose();
+      });
       await controller.initialize();
       return controller;
     });

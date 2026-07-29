@@ -8,6 +8,9 @@ import 'package:mirascope/src/features/novel/application/novel_providers.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
 import 'package:mirascope/src/features/novel/domain/novel_reader_repository.dart';
 import 'package:mirascope/src/features/novel/domain/reader_book.dart';
+import 'package:mirascope/src/features/novel/domain/progress_write_result.dart';
+import 'package:mirascope/src/features/novel/domain/reading_progress.dart';
+import 'package:mirascope/src/features/novel/domain/reading_progress_repository.dart';
 import 'package:mirascope/src/features/novel/presentation/novel_reader_page.dart';
 import 'package:mirascope/src/features/settings/domain/effective_reader_preference.dart';
 import 'package:mirascope/src/features/settings/domain/reader_preference.dart';
@@ -25,6 +28,9 @@ void main() {
           ),
           readerPreferenceRepositoryProvider.overrideWithValue(
             _PreferenceRepository(),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _ProgressRepository(),
           ),
         ],
         child: const MaterialApp(home: NovelReaderPage(mediaItemId: 'media-1')),
@@ -60,6 +66,9 @@ void main() {
           readerPreferenceRepositoryProvider.overrideWithValue(
             _PreferenceRepository(),
           ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _ProgressRepository(),
+          ),
         ],
         child: const MaterialApp(home: NovelReaderPage(mediaItemId: 'media-1')),
       ),
@@ -85,6 +94,9 @@ void main() {
             (ref) async => _Repository(),
           ),
           readerPreferenceRepositoryProvider.overrideWithValue(preferences),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _ProgressRepository(),
+          ),
         ],
         child: const MaterialApp(home: NovelReaderPage(mediaItemId: 'media-1')),
       ),
@@ -102,9 +114,50 @@ void main() {
     );
     expect(preferences.saved.last.themeKey, 'sepia');
   });
+
+  testWidgets('restores semantic character position after layout', (
+    tester,
+  ) async {
+    final longText = List.filled(200, 'A readable line').join('\n');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          novelReaderRepositoryProvider.overrideWith(
+            (ref) async => _Repository(text: longText),
+          ),
+          readerPreferenceRepositoryProvider.overrideWithValue(
+            _PreferenceRepository(),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _ProgressRepository(
+              stored: ReadingProgress(
+                id: 'progress-1',
+                mediaItemId: 'media-1',
+                contentUnitId: 'unit-0',
+                locator: 'char-v1:${longText.length ~/ 2}',
+                fraction: 0.5,
+                updatedAt: DateTime.utc(2026, 7, 29),
+                revision: 2,
+              ),
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: NovelReaderPage(mediaItemId: 'media-1')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView).first,
+    );
+    expect(scrollView.controller!.offset, greaterThan(0));
+  });
 }
 
 final class _Repository implements NovelReaderRepository {
+  _Repository({this.text});
+
+  final String? text;
   final book = _book();
 
   @override
@@ -112,7 +165,7 @@ final class _Repository implements NovelReaderRepository {
 
   @override
   Future<ReaderChapter> readChapter(ContentUnit unit) async =>
-      ReaderChapter(unit: unit, text: 'Body ${unit.orderIndex + 1}');
+      ReaderChapter(unit: unit, text: text ?? 'Body ${unit.orderIndex + 1}');
 }
 
 ReaderBook _book() {
@@ -174,4 +227,22 @@ final class _PreferenceRepository implements ReaderPreferenceRepository {
 
   @override
   Future<ReaderPreference?> findGlobal() async => null;
+}
+
+final class _ProgressRepository implements ReadingProgressRepository {
+  _ProgressRepository({this.stored});
+
+  ReadingProgress? stored;
+
+  @override
+  Future<ReadingProgress?> findForMedia(String mediaItemId) async => stored;
+
+  @override
+  Future<ProgressWriteResult> save(ReadingProgress progress) async {
+    final result = stored == null
+        ? ProgressWriteResult.inserted
+        : ProgressWriteResult.updated;
+    stored = progress;
+    return result;
+  }
 }

@@ -1,13 +1,32 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
+import '../../../core/ids/id_generator.dart';
 import '../domain/novel_reader_repository.dart';
+import '../domain/progress_write_result.dart';
 import '../domain/reader_book.dart';
+import '../domain/reading_progress.dart';
+import '../domain/reading_progress_repository.dart';
+
+typedef ReaderClock = DateTime Function();
 
 final class NovelReaderController extends ChangeNotifier {
-  NovelReaderController({required this.mediaItemId, required this.repository});
+  NovelReaderController({
+    required this.mediaItemId,
+    required this.repository,
+    this.progressRepository,
+    this.idGenerator,
+    this.clock,
+    this.saveDebounce = const Duration(milliseconds: 750),
+  });
 
   final String mediaItemId;
   final NovelReaderRepository repository;
+  final ReadingProgressRepository? progressRepository;
+  final IdGenerator? idGenerator;
+  final ReaderClock? clock;
+  final Duration saveDebounce;
 
   ReaderBook? book;
   ReaderChapter? chapter;
@@ -16,6 +35,11 @@ final class NovelReaderController extends ChangeNotifier {
   int? retryIndex;
   String? errorMessage;
   bool initialLoading = true;
+  int restoredCharacterOffset = 0;
+  ReadingProgress? _storedProgress;
+  _PendingProgress? _pendingProgress;
+  Timer? _saveTimer;
+  Future<void> _saveQueue = Future.value();
 
   bool get canGoPrevious => currentIndex > 0 && loadingIndex == null;
   bool get canGoNext =>
@@ -30,7 +54,17 @@ final class NovelReaderController extends ChangeNotifier {
         errorMessage = '无法打开这部作品';
         return;
       }
-      await _load(0);
+      _storedProgress = await progressRepository?.findForMedia(mediaItemId);
+      final restoredIndex = _storedProgress == null
+          ? 0
+          : book!.chapters.indexWhere(
+              (unit) => unit.id == _storedProgress!.contentUnitId,
+            );
+      await _load(restoredIndex < 0 ? 0 : restoredIndex);
+      restoredCharacterOffset = _restoreOffset(
+        _storedProgress,
+        chapter!.text.length,
+      );
     } on Object {
       errorMessage = '无法加载阅读内容';
     } finally {
@@ -51,7 +85,13 @@ final class NovelReaderController extends ChangeNotifier {
         loadingIndex != null) {
       return;
     }
+    await flushProgress();
     await _load(index);
+    if (currentIndex == index && chapter != null) {
+      restoredCharacterOffset = 0;
+      updatePosition(characterOffset: 0, fraction: 0);
+      await flushProgress();
+    }
   }
 
   Future<void> retry() async {
@@ -82,4 +122,108 @@ final class NovelReaderController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void updatePosition({
+    required int characterOffset,
+    required double fraction,
+  }) {
+    if (progressRepository == null ||
+        idGenerator == null ||
+        clock == null ||
+        chapter == null) {
+      return;
+    }
+    final safeOffset = characterOffset.clamp(0, chapter!.text.length);
+    final safeFraction = fraction.clamp(0.0, 1.0);
+    _pendingProgress = _PendingProgress(
+      contentUnitId: chapter!.unit.id,
+      characterOffset: safeOffset,
+      fraction: safeFraction,
+    );
+    _saveTimer?.cancel();
+    _saveTimer = Timer(saveDebounce, () {
+      unawaited(flushProgress());
+    });
+  }
+
+  Future<void> flushProgress() async {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    final pending = _pendingProgress;
+    if (pending == null ||
+        progressRepository == null ||
+        idGenerator == null ||
+        clock == null) {
+      return;
+    }
+    _pendingProgress = null;
+    _saveQueue = _saveQueue.then((_) => _writeProgress(pending));
+    await _saveQueue;
+  }
+
+  Future<void> _writeProgress(_PendingProgress pending) async {
+    final previous = _storedProgress;
+    final progress = ReadingProgress(
+      id: previous?.id ?? idGenerator!.newId(),
+      mediaItemId: mediaItemId,
+      contentUnitId: pending.contentUnitId,
+      locator: 'char-v1:${pending.characterOffset}',
+      fraction: pending.fraction,
+      updatedAt: clock!().toUtc(),
+      revision: previous == null ? 0 : previous.revision + 1,
+    );
+    final result = await progressRepository!.save(progress);
+    if (result == ProgressWriteResult.revisionConflict) {
+      _storedProgress = await progressRepository!.findForMedia(mediaItemId);
+      final current = _storedProgress;
+      if (current != null) {
+        final retry = ReadingProgress(
+          id: current.id,
+          mediaItemId: mediaItemId,
+          contentUnitId: pending.contentUnitId,
+          locator: 'char-v1:${pending.characterOffset}',
+          fraction: pending.fraction,
+          updatedAt: clock!().toUtc(),
+          revision: current.revision + 1,
+        );
+        final retryResult = await progressRepository!.save(retry);
+        if (retryResult != ProgressWriteResult.revisionConflict) {
+          _storedProgress = retry;
+        }
+      }
+      return;
+    }
+    _storedProgress = progress;
+  }
+
+  int _restoreOffset(ReadingProgress? progress, int textLength) {
+    if (progress == null) return 0;
+    final match = RegExp(r'^char-v1:(\d+)$').firstMatch(progress.locator);
+    if (match != null) {
+      return int.parse(match.group(1)!).clamp(0, textLength);
+    }
+    if (progress.fraction.isFinite &&
+        progress.fraction >= 0 &&
+        progress.fraction <= 1) {
+      return (textLength * progress.fraction).round().clamp(0, textLength);
+    }
+    return 0;
+  }
+
+  Future<void> close() async {
+    _saveTimer?.cancel();
+    await flushProgress();
+  }
+}
+
+final class _PendingProgress {
+  const _PendingProgress({
+    required this.contentUnitId,
+    required this.characterOffset,
+    required this.fraction,
+  });
+
+  final String contentUnitId;
+  final int characterOffset;
+  final double fraction;
 }

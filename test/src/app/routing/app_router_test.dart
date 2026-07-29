@@ -12,6 +12,9 @@ import 'package:mirascope/src/features/novel/domain/novel_details.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
 import 'package:mirascope/src/features/novel/domain/novel_reader_repository.dart';
 import 'package:mirascope/src/features/novel/domain/reader_book.dart';
+import 'package:mirascope/src/features/novel/domain/progress_write_result.dart';
+import 'package:mirascope/src/features/novel/domain/reading_progress.dart';
+import 'package:mirascope/src/features/novel/domain/reading_progress_repository.dart';
 import 'package:mirascope/src/features/settings/domain/effective_reader_preference.dart';
 import 'package:mirascope/src/features/settings/domain/reader_preference.dart';
 import 'package:mirascope/src/features/settings/domain/reader_preference_repository.dart';
@@ -154,6 +157,9 @@ Future<void> _pumpApp(
         readerPreferenceRepositoryProvider.overrideWithValue(
           const _RouteReaderPreferenceRepository(),
         ),
+        readingProgressRepositoryProvider.overrideWithValue(
+          const _RouteReadingProgressRepository(),
+        ),
       ],
       child: MirascopeApp(router: router),
     ),
@@ -254,6 +260,18 @@ final class _RouteReaderPreferenceRepository
 
   @override
   Future<ReaderPreference?> findGlobal() async => null;
+}
+
+final class _RouteReadingProgressRepository
+    implements ReadingProgressRepository {
+  const _RouteReadingProgressRepository();
+
+  @override
+  Future<ReadingProgress?> findForMedia(String mediaItemId) async => null;
+
+  @override
+  Future<ProgressWriteResult> save(ReadingProgress progress) async =>
+      ProgressWriteResult.inserted;
 }
 
 Future<void> _pumpRoute(WidgetTester tester) async {
