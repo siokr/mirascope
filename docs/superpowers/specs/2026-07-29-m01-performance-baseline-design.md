@@ -51,7 +51,7 @@ RSS 是操作系统视角的进程常驻内存，包含 Dart 运行时、SQLite 
 
 ## 构建模式
 
-正式记录使用 Dart AOT 可执行文件，避免把测试框架和 JIT 编译成本混入结果。报告同时记录 Flutter、Dart、操作系统、CPU、内存和 Git commit。
+正式记录使用 `dart build cli` 生成的 Dart AOT bundle。该入口会运行依赖的 build hooks 并携带 SQLite 原生资产，同时避免把测试框架和 JIT 编译成本混入结果。报告记录 Flutter、Dart、操作系统、CPU、内存和 Git commit。
 
 ## 输出
 

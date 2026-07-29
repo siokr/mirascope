@@ -16,7 +16,7 @@
 
 ## 任务 3：生成正式基线
 
-1. 将工具编译为 AOT 可执行文件；
+1. 使用 `dart build cli` 将工具和 SQLite 原生资产构建为 AOT bundle；
 2. 每个样本预热一次；
 3. 每个样本正式运行三次；
 4. 保存 JSON 和 Markdown；

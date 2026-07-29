@@ -79,6 +79,17 @@ Flutter/Dart 版本
 
 第一次实现只建立基线。经过真实使用确认后，在同一测试环境冻结具体阈值和允许回归比例。未完成基线时不能宣称“性能达标”。
 
+### 5.4 TXT 基准入口
+
+使用 Dart 3.10 及以上版本的 Native Assets 构建入口生成 AOT bundle：
+
+```powershell
+dart build cli --target=bin/txt_performance_baseline.dart --output=build/txt_performance_cli
+.\build\txt_performance_cli\bundle\bin\txt_performance_baseline.exe --flutter-version 3.44.8 --output docs/performance
+```
+
+工具生成 100 KiB、5 MiB 和 50 MiB 无版权样本；每组预热一次、正式运行三次，并在独立子进程中测量完整导入、首次打开、章节切换和 RSS。Flutter 版本参数必须与当次实际 SDK 一致。
+
 ## 6. 测试数据
 
 - 自建或许可明确的样例文件；
