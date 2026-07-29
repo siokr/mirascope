@@ -66,16 +66,21 @@ void main() {
     tester,
   ) async {
     const privatePath = r'C:\Users\private\mirascope.sqlite';
+    var factoryCalled = false;
     final records = <LogRecord>[];
     final subscription = Logger.root.onRecord.listen(records.add);
     addTearDown(subscription.cancel);
 
     final root = await buildRootWidget(
-      initialize: () async => throw StateError(privatePath),
+      openDatabase: () {
+        factoryCalled = true;
+        throw StateError(privatePath);
+      },
     );
 
     await tester.pumpWidget(root);
 
+    expect(factoryCalled, isTrue);
     expect(find.byType(StartupErrorApp), findsOneWidget);
     expect(find.text('应用启动失败'), findsOneWidget);
     expect(find.text('database_open_failed'), findsOneWidget);

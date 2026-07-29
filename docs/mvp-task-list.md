@@ -64,10 +64,14 @@
 ### M01-005 本地数据库与迁移
 
 - 优先级：P0
-- 状态：planned
+- 状态：done
 - 依赖：M01-001、M01-002
 - 交付物：MVP 0.1 所需表、约束、Repository 和 schema 迁移
-- 验收：空库初始化、上一测试 schema 升级和失败回滚测试通过；模型符合 `docs/data-model.md`
+- 验收：空库初始化、当前 schema 对已提交 v1 快照的严格验证和失败回滚测试通过；模型符合 `docs/data-model.md`
+- 证据：实现提交 `d91417f`、`ea2ae04`、`169c9d4`、`fd3ffee`、`6a1b10f`、`b9c0612`、`3e629ad`、`de07469`、`e6845d2`、`d85e117`、`69c15af`。
+- 验证：`dart run build_runner build` 成功；`dart format .` 检查 64 个文件且 0 变更；`flutter analyze --no-pub` 无问题；`flutter test --no-pub` 共 66 项通过。
+- schema 证据：全新当前 `AppDatabase.onCreate` 与已提交 v1 helper 严格一致；测试覆盖 6 张表、6 条级联外键、4 个声明索引和故意失败事务回滚；重复执行 `schema dump` 与 `schema generate` 后对应 `git diff --exit-code` 均为 0。
+- 边界审计：domain/presentation 无 Drift import；普通日志仅记录稳定代码，不包含原始异常、堆栈或完整源路径；schema v1 仅含批准的 6 类实体，不含 Bookmark。
 
 ### M01-006 媒体库
 

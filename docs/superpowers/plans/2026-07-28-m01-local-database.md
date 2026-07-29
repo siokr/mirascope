@@ -6,7 +6,13 @@
 
 **Architecture:** Drift owns SQLite schema, constraints, transactions, and migrations under `core/database`. Feature-owned domain models and repository interfaces do not import Drift; feature data implementations map between those models and generated rows. Production opens `mirascope.sqlite` in the application-support directory, while tests inject an in-memory database.
 
-**Tech Stack:** Flutter 3.44.8, Dart 3.12.2, Riverpod 3.4.1, Drift 2.34.x, drift_flutter 0.3.1, drift_dev 2.34.x, build_runner 2.15.x, UUID package selected by `flutter pub add uuid`, flutter_test.
+**Tech Stack:** Flutter 3.44.8, Dart 3.12.2, Riverpod 3.4.1, Drift 2.34.0, drift_flutter 0.3.1, drift_dev 2.34.0, build_runner 2.15.x, UUID package selected by `flutter pub add uuid`, flutter_test.
+
+**Verified compatibility constraint:** Keep `drift` and `drift_dev` exactly
+paired at `2.34.0` for this Flutter SDK dependency graph. The previously locked
+`drift 2.34.2` with `drift_dev 2.34.0` failed to compile the schema verifier,
+while `drift_dev >=2.34.1+1` required analyzer 13 and could not resolve with the
+current `flutter_test` / `flutter_riverpod` test dependencies.
 
 ## Global Constraints
 
@@ -799,6 +805,7 @@ git commit -m "接入本地数据库启动流程"
 
 - Create: `drift_schemas/drift_schema_v1.json`
 - Generate: `test/generated_migrations/schema.dart`
+- Generate: `test/generated_migrations/schema_v1.dart`
 - Create: `test/src/core/database/migration_test.dart`
 
 **Interfaces:**
@@ -812,10 +819,13 @@ Run:
 
 ```powershell
 dart run drift_dev schema dump lib/src/core/database/app_database.dart drift_schemas
-dart run drift_dev schema steps drift_schemas test/generated_migrations/schema.dart
+dart run drift_dev schema generate drift_schemas test/generated_migrations
 ```
 
-Expected: `drift_schema_v1.json` and generated migration helpers are created.
+Expected: `drift_schema_v1.json`, `schema.dart`, and `schema_v1.dart` are
+created. `schema generate` is required because `SchemaVerifier` consumes its
+generated `GeneratedHelper`; `schema steps` only generates step-by-step upgrade
+callbacks.
 
 - [ ] **Step 2: Write migration tests**
 
@@ -825,8 +835,9 @@ Verify:
 
 ```text
 the generated v1 schema opens successfully
-AppDatabase constructed from the v1 connection validates against current schema
-foreign keys and all named indexes exist
+a fresh database created by current AppDatabase.onCreate strictly validates
+against the generated v1 schema
+foreign keys and all named indexes exist on the current AppDatabase instance
 ```
 
 Add a test-only transaction:
@@ -860,12 +871,14 @@ Expected: schema validation and rollback tests PASS.
 Run the dump command again:
 
 ```powershell
-git add --intent-to-add drift_schemas/drift_schema_v1.json
 dart run drift_dev schema dump lib/src/core/database/app_database.dart drift_schemas
 git diff --exit-code -- drift_schemas/drift_schema_v1.json
+dart run drift_dev schema generate drift_schemas test/generated_migrations
+git diff --exit-code -- test/generated_migrations
 ```
 
-Expected: no diff after regenerating the v1 snapshot.
+Expected: no diff after regenerating the v1 snapshot or verifier helpers from
+their committed baselines.
 
 - [ ] **Step 5: Commit**
 
@@ -907,17 +920,20 @@ flutter analyze --no-pub
 flutter test --no-pub
 dart run drift_dev schema dump lib/src/core/database/app_database.dart drift_schemas
 git diff --exit-code -- drift_schemas/drift_schema_v1.json
+dart run drift_dev schema generate drift_schemas test/generated_migrations
+git diff --exit-code -- test/generated_migrations
 ```
 
-Expected: analysis has no issues, all tests pass, and the schema snapshot is current.
+Expected: analysis has no issues, all tests pass, and both the schema snapshot
+and verifier helpers are current.
 
 - [ ] **Step 3: Audit boundaries and sensitive logging**
 
 Run:
 
 ```powershell
-rg -n "package:drift" lib/src/features/*/domain lib/src/features/*/presentation
-rg -n "appLogger\\.(severe|warning|info).*error|stackTrace|sourcePath" lib
+rg -n "package:drift" lib/src/features -g "*/domain/*.dart" -g "*/presentation/*.dart"
+rg -n -C 2 "appLogger\\.(severe|warning|info)" lib
 rg --files lib/src/core/database lib/src/features
 git diff --check
 ```
@@ -925,7 +941,8 @@ git diff --check
 Expected:
 
 - no Drift import in domain or presentation files;
-- no raw database exception, stack trace, or source path passed to ordinary logs;
+- ordinary log calls use stable codes and do not receive raw database
+  exceptions, stack traces, or source paths;
 - only the approved six schema entities exist;
 - documentation and code diffs contain no whitespace errors.
 
