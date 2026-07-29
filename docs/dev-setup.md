@@ -38,7 +38,7 @@ flutter devices
 ```bash
 flutter pub get
 flutter run -d windows
-dart format --output=none --set-exit-if-changed lib test
+dart format --output=none --set-exit-if-changed lib test tool bin
 flutter analyze
 flutter test
 flutter build windows
@@ -119,3 +119,9 @@ Flutter/Dart
 ### 构建或测试失败
 
 保留完整命令和首个根因错误。不要只删除缓存；先判断是环境、依赖还是代码问题。
+
+### Windows 构建停在 CMake 且没有输出
+
+当前维护者机器曾出现 MSVC 选择 `HostX86 → x64` 后挂起，而 GitHub `windows-latest` runner 可以成功构建同一提交。先检查 Visual Studio Installer 中的 Desktop development with C++、MSVC x64/x86 工具和 Windows SDK，再使用 `flutter doctor -v` 确认。
+
+只终止能够确认属于本轮构建的进程。不要批量结束无关的 PowerShell、Dart 或编译进程，也不要把删除 Flutter 缓存作为首选修复。

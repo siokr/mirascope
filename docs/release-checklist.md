@@ -21,7 +21,7 @@
 
 ## 4. 自动检查
 
-- [ ] `dart format --output=none --set-exit-if-changed .`
+- [ ] `dart format --output=none --set-exit-if-changed lib test tool bin`
 - [ ] `flutter analyze`
 - [ ] `flutter test`
 - [ ] 当前支持平台的 release 构建

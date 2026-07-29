@@ -12,6 +12,9 @@
 - [`mvp-task-list.md`](mvp-task-list.md)：当前版本任务、依赖、状态、交付物和验收。
 - [`quality-strategy.md`](quality-strategy.md)：测试层级、质量门槛和性能基准方法。
 - [`release-checklist.md`](release-checklist.md)：候选版本与 GitHub Release 检查。
+- [`demo-guide.md`](demo-guide.md)：MVP 0.1 核心演示路径和记录要求。
+- [`known-issues.md`](known-issues.md)：当前限制、影响与处理计划。
+- [`releases/0.1.0-rc.1.md`](releases/0.1.0-rc.1.md)：首个候选版本的真实检查状态。
 
 ### 架构与工程
 

@@ -1,100 +1,161 @@
 # mirascope
 
-`mirascope` 是一个本地优先的个人阅读与媒体管理应用。长期方向是统一管理小说、漫画和番剧；当前先把 Windows 本地 TXT 阅读做成真实可用、可测试、可公开演示的产品。
+`mirascope` 是一个使用 Flutter 开发的本地优先个人阅读与媒体管理应用。当前 MVP 聚焦 Windows 本地 TXT 小说：文件留在用户设备上，应用负责可靠导入、章节组织、阅读设置和进度恢复。
 
-> 当前状态：项目处于规划完成、业务工程尚未启动的阶段。仓库中的 Flutter 代码仍是初始模板。下面的路线是计划，不代表对应功能已经实现。
+> 当前状态：`0.1.0+1` 候选开发版。核心代码、自动化测试、Windows CI 构建和 50 MiB 性能基线已经完成；Windows 原生文件选择与完整阅读路径仍等待本机实机验收，因此尚未发布正式安装包。
 
-## 当前目标：MVP 0.1
+## 当前能力
 
-首个版本只承诺 Windows，并验证一条完整路径：
+已经实现：
+
+- 单个 TXT 文件选择、元数据校验和流式 SHA-256 指纹；
+- UTF-8、UTF-16 LE/BE 和 GB18030 严格解码；
+- 中英文常见章节识别与无章节回退；
+- 媒体、媒体库、章节和导入记录的原子事务；
+- 导入失败补偿、重复内容识别和安全错误反馈；
+- 媒体库、归档与恢复；
+- 小说详情、目录和纵向滚动阅读器；
+- 字号、行距、跟随系统、浅色、深色和护眼主题；
+- 章节与字符偏移进度持久化，使用 revision 防止旧写入覆盖新进度；
+- 原文件丢失检测和同指纹文件重新定位；
+- GitHub Actions 格式、静态分析、全量测试和 Windows release 构建；
+- 100 KiB、5 MiB、50 MiB TXT 的可复现 AOT 性能基线。
+
+尚未完成或尚未实机确认：
+
+- Windows 核心演示路径与重启恢复的人工验收；
+- 不同内容文件经用户确认后的安全原位重解析；
+- 正式截图、演示视频、安装包和 GitHub Release；
+- EPUB、Android、书签、漫画、账号和同步。
+
+完整限制见 [已知问题](docs/known-issues.md)。
+
+## 核心路径
 
 ```text
-导入 TXT -> 加入媒体库 -> 打开小说 -> 切换章节
--> 退出或终止应用 -> 再次启动 -> 恢复阅读位置
+导入 TXT
+→ 确认书名或选择编码
+→ 加入媒体库
+→ 查看目录并开始阅读
+→ 切换章节、滚动和调整显示
+→ 关闭应用
+→ 再次启动并恢复语义位置
 ```
 
-范围包括：
+来源文件移动后，应用保留媒体、章节、设置和进度；重新选择同一内容后恢复关联。不同指纹不会被静默替换。
 
-- Flutter 工程骨架；
-- 本地媒体库和数据库迁移；
-- UTF-8、UTF-16、GB18030 TXT 导入；
-- 章节识别和无章节回退；
-- 纵向滚动阅读器；
-- 字号、行距和基础主题；
-- 原子导入、重复检测、文件重新定位；
-- 阅读进度持久化与恢复；
-- 自动化测试、Windows 构建和演示证据。
+## 工程重点
 
-不包括 EPUB、Android、漫画、账号同步、下载、番剧、在线内容源、Go 服务和 Rust 模块。
+项目采用按 feature 组织的分层结构：
 
-## 为什么这样规划
+```text
+Presentation  页面、交互和状态展示
+      ↓
+Application   导入、阅读、进度和重新定位用例
+      ↓
+Domain        平台无关模型与仓储契约
+      ↓
+Data          Drift、文件系统和平台插件实现
+```
 
-这个项目同时用于自己长期使用、求职展示和 GitHub 交流。首版优先证明：
+关键工程约束：
 
-- 产品主链路能够真正使用；
-- 本地数据不会因异常轻易丢失；
-- 文件导入、迁移和恢复行为能够解释和测试；
-- 架构随需求演进，而不是为了展示技术栈提前堆叠。
+- 页面不直接执行 SQL 或解析文件；
+- 用户原 TXT 不由应用修改或删除；
+- 数据库与派生文本采用暂存、提升、事务和失败补偿；
+- 日志不记录正文、标题、完整路径、原始异常或堆栈；
+- 远期 Go、PostgreSQL 和 Rust 能力只有满足进入条件后才引入。
 
-Go、PostgreSQL 和 Rust 都有明确的进入条件，但不是当前成熟度标签。
+架构细节见 [技术架构](docs/tech-architecture.md) 和 [架构决策记录](docs/decisions/README.md)。
+
+## 当前质量证据
+
+最近一次本地检查：
+
+```text
+格式检查：134 个 Dart 文件，0 变化
+静态分析：0 问题
+自动化测试：199/199 通过
+```
+
+最近一次远程质量门禁：
+
+- Flutter `3.44.8` / Dart `3.12.2`；
+- 通用质量检查通过；
+- GitHub `windows-latest` release 构建通过；
+- [查看 M01-017 CI 记录](https://github.com/siokr/mirascope/actions/runs/30457172195)。
+
+50 MiB TXT 首次 AOT 基线：
+
+- 800 章；
+- 导入中位数 `2808.843 ms`；
+- 首次打开中位数 `61.365 ms`；
+- RSS 增量中位数 `209.52 MiB`。
+
+这些数字是回归基线，不代表已经冻结性能阈值。完整环境和三次原始结果见 [性能报告](docs/performance/2026-07-29-txt-baseline.md)。
+
+## 在 Windows 上运行
+
+前置条件：
+
+- Windows 10 或 11；
+- Flutter stable，Dart 满足 `pubspec.yaml`；
+- Visual Studio 2022，安装 **Desktop development with C++**；
+- Git 和 PowerShell。
+
+```powershell
+git clone https://github.com/siokr/mirascope.git
+cd mirascope
+flutter doctor -v
+flutter pub get
+flutter run -d windows
+```
+
+执行开发质量检查：
+
+```powershell
+dart format --output=none --set-exit-if-changed lib test tool bin
+flutter analyze
+flutter test
+flutter build windows --release
+```
+
+当前维护者机器存在 MSVC `HostX86 → x64` 选择后构建挂起的问题；GitHub 干净 Windows runner 可以成功构建。遇到类似问题请先阅读 [开发环境常见问题](docs/dev-setup.md#9-常见问题) 和 [已知问题](docs/known-issues.md)，不要直接清空 Flutter 缓存。
+
+## 演示和验证
+
+- [候选版本演示指南](docs/demo-guide.md)
+- [MVP 任务与证据](docs/mvp-task-list.md)
+- [质量策略](docs/quality-strategy.md)
+- [候选版本记录](docs/releases/0.1.0-rc.1.md)
+- [发布检查清单](docs/release-checklist.md)
+
+当前没有运行截图。取得 `0.1.0+1` Windows 候选构建的真实截图后再加入 README，不使用设计稿或测试渲染冒充发布截图。
+
+## 文档导航
+
+建议按需求阅读：
+
+1. [项目计划](plan.md)：版本范围和长期路线；
+2. [MVP 执行清单](docs/mvp-task-list.md)：任务状态和验收证据；
+3. [小说阅读规格](docs/novel-reader-spec.md)：TXT 导入与阅读规则；
+4. [本地数据模型](docs/data-model.md)：实体、迁移和文件生命周期；
+5. [技术架构](docs/tech-architecture.md)：边界和依赖方向；
+6. [完整文档索引](docs/README.md)。
 
 ## 路线
 
-| 版本 | 目标 | 主要平台 |
+| 版本 | 目标 | 平台 |
 |---|---|---|
 | MVP 0.1 | 本地 TXT 小说闭环 | Windows |
 | MVP 0.2 | EPUB、Android、书签和公开 Release | Windows、Android |
-| Version 0.3 | 本地漫画导入与阅读 | 复用已支持平台 |
+| Version 0.3 | 本地漫画导入与阅读 | 已支持平台 |
 | Version 0.4 | 账号、设备和同步 | 客户端 + Go/PostgreSQL |
 
-在线内容源、下载、番剧、其他平台和 Rust 属于后续候选方向，没有预设排期。
+在线内容源、下载、番剧和 Rust 模块是候选方向，没有被包装成当前能力。
 
-## 当前仓库
+## 贡献与许可证
 
-```text
-lib/                     Flutter 初始模板，待 Phase 0 重构
-docs/                    产品、架构、规格和执行文档
-test/                    Flutter 默认测试，待替换
-android/ ios/ ...        Flutter 生成的平台目录，不表示正式支持
-plan.md                  权威版本路线
-```
+Issue 和讨论应说明问题属于哪个版本、如何验收、数据安全影响和维护成本。提交代码前请运行质量门槛，并避免提交商业小说、私人路径或敏感日志。
 
-## 文档
-
-建议按顺序阅读：
-
-1. [项目计划](plan.md)
-2. [MVP 执行清单](docs/mvp-task-list.md)
-3. [技术架构](docs/tech-architecture.md)
-4. [本地数据模型](docs/data-model.md)
-5. [小说阅读规格](docs/novel-reader-spec.md)
-6. [质量策略](docs/quality-strategy.md)
-7. [完整文档索引](docs/README.md)
-
-后续专题：
-
-- [本地漫画规格](docs/manga-reader-spec.md)
-- [同步协议](docs/sync-protocol.md)
-- [项目结构](docs/project-structure.md)
-- [开发环境](docs/dev-setup.md)
-- [发布检查清单](docs/release-checklist.md)
-- [架构决策记录](docs/decisions/README.md)
-
-## 开始开发
-
-当前 MVP 0.1 只需要 Flutter/Windows 工具链。环境要求见 [开发环境](docs/dev-setup.md)。
-
-```bash
-flutter pub get
-flutter run -d windows
-flutter analyze
-flutter test
-```
-
-目前运行结果仍是 Flutter 默认计数器应用；完成 `M01-002` 后才会成为 mirascope 应用骨架。
-
-## 贡献与交流
-
-在业务开发启动前，Issue 和讨论应优先围绕明确的当前版本问题。新增需求需要说明它服务哪条核心路径、验收方式、维护成本和内容合规影响。
-
-项目尚未发布正式贡献指南。提交代码前请先以 `plan.md` 和 `docs/mvp-task-list.md` 判断范围。
+仓库当前尚未选择开源许可证。在许可证确定前，代码公开可见不等于获得复制、修改或再分发授权；正式公开交流前需要由项目所有者完成许可证决策。
