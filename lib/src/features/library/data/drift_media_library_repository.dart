@@ -13,24 +13,56 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
 
   @override
   Stream<List<domain.LibraryItem>> watchActiveLibrary() {
+    return _watchLibrary(archived: false);
+  }
+
+  @override
+  Stream<List<domain.LibraryItem>> watchArchivedLibrary() {
+    return _watchLibrary(archived: true);
+  }
+
+  Stream<List<domain.LibraryItem>> _watchLibrary({required bool archived}) {
     final query = database.select(database.libraryEntries).join([
       innerJoin(
         database.mediaItems,
         database.mediaItems.id.equalsExp(database.libraryEntries.mediaItemId),
       ),
     ]);
-    query
-      ..where(database.libraryEntries.archivedAt.isNull())
-      ..orderBy([
-        OrderingTerm(
-          expression: database.libraryEntries.lastOpenedAt,
-          mode: OrderingMode.desc,
-        ),
-        OrderingTerm(
-          expression: database.libraryEntries.addedAt,
-          mode: OrderingMode.desc,
-        ),
-      ]);
+    if (archived) {
+      query
+        ..where(database.libraryEntries.archivedAt.isNotNull())
+        ..orderBy([
+          OrderingTerm(
+            expression: database.libraryEntries.archivedAt,
+            mode: OrderingMode.desc,
+          ),
+          OrderingTerm(
+            expression: database.libraryEntries.addedAt,
+            mode: OrderingMode.desc,
+          ),
+          OrderingTerm(
+            expression: database.libraryEntries.id,
+            mode: OrderingMode.asc,
+          ),
+        ]);
+    } else {
+      query
+        ..where(database.libraryEntries.archivedAt.isNull())
+        ..orderBy([
+          OrderingTerm(
+            expression: database.libraryEntries.lastOpenedAt,
+            mode: OrderingMode.desc,
+          ),
+          OrderingTerm(
+            expression: database.libraryEntries.addedAt,
+            mode: OrderingMode.desc,
+          ),
+          OrderingTerm(
+            expression: database.libraryEntries.id,
+            mode: OrderingMode.asc,
+          ),
+        ]);
+    }
 
     return query.watch().map(
       (rows) => rows
@@ -54,17 +86,53 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
+  Future<void> markOpened(String mediaItemId, DateTime openedAt) async {
+    final updated =
+        await (database.update(database.libraryEntries)..where(
+              (row) =>
+                  row.mediaItemId.equals(mediaItemId) &
+                  row.archivedAt.isNull(),
+            ))
+            .write(
+              LibraryEntriesCompanion(
+                lastOpenedAt: Value(openedAt.toUtc()),
+              ),
+            );
+    if (updated != 1) {
+      throw StateError('library_entry_not_active');
+    }
+  }
+
+  @override
   Future<void> archive(String mediaItemId, DateTime archivedAt) async {
-    await (database.update(database.libraryEntries)
-          ..where((row) => row.mediaItemId.equals(mediaItemId)))
-        .write(LibraryEntriesCompanion(archivedAt: Value(archivedAt)));
+    final updated =
+        await (database.update(database.libraryEntries)..where(
+              (row) =>
+                  row.mediaItemId.equals(mediaItemId) &
+                  row.archivedAt.isNull(),
+            ))
+            .write(
+              LibraryEntriesCompanion(
+                archivedAt: Value(archivedAt.toUtc()),
+              ),
+            );
+    if (updated != 1) {
+      throw StateError('library_entry_not_active');
+    }
   }
 
   @override
   Future<void> restore(String mediaItemId) async {
-    await (database.update(database.libraryEntries)
-          ..where((row) => row.mediaItemId.equals(mediaItemId)))
-        .write(const LibraryEntriesCompanion(archivedAt: Value(null)));
+    final updated =
+        await (database.update(database.libraryEntries)..where(
+              (row) =>
+                  row.mediaItemId.equals(mediaItemId) &
+                  row.archivedAt.isNotNull(),
+            ))
+            .write(const LibraryEntriesCompanion(archivedAt: Value(null)));
+    if (updated != 1) {
+      throw StateError('library_entry_not_archived');
+    }
   }
 
   @override

@@ -27,6 +27,23 @@ void main() {
     expect(items.map((item) => item.mediaItem.id).toList(), ['active']);
   });
 
+  test('archived stream contains only archived entries', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(database, id: 'active', title: 'Active');
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'archived',
+      title: 'Archived',
+      archivedAt: _now,
+    );
+
+    final items = await repository.watchArchivedLibrary().first;
+
+    expect(items.map((item) => item.mediaItem.id).toList(), ['archived']);
+  });
+
   test('archive removes an item from the active stream', () async {
     final database = createTestDatabase();
     addTearDown(database.close);
@@ -108,6 +125,141 @@ void main() {
     },
   );
 
+  test('active ordering uses entry id as a stable final tie-breaker', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'z-last',
+      entryId: 'entry-z',
+      title: 'Z',
+    );
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'a-first',
+      entryId: 'entry-a',
+      title: 'A',
+    );
+
+    final items = await repository.watchActiveLibrary().first;
+
+    expect(items.map((item) => item.mediaItem.id).toList(), [
+      'a-first',
+      'z-last',
+    ]);
+  });
+
+  test(
+    'archived ordering uses archivedAt then addedAt then entry id',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
+      final repository = DriftMediaLibraryRepository(database);
+      await _insertMediaAndLibraryEntry(
+        database,
+        id: 'older-archive',
+        title: 'Older archive',
+        archivedAt: _now,
+        addedAt: _now.add(const Duration(hours: 4)),
+      );
+      await _insertMediaAndLibraryEntry(
+        database,
+        id: 'newer-added-z',
+        entryId: 'entry-z',
+        title: 'Newer added Z',
+        archivedAt: _now.add(const Duration(hours: 1)),
+        addedAt: _now.add(const Duration(hours: 3)),
+      );
+      await _insertMediaAndLibraryEntry(
+        database,
+        id: 'newer-added-a',
+        entryId: 'entry-a',
+        title: 'Newer added A',
+        archivedAt: _now.add(const Duration(hours: 1)),
+        addedAt: _now.add(const Duration(hours: 3)),
+      );
+      await _insertMediaAndLibraryEntry(
+        database,
+        id: 'same-archive-older-added',
+        title: 'Same archive older added',
+        archivedAt: _now.add(const Duration(hours: 1)),
+        addedAt: _now.add(const Duration(hours: 2)),
+      );
+
+      final items = await repository.watchArchivedLibrary().first;
+
+      expect(items.map((item) => item.mediaItem.id).toList(), [
+        'newer-added-a',
+        'newer-added-z',
+        'same-archive-older-added',
+        'older-archive',
+      ]);
+    },
+  );
+
+  test('markOpened stores UTC and moves the item to the front', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'already-opened',
+      title: 'Already opened',
+      lastOpenedAt: _now,
+    );
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'newly-opened',
+      title: 'Newly opened',
+    );
+    final localTime = DateTime(2026, 7, 29, 18, 30);
+
+    await repository.markOpened('newly-opened', localTime);
+
+    final items = await repository.watchActiveLibrary().first;
+    final updated = items.first.libraryEntry.lastOpenedAt;
+    expect(items.first.mediaItem.id, 'newly-opened');
+    expect(updated, localTime.toUtc());
+    expect(updated!.isUtc, isTrue);
+  });
+
+  test('markOpened rejects archived and missing entries', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'archived',
+      title: 'Archived',
+      archivedAt: _now,
+    );
+
+    await expectLater(
+      repository.markOpened('archived', _now),
+      throwsStateError,
+    );
+    await expectLater(repository.markOpened('missing', _now), throwsStateError);
+  });
+
+  test('archive and restore reject invalid current states', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(database, id: 'active', title: 'Active');
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'archived',
+      title: 'Archived',
+      archivedAt: _now,
+    );
+
+    await expectLater(repository.archive('archived', _now), throwsStateError);
+    await expectLater(repository.archive('missing', _now), throwsStateError);
+    await expectLater(repository.restore('active'), throwsStateError);
+    await expectLater(repository.restore('missing'), throwsStateError);
+  });
+
   test('deleting a media item removes database dependents', () async {
     final database = createTestDatabase();
     addTearDown(database.close);
@@ -182,6 +334,7 @@ void main() {
 Future<void> _insertMediaAndLibraryEntry(
   AppDatabase database, {
   required String id,
+  String? entryId,
   required String title,
   DateTime? addedAt,
   DateTime? lastOpenedAt,
@@ -202,7 +355,7 @@ Future<void> _insertMediaAndLibraryEntry(
       .into(database.libraryEntries)
       .insert(
         LibraryEntriesCompanion.insert(
-          id: 'entry-$id',
+          id: entryId ?? 'entry-$id',
           mediaItemId: id,
           favorite: false,
           addedAt: addedAt ?? _now,
