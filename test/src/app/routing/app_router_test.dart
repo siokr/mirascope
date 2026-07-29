@@ -6,6 +6,10 @@ import 'package:mirascope/src/app/app.dart';
 import 'package:mirascope/src/app/routing/app_router.dart';
 import 'package:mirascope/src/app/routing/app_routes.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
+import 'package:mirascope/src/features/library/domain/media_item.dart';
+import 'package:mirascope/src/features/novel/domain/content_unit.dart';
+import 'package:mirascope/src/features/novel/domain/novel_details.dart';
+import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
 
 import '../../features/library/library_test_support.dart';
 
@@ -65,7 +69,7 @@ void main() {
     await _pumpRoute(tester);
 
     expect(find.text('小说详情'), findsOneWidget);
-    expect(find.text('媒体 ID：book-42'), findsOneWidget);
+    expect(find.text('Book book-42'), findsOneWidget);
   });
 
   testWidgets('shows a safe page for an invalid media id', (tester) async {
@@ -133,12 +137,48 @@ Future<void> _pumpApp(
 ) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [mediaLibraryRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        mediaLibraryRepositoryProvider.overrideWithValue(repository),
+        novelDetailsRepositoryProvider.overrideWithValue(
+          const _RouteNovelDetailsRepository(),
+        ),
+      ],
       child: MirascopeApp(router: router),
     ),
   );
   repository.activeController.add([]);
   await _pumpRoute(tester);
+}
+
+final class _RouteNovelDetailsRepository implements NovelDetailsRepository {
+  const _RouteNovelDetailsRepository();
+
+  @override
+  Future<NovelDetails?> findDetails(String mediaItemId) async {
+    final now = DateTime.utc(2026, 7, 29);
+    return NovelDetails(
+      mediaItem: MediaItem(
+        id: mediaItemId,
+        mediaType: MediaType.novel,
+        title: 'Book $mediaItemId',
+        createdAt: now,
+        updatedAt: now,
+      ),
+      chapters: [
+        ContentUnit(
+          id: 'chapter-1',
+          mediaItemId: mediaItemId,
+          unitType: ContentUnitType.chapter,
+          title: 'First',
+          orderIndex: 0,
+          contentRef: 'content/book.txt',
+          sourceLocator: 'txt-v1:0:0:1',
+          contentHash: 'hash',
+        ),
+      ],
+      sourceAvailable: true,
+    );
+  }
 }
 
 Future<void> _pumpRoute(WidgetTester tester) async {

@@ -36,7 +36,11 @@ GoRouter createAppRouter() {
           if (mediaItemId.isEmpty) {
             return const _InvalidMediaPage();
           }
-          return NovelDetailsPage(mediaItemId: mediaItemId);
+          return NovelDetailsPage(
+            mediaItemId: mediaItemId,
+            onStartReading: () =>
+                context.push(AppRoutes.novelReader(mediaItemId)),
+          );
         },
         routes: [
           GoRoute(
