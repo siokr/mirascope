@@ -87,7 +87,10 @@ void main() {
     expect(find.textContaining(privatePath), findsNothing);
     expect(find.textContaining('没有修改或删除'), findsNothing);
     expect(records, hasLength(1));
-    expect(records.single.message, 'database_open_failed');
+    expect(
+      records.single.message,
+      'app_event code=database_open_failed stage=database_open',
+    );
     expect(records.single.error, isNull);
     expect(records.single.stackTrace, isNull);
     expect(records.single.toString(), isNot(contains(privatePath)));
@@ -128,7 +131,10 @@ void main() {
     expect(find.text('startup_failed'), findsOneWidget);
     expect(find.textContaining(privatePath), findsNothing);
     expect(records, hasLength(1));
-    expect(records.single.message, 'startup_failed');
+    expect(
+      records.single.message,
+      'app_event code=startup_failed stage=foundation',
+    );
     expect(records.single.error, isNull);
     expect(records.single.stackTrace, isNull);
   });

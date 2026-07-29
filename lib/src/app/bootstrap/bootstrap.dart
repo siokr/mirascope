@@ -5,6 +5,7 @@ import 'package:mirascope/src/app/bootstrap/startup_error_app.dart';
 import 'package:mirascope/src/core/database/app_database.dart';
 import 'package:mirascope/src/core/database/database_connection.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
+import 'package:mirascope/src/core/errors/app_error_code.dart';
 import 'package:mirascope/src/core/logging/app_logger.dart';
 
 final class AppDependencies {
@@ -27,8 +28,8 @@ Future<Widget> buildRootWidget({
   try {
     await (initializeFoundation ?? _initializeFoundation)();
   } on Object {
-    appLogger.severe('startup_failed');
-    return const StartupErrorApp(code: 'startup_failed');
+    logAppError(AppErrorCode.startupFailed.value, stage: 'foundation');
+    return StartupErrorApp(code: AppErrorCode.startupFailed.value);
   }
 
   late final AppDependencies dependencies;
@@ -36,8 +37,8 @@ Future<Widget> buildRootWidget({
     dependencies =
         await (initialize ?? () => _initializeDatabase(openDatabase))();
   } on Object {
-    appLogger.severe('database_open_failed');
-    return const StartupErrorApp(code: 'database_open_failed');
+    logAppError(AppErrorCode.databaseOpenFailed.value, stage: 'database_open');
+    return StartupErrorApp(code: AppErrorCode.databaseOpenFailed.value);
   }
 
   return _buildApplication(dependencies.database);

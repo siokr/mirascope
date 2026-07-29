@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/database_providers.dart';
+import '../../../core/errors/app_error_code.dart';
 import '../../../core/logging/app_logger.dart';
 import 'library_providers.dart';
 
@@ -23,7 +24,7 @@ final class LibraryActionsController extends Notifier<Set<String>> {
   }) {
     return _run(
       mediaItemId,
-      failureCode: 'library_open_failed',
+      failureCode: AppErrorCode.libraryOpenFailed,
       operation: () async {
         final openedAt = ref.read(libraryClockProvider)().toUtc();
         await ref
@@ -37,7 +38,7 @@ final class LibraryActionsController extends Notifier<Set<String>> {
   Future<LibraryActionResult> archive(String mediaItemId) {
     return _run(
       mediaItemId,
-      failureCode: 'library_archive_failed',
+      failureCode: AppErrorCode.libraryArchiveFailed,
       operation: () {
         final archivedAt = ref.read(libraryClockProvider)().toUtc();
         return ref
@@ -50,7 +51,7 @@ final class LibraryActionsController extends Notifier<Set<String>> {
   Future<LibraryActionResult> restore(String mediaItemId) {
     return _run(
       mediaItemId,
-      failureCode: 'library_restore_failed',
+      failureCode: AppErrorCode.libraryRestoreFailed,
       operation: () =>
           ref.read(mediaLibraryRepositoryProvider).restore(mediaItemId),
     );
@@ -58,7 +59,7 @@ final class LibraryActionsController extends Notifier<Set<String>> {
 
   Future<LibraryActionResult> _run(
     String mediaItemId, {
-    required String failureCode,
+    required AppErrorCode failureCode,
     required FutureOr<void> Function() operation,
   }) async {
     if (state.contains(mediaItemId)) {
@@ -70,7 +71,7 @@ final class LibraryActionsController extends Notifier<Set<String>> {
       await operation();
       return LibraryActionResult.succeeded;
     } on Object {
-      appLogger.warning(failureCode);
+      logAppWarning(failureCode.value, stage: 'library_action');
       return LibraryActionResult.failed;
     } finally {
       final remaining = {...state}..remove(mediaItemId);
