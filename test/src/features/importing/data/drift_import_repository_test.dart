@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/app_database.dart';
 import 'package:mirascope/src/features/importing/data/drift_import_repository.dart';
@@ -125,6 +126,39 @@ void main() {
       everyElement('shared-fingerprint'),
     );
   });
+
+  test(
+    'failed and missing fingerprints are not treated as completed',
+    () async {
+      for (final status in <domain_import.ImportStatus>[
+        domain_import.ImportStatus.failed,
+        domain_import.ImportStatus.missing,
+      ]) {
+        final database = createTestDatabase();
+        final repository = DriftImportRepository(database);
+        await repository.commitSuccessfulImport(
+          _successfulImport(fingerprint: 'inactive-fingerprint'),
+        );
+        await (database.update(
+          database.importRecords,
+        )..where((row) => row.id.equals('import-one'))).write(
+          ImportRecordsCompanion(
+            status: Value(status.storageValue),
+            errorCode: status == domain_import.ImportStatus.failed
+                ? const Value('storage_failed')
+                : const Value.absent(),
+          ),
+        );
+
+        expect(
+          await repository.findCompletedByFingerprint('inactive-fingerprint'),
+          isNull,
+          reason: '${status.storageValue} records must not block a new import',
+        );
+        await database.close();
+      }
+    },
+  );
 
   test(
     'duplicate chapter order rolls back the whole successful import',
