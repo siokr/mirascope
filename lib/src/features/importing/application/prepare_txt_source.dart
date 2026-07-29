@@ -60,7 +60,7 @@ final class PrepareTxtSource {
       if (existing != null) {
         return TxtSourceDuplicate(
           candidate: candidate,
-          mediaItemId: existing.mediaItemId,
+          mediaItemId: existing.mediaItemId!,
         );
       }
       return TxtSourceReady(candidate);

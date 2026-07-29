@@ -5,6 +5,7 @@ import 'package:mirascope/src/features/importing/data/drift_import_repository.da
 import 'package:mirascope/src/features/importing/domain/import_record.dart'
     as domain_import;
 import 'package:mirascope/src/features/importing/domain/successful_import.dart';
+import 'package:mirascope/src/features/importing/domain/txt_encoding.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart'
     as domain;
 import 'package:mirascope/src/features/library/domain/media_item.dart'
@@ -41,6 +42,7 @@ void main() {
     expect(importRows, hasLength(1));
     expect(importRows.single.id, 'import-one');
     expect(importRows.single.status, 'completed');
+    expect(importRows.single.textEncoding, 'utf8');
   });
 
   test(
@@ -90,6 +92,7 @@ void main() {
     expect(record?.fileSize, 101);
     expect(record?.modifiedAt, _now);
     expect(record?.fingerprint, 'fingerprint-one');
+    expect(record?.textEncoding, TxtEncoding.utf8);
     expect(record?.status, domain_import.ImportStatus.completed);
     expect(record?.errorCode, isNull);
     expect(record?.createdAt, _now);
@@ -185,6 +188,27 @@ void main() {
     },
   );
 
+  test('failed beforeCommit rolls back the complete aggregate', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftImportRepository(database);
+
+    await expectLater(
+      repository.commitSuccessfulImport(
+        _successfulImport(),
+        beforeCommit: () async {
+          throw StateError('promotion_failed');
+        },
+      ),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(await database.select(database.mediaItems).get(), isEmpty);
+    expect(await database.select(database.libraryEntries).get(), isEmpty);
+    expect(await database.select(database.contentUnits).get(), isEmpty);
+    expect(await database.select(database.importRecords).get(), isEmpty);
+  });
+
   test('invalid successful imports throw before database access', () async {
     final database = createTestDatabase();
     await database.close();
@@ -243,25 +267,14 @@ void main() {
   );
 
   test(
-    'recordFailure writes a valid failed import for existing media',
+    'recordFailure writes a valid failed import without a media aggregate',
     () async {
       final database = createTestDatabase();
       addTearDown(database.close);
       final repository = DriftImportRepository(database);
-      await database
-          .into(database.mediaItems)
-          .insert(
-            MediaItemsCompanion.insert(
-              id: 'media-one',
-              mediaType: 'novel',
-              title: 'Title one',
-              createdAt: _now,
-              updatedAt: _now,
-            ),
-          );
-
       await repository.recordFailure(
         _importRecord(
+          linkedMedia: false,
           status: domain_import.ImportStatus.failed,
           errorCode: 'parse',
         ),
@@ -270,6 +283,7 @@ void main() {
       final rows = await database.select(database.importRecords).get();
       expect(rows, hasLength(1));
       expect(rows.single.id, 'import-one');
+      expect(rows.single.mediaItemId, isNull);
       expect(rows.single.status, 'failed');
       expect(rows.single.errorCode, 'parse');
     },
@@ -342,6 +356,7 @@ domain.ContentUnit _contentUnit({
 domain_import.ImportRecord _importRecord({
   String prefix = 'one',
   String? mediaItemId,
+  bool linkedMedia = true,
   String sourcePath = 'C:/library/book.txt',
   String fingerprint = 'fingerprint-one',
   domain_import.ImportStatus status = domain_import.ImportStatus.completed,
@@ -349,12 +364,13 @@ domain_import.ImportRecord _importRecord({
 }) {
   return domain_import.ImportRecord(
     id: 'import-$prefix',
-    mediaItemId: mediaItemId ?? 'media-$prefix',
+    mediaItemId: linkedMedia ? (mediaItemId ?? 'media-$prefix') : null,
     sourcePath: sourcePath,
     sourceKind: domain_import.ImportSourceKind.txtFile,
     fileSize: 101,
     modifiedAt: _now,
     fingerprint: fingerprint,
+    textEncoding: TxtEncoding.utf8,
     status: status,
     errorCode: errorCode,
     createdAt: _now,

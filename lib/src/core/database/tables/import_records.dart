@@ -7,8 +7,9 @@ import 'media_items.dart';
 class ImportRecords extends Table {
   TextColumn get id => text()();
 
-  TextColumn get mediaItemId =>
-      text().references(MediaItems, #id, onDelete: KeyAction.cascade)();
+  TextColumn get mediaItemId => text()
+      .references(MediaItems, #id, onDelete: KeyAction.cascade)
+      .nullable()();
 
   TextColumn get sourcePath => text()();
 
@@ -20,6 +21,8 @@ class ImportRecords extends Table {
       integer().map(const DateTimeMillisConverter()).nullable()();
 
   TextColumn get fingerprint => text()();
+
+  TextColumn get textEncoding => text().nullable()();
 
   TextColumn get status => text()();
 
@@ -35,6 +38,8 @@ class ImportRecords extends Table {
     "CHECK (source_kind IN "
         "('txtFile', 'epubFile', 'mangaDirectory', 'mangaArchive'))",
     "CHECK (status IN ('pending', 'completed', 'failed', 'missing'))",
+    "CHECK (text_encoding IS NULL OR text_encoding IN "
+        "('utf8', 'utf16le', 'utf16be', 'gb18030'))",
     'CHECK (file_size >= 0)',
   ];
 }

@@ -147,7 +147,10 @@ final class _FakeImportRepository implements ImportRepository {
   }
 
   @override
-  Future<void> commitSuccessfulImport(SuccessfulImport value) async {
+  Future<void> commitSuccessfulImport(
+    SuccessfulImport value, {
+    Future<void> Function()? beforeCommit,
+  }) async {
     throw UnimplementedError();
   }
 

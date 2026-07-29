@@ -1,3 +1,5 @@
+import 'txt_encoding.dart';
+
 enum ImportSourceKind {
   txtFile('txtFile'),
   epubFile('epubFile'),
@@ -41,24 +43,26 @@ enum ImportStatus {
 final class ImportRecord {
   const ImportRecord({
     required this.id,
-    required this.mediaItemId,
+    this.mediaItemId,
     required this.sourcePath,
     required this.sourceKind,
     required this.fileSize,
     this.modifiedAt,
     required this.fingerprint,
+    this.textEncoding,
     required this.status,
     this.errorCode,
     required this.createdAt,
   });
 
   final String id;
-  final String mediaItemId;
+  final String? mediaItemId;
   final String sourcePath;
   final ImportSourceKind sourceKind;
   final int fileSize;
   final DateTime? modifiedAt;
   final String fingerprint;
+  final TxtEncoding? textEncoding;
   final ImportStatus status;
   final String? errorCode;
   final DateTime createdAt;

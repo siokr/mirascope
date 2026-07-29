@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/app_database.dart';
@@ -173,7 +174,7 @@ Future<void> _insertAggregate(
         .insert(
           ImportRecordsCompanion.insert(
             id: 'import-$id',
-            mediaItemId: id,
+            mediaItemId: Value(id),
             sourcePath: sourcePath,
             sourceKind: 'txtFile',
             fileSize: 100,

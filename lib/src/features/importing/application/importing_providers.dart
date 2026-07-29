@@ -1,16 +1,24 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/database/database_providers.dart';
+import '../../../core/ids/id_generator.dart';
 import '../data/charset_converter_gb18030_decoder.dart';
+import '../data/dart_io_derived_txt_store.dart';
 import '../data/dart_io_txt_source_inspector.dart';
 import '../data/dart_io_txt_source_reader.dart';
 import '../data/file_selector_txt_file_picker.dart';
 import '../domain/txt_encoding.dart';
+import '../domain/derived_txt_store.dart';
 import '../domain/txt_file_picker.dart';
 import '../domain/txt_source_candidate.dart';
 import '../domain/txt_source_reader.dart';
 import 'decode_txt_source.dart';
+import 'import_txt.dart';
 import 'prepare_txt_source.dart';
+import 'txt_chapter_detector.dart';
 import 'txt_decoder.dart';
 
 final txtFilePickerProvider = Provider<TxtFilePicker>((ref) {
@@ -37,6 +45,36 @@ final decodeTxtSourceProvider = Provider<DecodeTxtSource>((ref) {
   return DecodeTxtSource(
     sourceReader: ref.watch(txtSourceReaderProvider),
     decoder: ref.watch(txtDecoderProvider),
+  );
+});
+
+final txtChapterDetectorProvider = Provider<TxtChapterDetector>((ref) {
+  return const TxtChapterDetector();
+});
+
+final importIdGeneratorProvider = Provider<IdGenerator>((ref) {
+  return const UuidIdGenerator();
+});
+
+final importClockProvider = Provider<ImportClock>((ref) {
+  return () => DateTime.now().toUtc();
+});
+
+final derivedTxtStoreProvider = FutureProvider<DerivedTxtStore>((ref) async {
+  final supportDirectory = await getApplicationSupportDirectory();
+  return DartIoDerivedTxtStore(
+    Directory('${supportDirectory.path}${Platform.pathSeparator}derived_txt'),
+  );
+});
+
+final importTxtProvider = FutureProvider<ImportTxt>((ref) async {
+  return ImportTxt(
+    decodeTxtSource: ref.watch(decodeTxtSourceProvider),
+    chapterDetector: ref.watch(txtChapterDetectorProvider),
+    importRepository: ref.watch(importRepositoryProvider),
+    derivedTxtStore: await ref.watch(derivedTxtStoreProvider.future),
+    idGenerator: ref.watch(importIdGeneratorProvider),
+    clock: ref.watch(importClockProvider),
   );
 });
 

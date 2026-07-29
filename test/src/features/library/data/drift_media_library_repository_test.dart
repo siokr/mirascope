@@ -307,7 +307,7 @@ void main() {
         .insert(
           ImportRecordsCompanion.insert(
             id: 'import-1',
-            mediaItemId: 'media-1',
+            mediaItemId: const Value('media-1'),
             sourcePath: 'C:/books/book.txt',
             sourceKind: 'txtFile',
             fileSize: 100,

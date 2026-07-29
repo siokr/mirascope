@@ -4,6 +4,7 @@ import '../../../core/database/app_database.dart';
 import '../domain/import_record.dart' as domain;
 import '../domain/import_repository.dart';
 import '../domain/successful_import.dart';
+import '../domain/txt_encoding.dart';
 
 final class DriftImportRepository implements ImportRepository {
   DriftImportRepository(this.database);
@@ -27,7 +28,10 @@ final class DriftImportRepository implements ImportRepository {
   }
 
   @override
-  Future<void> commitSuccessfulImport(SuccessfulImport value) async {
+  Future<void> commitSuccessfulImport(
+    SuccessfulImport value, {
+    Future<void> Function()? beforeCommit,
+  }) async {
     _validateSuccessfulImport(value);
 
     await database.transaction(() async {
@@ -59,6 +63,7 @@ final class DriftImportRepository implements ImportRepository {
       await database
           .into(database.importRecords)
           .insert(_importRecordCompanion(value.importRecord));
+      await beforeCommit?.call();
     });
   }
 
@@ -105,6 +110,10 @@ final class DriftImportRepository implements ImportRepository {
     if (value.importRecord.status != domain.ImportStatus.completed) {
       throw ArgumentError('importRecord.status must be completed');
     }
+    if (value.importRecord.sourceKind == domain.ImportSourceKind.txtFile &&
+        value.importRecord.textEncoding == null) {
+      throw ArgumentError('A completed TXT import requires textEncoding');
+    }
   }
 
   MediaItemsCompanion _mediaItemCompanion(SuccessfulImport value) {
@@ -137,12 +146,13 @@ final class DriftImportRepository implements ImportRepository {
   ImportRecordsCompanion _importRecordCompanion(domain.ImportRecord record) {
     return ImportRecordsCompanion.insert(
       id: record.id,
-      mediaItemId: record.mediaItemId,
+      mediaItemId: Value(record.mediaItemId),
       sourcePath: record.sourcePath,
       sourceKind: record.sourceKind.storageValue,
       fileSize: record.fileSize,
       modifiedAt: Value(record.modifiedAt),
       fingerprint: record.fingerprint,
+      textEncoding: Value(record.textEncoding?.storageValue),
       status: record.status.storageValue,
       errorCode: Value(record.errorCode),
       createdAt: record.createdAt,
@@ -158,6 +168,9 @@ final class DriftImportRepository implements ImportRepository {
       fileSize: record.fileSize,
       modifiedAt: record.modifiedAt,
       fingerprint: record.fingerprint,
+      textEncoding: record.textEncoding == null
+          ? null
+          : TxtEncoding.fromStorageValue(record.textEncoding!),
       status: domain.ImportStatus.fromStorageValue(record.status),
       errorCode: record.errorCode,
       createdAt: record.createdAt,

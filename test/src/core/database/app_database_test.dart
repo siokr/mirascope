@@ -8,7 +8,7 @@ final _now = DateTime.utc(2026, 7, 28);
 final _constraintViolation = throwsA(isA<Exception>());
 
 void main() {
-  test('schema version is 1 and creates exactly the six v1 tables', () async {
+  test('schema version is 2 and creates exactly the six v2 tables', () async {
     final database = createTestDatabase();
     addTearDown(database.close);
 
@@ -20,7 +20,7 @@ void main() {
         )
         .get();
 
-    expect(database.schemaVersion, 1);
+    expect(database.schemaVersion, 2);
     expect(tableRows.map((row) => row.read<String>('name')).toList(), [
       'content_units',
       'import_records',
@@ -427,7 +427,7 @@ Future<void> _insertImportRecord(
       .insert(
         ImportRecordsCompanion.insert(
           id: id,
-          mediaItemId: 'media-1',
+          mediaItemId: const Value('media-1'),
           sourcePath: 'C:/books/example.txt',
           sourceKind: sourceKind,
           fileSize: fileSize,

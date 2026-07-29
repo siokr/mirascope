@@ -35,7 +35,7 @@ void main() {
   });
 
   test(
-    'current AppDatabase onCreate matches the generated v1 schema',
+    'current AppDatabase onCreate matches the generated v2 schema',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -44,14 +44,14 @@ void main() {
 
       await verifier.migrateAndValidate(
         database,
-        1,
+        2,
         options: const ValidationOptions(validateDropped: true),
       );
     },
   );
 
   test(
-    'v1 enables foreign keys and contains every declared relation and index',
+    'v2 enables foreign keys and contains every declared relation and index',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -108,6 +108,61 @@ void main() {
       ]);
     },
   );
+
+  test('v1 upgrades to v2 without guessing legacy TXT encoding', () async {
+    final schema = await verifier.schemaAt(1);
+    final rawDatabase = schema.rawDatabase;
+    rawDatabase.execute(
+      'INSERT INTO media_items '
+      '(id, media_type, title, created_at, updated_at) '
+      "VALUES ('legacy-media', 'novel', 'Legacy', 1, 1)",
+    );
+    rawDatabase.execute(
+      'INSERT INTO import_records '
+      '(id, media_item_id, source_path, source_kind, file_size, '
+      'modified_at, fingerprint, status, error_code, created_at) '
+      "VALUES ('legacy-import', 'legacy-media', 'legacy.txt', 'txtFile', "
+      "10, 1, 'legacy-fingerprint', 'completed', NULL, 1)",
+    );
+
+    final database = AppDatabase(schema.newConnection());
+    addTearDown(database.close);
+
+    await verifier.migrateAndValidate(
+      database,
+      2,
+      options: const ValidationOptions(validateDropped: true),
+    );
+
+    final record = await database.select(database.importRecords).getSingle();
+    expect(record.mediaItemId, 'legacy-media');
+    expect(record.textEncoding, isNull);
+  });
+
+  test('v2 permits an unlinked failed record but validates encoding', () async {
+    final database = AppDatabase.inMemory();
+    addTearDown(database.close);
+
+    await database.customStatement(
+      'INSERT INTO import_records '
+      '(id, media_item_id, source_path, source_kind, file_size, '
+      'modified_at, fingerprint, text_encoding, status, error_code, created_at) '
+      "VALUES ('failed-import', NULL, 'source.txt', 'txtFile', "
+      "10, 1, 'failed-fingerprint', 'utf8', 'failed', 'parse_failed', 1)",
+    );
+
+    await expectLater(
+      database.customStatement(
+        'INSERT INTO import_records '
+        '(id, media_item_id, source_path, source_kind, file_size, '
+        'modified_at, fingerprint, text_encoding, status, error_code, created_at) '
+        "VALUES ('bad-encoding', NULL, 'source.txt', 'txtFile', "
+        "10, 1, 'bad-fingerprint', 'system-default', 'failed', "
+        "'decode_failed', 1)",
+      ),
+      throwsA(anything),
+    );
+  });
 
   test(
     'failed transaction rolls back its insert and preserves earlier data',

@@ -2586,9 +2586,9 @@ class $ImportRecordsTable extends ImportRecords
   late final GeneratedColumn<String> mediaItemId = GeneratedColumn<String>(
     'media_item_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES media_items (id) ON DELETE CASCADE',
     ),
@@ -2646,6 +2646,17 @@ class $ImportRecordsTable extends ImportRecords
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _textEncodingMeta = const VerificationMeta(
+    'textEncoding',
+  );
+  @override
+  late final GeneratedColumn<String> textEncoding = GeneratedColumn<String>(
+    'text_encoding',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -2684,6 +2695,7 @@ class $ImportRecordsTable extends ImportRecords
     fileSize,
     modifiedAt,
     fingerprint,
+    textEncoding,
     status,
     errorCode,
     createdAt,
@@ -2713,8 +2725,6 @@ class $ImportRecordsTable extends ImportRecords
           _mediaItemIdMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_mediaItemIdMeta);
     }
     if (data.containsKey('source_path')) {
       context.handle(
@@ -2751,6 +2761,15 @@ class $ImportRecordsTable extends ImportRecords
     } else if (isInserting) {
       context.missing(_fingerprintMeta);
     }
+    if (data.containsKey('text_encoding')) {
+      context.handle(
+        _textEncodingMeta,
+        textEncoding.isAcceptableOrUnknown(
+          data['text_encoding']!,
+          _textEncodingMeta,
+        ),
+      );
+    }
     if (data.containsKey('status')) {
       context.handle(
         _statusMeta,
@@ -2781,7 +2800,7 @@ class $ImportRecordsTable extends ImportRecords
       mediaItemId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}media_item_id'],
-      )!,
+      ),
       sourcePath: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}source_path'],
@@ -2804,6 +2823,10 @@ class $ImportRecordsTable extends ImportRecords
         DriftSqlType.string,
         data['${effectivePrefix}fingerprint'],
       )!,
+      textEncoding: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}text_encoding'],
+      ),
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
@@ -2836,23 +2859,25 @@ class $ImportRecordsTable extends ImportRecords
 
 class ImportRecord extends DataClass implements Insertable<ImportRecord> {
   final String id;
-  final String mediaItemId;
+  final String? mediaItemId;
   final String sourcePath;
   final String sourceKind;
   final int fileSize;
   final DateTime? modifiedAt;
   final String fingerprint;
+  final String? textEncoding;
   final String status;
   final String? errorCode;
   final DateTime createdAt;
   const ImportRecord({
     required this.id,
-    required this.mediaItemId,
+    this.mediaItemId,
     required this.sourcePath,
     required this.sourceKind,
     required this.fileSize,
     this.modifiedAt,
     required this.fingerprint,
+    this.textEncoding,
     required this.status,
     this.errorCode,
     required this.createdAt,
@@ -2861,7 +2886,9 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['media_item_id'] = Variable<String>(mediaItemId);
+    if (!nullToAbsent || mediaItemId != null) {
+      map['media_item_id'] = Variable<String>(mediaItemId);
+    }
     map['source_path'] = Variable<String>(sourcePath);
     map['source_kind'] = Variable<String>(sourceKind);
     map['file_size'] = Variable<int>(fileSize);
@@ -2871,6 +2898,9 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
       );
     }
     map['fingerprint'] = Variable<String>(fingerprint);
+    if (!nullToAbsent || textEncoding != null) {
+      map['text_encoding'] = Variable<String>(textEncoding);
+    }
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || errorCode != null) {
       map['error_code'] = Variable<String>(errorCode);
@@ -2886,7 +2916,9 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
   ImportRecordsCompanion toCompanion(bool nullToAbsent) {
     return ImportRecordsCompanion(
       id: Value(id),
-      mediaItemId: Value(mediaItemId),
+      mediaItemId: mediaItemId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaItemId),
       sourcePath: Value(sourcePath),
       sourceKind: Value(sourceKind),
       fileSize: Value(fileSize),
@@ -2894,6 +2926,9 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
           ? const Value.absent()
           : Value(modifiedAt),
       fingerprint: Value(fingerprint),
+      textEncoding: textEncoding == null && nullToAbsent
+          ? const Value.absent()
+          : Value(textEncoding),
       status: Value(status),
       errorCode: errorCode == null && nullToAbsent
           ? const Value.absent()
@@ -2909,12 +2944,13 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ImportRecord(
       id: serializer.fromJson<String>(json['id']),
-      mediaItemId: serializer.fromJson<String>(json['mediaItemId']),
+      mediaItemId: serializer.fromJson<String?>(json['mediaItemId']),
       sourcePath: serializer.fromJson<String>(json['sourcePath']),
       sourceKind: serializer.fromJson<String>(json['sourceKind']),
       fileSize: serializer.fromJson<int>(json['fileSize']),
       modifiedAt: serializer.fromJson<DateTime?>(json['modifiedAt']),
       fingerprint: serializer.fromJson<String>(json['fingerprint']),
+      textEncoding: serializer.fromJson<String?>(json['textEncoding']),
       status: serializer.fromJson<String>(json['status']),
       errorCode: serializer.fromJson<String?>(json['errorCode']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -2925,12 +2961,13 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'mediaItemId': serializer.toJson<String>(mediaItemId),
+      'mediaItemId': serializer.toJson<String?>(mediaItemId),
       'sourcePath': serializer.toJson<String>(sourcePath),
       'sourceKind': serializer.toJson<String>(sourceKind),
       'fileSize': serializer.toJson<int>(fileSize),
       'modifiedAt': serializer.toJson<DateTime?>(modifiedAt),
       'fingerprint': serializer.toJson<String>(fingerprint),
+      'textEncoding': serializer.toJson<String?>(textEncoding),
       'status': serializer.toJson<String>(status),
       'errorCode': serializer.toJson<String?>(errorCode),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2939,23 +2976,25 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
 
   ImportRecord copyWith({
     String? id,
-    String? mediaItemId,
+    Value<String?> mediaItemId = const Value.absent(),
     String? sourcePath,
     String? sourceKind,
     int? fileSize,
     Value<DateTime?> modifiedAt = const Value.absent(),
     String? fingerprint,
+    Value<String?> textEncoding = const Value.absent(),
     String? status,
     Value<String?> errorCode = const Value.absent(),
     DateTime? createdAt,
   }) => ImportRecord(
     id: id ?? this.id,
-    mediaItemId: mediaItemId ?? this.mediaItemId,
+    mediaItemId: mediaItemId.present ? mediaItemId.value : this.mediaItemId,
     sourcePath: sourcePath ?? this.sourcePath,
     sourceKind: sourceKind ?? this.sourceKind,
     fileSize: fileSize ?? this.fileSize,
     modifiedAt: modifiedAt.present ? modifiedAt.value : this.modifiedAt,
     fingerprint: fingerprint ?? this.fingerprint,
+    textEncoding: textEncoding.present ? textEncoding.value : this.textEncoding,
     status: status ?? this.status,
     errorCode: errorCode.present ? errorCode.value : this.errorCode,
     createdAt: createdAt ?? this.createdAt,
@@ -2979,6 +3018,9 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
       fingerprint: data.fingerprint.present
           ? data.fingerprint.value
           : this.fingerprint,
+      textEncoding: data.textEncoding.present
+          ? data.textEncoding.value
+          : this.textEncoding,
       status: data.status.present ? data.status.value : this.status,
       errorCode: data.errorCode.present ? data.errorCode.value : this.errorCode,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -2995,6 +3037,7 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
           ..write('fileSize: $fileSize, ')
           ..write('modifiedAt: $modifiedAt, ')
           ..write('fingerprint: $fingerprint, ')
+          ..write('textEncoding: $textEncoding, ')
           ..write('status: $status, ')
           ..write('errorCode: $errorCode, ')
           ..write('createdAt: $createdAt')
@@ -3011,6 +3054,7 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
     fileSize,
     modifiedAt,
     fingerprint,
+    textEncoding,
     status,
     errorCode,
     createdAt,
@@ -3026,6 +3070,7 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
           other.fileSize == this.fileSize &&
           other.modifiedAt == this.modifiedAt &&
           other.fingerprint == this.fingerprint &&
+          other.textEncoding == this.textEncoding &&
           other.status == this.status &&
           other.errorCode == this.errorCode &&
           other.createdAt == this.createdAt);
@@ -3033,12 +3078,13 @@ class ImportRecord extends DataClass implements Insertable<ImportRecord> {
 
 class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
   final Value<String> id;
-  final Value<String> mediaItemId;
+  final Value<String?> mediaItemId;
   final Value<String> sourcePath;
   final Value<String> sourceKind;
   final Value<int> fileSize;
   final Value<DateTime?> modifiedAt;
   final Value<String> fingerprint;
+  final Value<String?> textEncoding;
   final Value<String> status;
   final Value<String?> errorCode;
   final Value<DateTime> createdAt;
@@ -3051,6 +3097,7 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
     this.fileSize = const Value.absent(),
     this.modifiedAt = const Value.absent(),
     this.fingerprint = const Value.absent(),
+    this.textEncoding = const Value.absent(),
     this.status = const Value.absent(),
     this.errorCode = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -3058,18 +3105,18 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
   });
   ImportRecordsCompanion.insert({
     required String id,
-    required String mediaItemId,
+    this.mediaItemId = const Value.absent(),
     required String sourcePath,
     required String sourceKind,
     required int fileSize,
     this.modifiedAt = const Value.absent(),
     required String fingerprint,
+    this.textEncoding = const Value.absent(),
     required String status,
     this.errorCode = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       mediaItemId = Value(mediaItemId),
        sourcePath = Value(sourcePath),
        sourceKind = Value(sourceKind),
        fileSize = Value(fileSize),
@@ -3084,6 +3131,7 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
     Expression<int>? fileSize,
     Expression<int>? modifiedAt,
     Expression<String>? fingerprint,
+    Expression<String>? textEncoding,
     Expression<String>? status,
     Expression<String>? errorCode,
     Expression<int>? createdAt,
@@ -3097,6 +3145,7 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
       if (fileSize != null) 'file_size': fileSize,
       if (modifiedAt != null) 'modified_at': modifiedAt,
       if (fingerprint != null) 'fingerprint': fingerprint,
+      if (textEncoding != null) 'text_encoding': textEncoding,
       if (status != null) 'status': status,
       if (errorCode != null) 'error_code': errorCode,
       if (createdAt != null) 'created_at': createdAt,
@@ -3106,12 +3155,13 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
 
   ImportRecordsCompanion copyWith({
     Value<String>? id,
-    Value<String>? mediaItemId,
+    Value<String?>? mediaItemId,
     Value<String>? sourcePath,
     Value<String>? sourceKind,
     Value<int>? fileSize,
     Value<DateTime?>? modifiedAt,
     Value<String>? fingerprint,
+    Value<String?>? textEncoding,
     Value<String>? status,
     Value<String?>? errorCode,
     Value<DateTime>? createdAt,
@@ -3125,6 +3175,7 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
       fileSize: fileSize ?? this.fileSize,
       modifiedAt: modifiedAt ?? this.modifiedAt,
       fingerprint: fingerprint ?? this.fingerprint,
+      textEncoding: textEncoding ?? this.textEncoding,
       status: status ?? this.status,
       errorCode: errorCode ?? this.errorCode,
       createdAt: createdAt ?? this.createdAt,
@@ -3158,6 +3209,9 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
     if (fingerprint.present) {
       map['fingerprint'] = Variable<String>(fingerprint.value);
     }
+    if (textEncoding.present) {
+      map['text_encoding'] = Variable<String>(textEncoding.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
@@ -3185,6 +3239,7 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
           ..write('fileSize: $fileSize, ')
           ..write('modifiedAt: $modifiedAt, ')
           ..write('fingerprint: $fingerprint, ')
+          ..write('textEncoding: $textEncoding, ')
           ..write('status: $status, ')
           ..write('errorCode: $errorCode, ')
           ..write('createdAt: $createdAt, ')
@@ -5771,12 +5826,13 @@ typedef $$ReaderPreferencesTableProcessedTableManager =
 typedef $$ImportRecordsTableCreateCompanionBuilder =
     ImportRecordsCompanion Function({
       required String id,
-      required String mediaItemId,
+      Value<String?> mediaItemId,
       required String sourcePath,
       required String sourceKind,
       required int fileSize,
       Value<DateTime?> modifiedAt,
       required String fingerprint,
+      Value<String?> textEncoding,
       required String status,
       Value<String?> errorCode,
       required DateTime createdAt,
@@ -5785,12 +5841,13 @@ typedef $$ImportRecordsTableCreateCompanionBuilder =
 typedef $$ImportRecordsTableUpdateCompanionBuilder =
     ImportRecordsCompanion Function({
       Value<String> id,
-      Value<String> mediaItemId,
+      Value<String?> mediaItemId,
       Value<String> sourcePath,
       Value<String> sourceKind,
       Value<int> fileSize,
       Value<DateTime?> modifiedAt,
       Value<String> fingerprint,
+      Value<String?> textEncoding,
       Value<String> status,
       Value<String?> errorCode,
       Value<DateTime> createdAt,
@@ -5808,9 +5865,9 @@ final class $$ImportRecordsTableReferences
   static $MediaItemsTable _mediaItemIdTable(_$AppDatabase db) => db.mediaItems
       .createAlias('import_records__media_item_id__media_items__id');
 
-  $$MediaItemsTableProcessedTableManager get mediaItemId {
-    final $_column = $_itemColumn<String>('media_item_id')!;
-
+  $$MediaItemsTableProcessedTableManager? get mediaItemId {
+    final $_column = $_itemColumn<String>('media_item_id');
+    if ($_column == null) return null;
     final manager = $$MediaItemsTableTableManager(
       $_db,
       $_db.mediaItems,
@@ -5860,6 +5917,11 @@ class $$ImportRecordsTableFilterComposer
 
   ColumnFilters<String> get fingerprint => $composableBuilder(
     column: $table.fingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get textEncoding => $composableBuilder(
+    column: $table.textEncoding,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5942,6 +6004,11 @@ class $$ImportRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get textEncoding => $composableBuilder(
+    column: $table.textEncoding,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -6017,6 +6084,11 @@ class $$ImportRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get textEncoding => $composableBuilder(
+    column: $table.textEncoding,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
@@ -6079,12 +6151,13 @@ class $$ImportRecordsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<String> mediaItemId = const Value.absent(),
+                Value<String?> mediaItemId = const Value.absent(),
                 Value<String> sourcePath = const Value.absent(),
                 Value<String> sourceKind = const Value.absent(),
                 Value<int> fileSize = const Value.absent(),
                 Value<DateTime?> modifiedAt = const Value.absent(),
                 Value<String> fingerprint = const Value.absent(),
+                Value<String?> textEncoding = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> errorCode = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -6097,6 +6170,7 @@ class $$ImportRecordsTableTableManager
                 fileSize: fileSize,
                 modifiedAt: modifiedAt,
                 fingerprint: fingerprint,
+                textEncoding: textEncoding,
                 status: status,
                 errorCode: errorCode,
                 createdAt: createdAt,
@@ -6105,12 +6179,13 @@ class $$ImportRecordsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
-                required String mediaItemId,
+                Value<String?> mediaItemId = const Value.absent(),
                 required String sourcePath,
                 required String sourceKind,
                 required int fileSize,
                 Value<DateTime?> modifiedAt = const Value.absent(),
                 required String fingerprint,
+                Value<String?> textEncoding = const Value.absent(),
                 required String status,
                 Value<String?> errorCode = const Value.absent(),
                 required DateTime createdAt,
@@ -6123,6 +6198,7 @@ class $$ImportRecordsTableTableManager
                 fileSize: fileSize,
                 modifiedAt: modifiedAt,
                 fingerprint: fingerprint,
+                textEncoding: textEncoding,
                 status: status,
                 errorCode: errorCode,
                 createdAt: createdAt,
