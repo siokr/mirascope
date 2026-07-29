@@ -5,6 +5,7 @@ import '../domain/effective_reader_preference.dart';
 import '../domain/reader_preference.dart' as domain;
 import '../domain/reader_preference_defaults.dart';
 import '../domain/reader_preference_repository.dart';
+import '../domain/reader_preference_rules.dart';
 
 final class DriftReaderPreferenceRepository
     implements ReaderPreferenceRepository {
@@ -54,23 +55,19 @@ final class DriftReaderPreferenceRepository
     final mediaPreference = await findForMedia(mediaItemId);
     final globalPreference = await findGlobal();
 
-    return EffectiveReaderPreference(
-      fontSize:
-          mediaPreference?.fontSize ??
-          globalPreference?.fontSize ??
-          defaults.fontSize,
-      lineHeight:
-          mediaPreference?.lineHeight ??
-          globalPreference?.lineHeight ??
-          defaults.lineHeight,
-      themeKey:
-          mediaPreference?.themeKey ??
-          globalPreference?.themeKey ??
-          defaults.themeKey,
-      readingMode:
-          mediaPreference?.readingMode ??
-          globalPreference?.readingMode ??
-          defaults.readingMode,
+    return ReaderPreferenceRules.resolve(
+      media: mediaPreference,
+      global: globalPreference,
+      defaults: defaults,
+    );
+  }
+
+  @override
+  Future<EffectiveReaderPreference> resolveGlobal() async {
+    return ReaderPreferenceRules.resolve(
+      media: null,
+      global: await findGlobal(),
+      defaults: defaults,
     );
   }
 
@@ -134,13 +131,29 @@ final class DriftReaderPreferenceRepository
           );
         }
     }
-    _validatePositive(preference.fontSize, 'preference.fontSize');
-    _validatePositive(preference.lineHeight, 'preference.lineHeight');
-  }
-
-  void _validatePositive(double? value, String name) {
-    if (value != null && (!value.isFinite || value <= 0)) {
-      throw ArgumentError.value(value, name, 'must be positive');
+    if (preference.fontSize != null &&
+        !ReaderPreferenceRules.isValidFontSize(preference.fontSize)) {
+      throw ArgumentError.value(
+        preference.fontSize,
+        'preference.fontSize',
+        'must be within the supported range',
+      );
+    }
+    if (preference.lineHeight != null &&
+        !ReaderPreferenceRules.isValidLineHeight(preference.lineHeight)) {
+      throw ArgumentError.value(
+        preference.lineHeight,
+        'preference.lineHeight',
+        'must be within the supported range',
+      );
+    }
+    if (preference.themeKey != null &&
+        !ReaderPreferenceRules.isValidTheme(preference.themeKey)) {
+      throw ArgumentError.value(
+        preference.themeKey,
+        'preference.themeKey',
+        'must be a supported theme',
+      );
     }
   }
 

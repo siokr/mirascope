@@ -8,5 +8,7 @@ abstract interface class ReaderPreferenceRepository {
 
   Future<EffectiveReaderPreference> resolveForMedia(String mediaItemId);
 
+  Future<EffectiveReaderPreference> resolveGlobal();
+
   Future<void> save(ReaderPreference preference);
 }

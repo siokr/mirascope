@@ -12,6 +12,9 @@ import 'package:mirascope/src/features/novel/domain/novel_details.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
 import 'package:mirascope/src/features/novel/domain/novel_reader_repository.dart';
 import 'package:mirascope/src/features/novel/domain/reader_book.dart';
+import 'package:mirascope/src/features/settings/domain/effective_reader_preference.dart';
+import 'package:mirascope/src/features/settings/domain/reader_preference.dart';
+import 'package:mirascope/src/features/settings/domain/reader_preference_repository.dart';
 import 'package:mirascope/src/features/novel/application/novel_providers.dart';
 
 import '../../features/library/library_test_support.dart';
@@ -148,6 +151,9 @@ Future<void> _pumpApp(
         novelReaderRepositoryProvider.overrideWith(
           (ref) async => const _RouteNovelReaderRepository(),
         ),
+        readerPreferenceRepositoryProvider.overrideWithValue(
+          const _RouteReaderPreferenceRepository(),
+        ),
       ],
       child: MirascopeApp(router: router),
     ),
@@ -220,6 +226,34 @@ final class _RouteNovelReaderRepository implements NovelReaderRepository {
   Future<ReaderChapter> readChapter(ContentUnit unit) async {
     return ReaderChapter(unit: unit, text: 'Reader body');
   }
+}
+
+final class _RouteReaderPreferenceRepository
+    implements ReaderPreferenceRepository {
+  const _RouteReaderPreferenceRepository();
+
+  @override
+  Future<EffectiveReaderPreference> resolveForMedia(String mediaItemId) async {
+    return const EffectiveReaderPreference(
+      fontSize: 18,
+      lineHeight: 1.6,
+      themeKey: 'system',
+      readingMode: ReadingMode.vertical,
+    );
+  }
+
+  @override
+  Future<EffectiveReaderPreference> resolveGlobal() =>
+      resolveForMedia('global');
+
+  @override
+  Future<void> save(ReaderPreference preference) async {}
+
+  @override
+  Future<ReaderPreference?> findForMedia(String mediaItemId) async => null;
+
+  @override
+  Future<ReaderPreference?> findGlobal() async => null;
 }
 
 Future<void> _pumpRoute(WidgetTester tester) async {

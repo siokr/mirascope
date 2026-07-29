@@ -73,7 +73,7 @@ void main() {
           scope: PreferenceScope.mediaItem,
           mediaItemId: 'media-one',
           lineHeight: 2,
-          themeKey: 'night',
+          themeKey: 'dark',
         ),
       );
 
@@ -85,10 +85,10 @@ void main() {
       expect(stored?.mediaItemId, 'media-one');
       expect(stored?.fontSize, isNull);
       expect(stored?.lineHeight, 2);
-      expect(stored?.themeKey, 'night');
+      expect(stored?.themeKey, 'dark');
       expect(effective.fontSize, 20);
       expect(effective.lineHeight, 2);
-      expect(effective.themeKey, 'night');
+      expect(effective.themeKey, 'dark');
       expect(effective.readingMode, ReadingMode.vertical);
     },
   );
@@ -173,6 +173,16 @@ void main() {
       ),
       _preference(id: 'zero-font', scope: PreferenceScope.global, fontSize: 0),
       _preference(
+        id: 'small-font',
+        scope: PreferenceScope.global,
+        fontSize: 11,
+      ),
+      _preference(
+        id: 'large-font',
+        scope: PreferenceScope.global,
+        fontSize: 37,
+      ),
+      _preference(
         id: 'negative-font',
         scope: PreferenceScope.global,
         fontSize: -1,
@@ -187,11 +197,44 @@ void main() {
         scope: PreferenceScope.global,
         lineHeight: -1,
       ),
+      _preference(
+        id: 'small-line-height',
+        scope: PreferenceScope.global,
+        lineHeight: 1.1,
+      ),
+      _preference(
+        id: 'large-line-height',
+        scope: PreferenceScope.global,
+        lineHeight: 2.5,
+      ),
+      _preference(
+        id: 'unknown-theme',
+        scope: PreferenceScope.global,
+        themeKey: 'neon',
+      ),
     ];
 
     for (final preference in invalidPreferences) {
       await expectLater(repository.save(preference), throwsArgumentError);
     }
+  });
+
+  test('invalid stored fields fall back independently to defaults', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    await database.customStatement(
+      'INSERT INTO reader_preferences '
+      '(id, scope, media_item_id, font_size, line_height, theme_key, '
+      'reading_mode, updated_at) '
+      "VALUES ('damaged', 'global', NULL, 100, 0.5, 'unknown', NULL, 1)",
+    );
+    final repository = DriftReaderPreferenceRepository(database);
+
+    final effective = await repository.resolveForMedia('media-one');
+
+    expect(effective.fontSize, 18);
+    expect(effective.lineHeight, 1.6);
+    expect(effective.themeKey, 'system');
   });
 }
 
