@@ -32,6 +32,8 @@ void main() {
 
       expect(find.byType(MirascopeApp), findsOneWidget);
       expect(container.read(appDatabaseProvider), same(database));
+
+      await _unmountAndFlush(tester);
     },
   );
 
@@ -53,12 +55,10 @@ void main() {
     final appContext = tester.element(find.byType(MirascopeApp));
     ProviderScope.containerOf(appContext).read(appDatabaseProvider);
 
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump();
+    await _unmountAndFlush(tester);
     expect(database.closeCount, 1);
 
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump();
+    await _unmountAndFlush(tester);
     expect(database.closeCount, 1);
   });
 
@@ -132,6 +132,11 @@ void main() {
     expect(records.single.error, isNull);
     expect(records.single.stackTrace, isNull);
   });
+}
+
+Future<void> _unmountAndFlush(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  await tester.pump(const Duration(milliseconds: 1));
 }
 
 final class _TrackingAppDatabase extends AppDatabase {

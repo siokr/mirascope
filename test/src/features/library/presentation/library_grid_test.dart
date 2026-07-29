@@ -60,6 +60,41 @@ void main() {
     expect(find.byKey(const Key('library-loading-card')), findsNWidgets(6));
   });
 
+  testWidgets('dark theme grid keeps its layout and contrast tokens', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.dark,
+          colorSchemeSeed: const Color(0xFF8C8CFF),
+        ),
+        home: Scaffold(
+          body: LibraryGrid(
+            items: List.generate(6, (index) => _item('dark-$index')),
+            archived: false,
+            busyMediaIds: const {},
+            onOpen: (_) {},
+            onArchive: (_) {},
+            onRestore: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    final grid = tester.widget<GridView>(find.byType(GridView));
+    final delegate =
+        grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+    expect(delegate.crossAxisCount, 3);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('error state explains failure and retries', (tester) async {
     var retried = false;
 

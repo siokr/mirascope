@@ -90,13 +90,10 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
     final updated =
         await (database.update(database.libraryEntries)..where(
               (row) =>
-                  row.mediaItemId.equals(mediaItemId) &
-                  row.archivedAt.isNull(),
+                  row.mediaItemId.equals(mediaItemId) & row.archivedAt.isNull(),
             ))
             .write(
-              LibraryEntriesCompanion(
-                lastOpenedAt: Value(openedAt.toUtc()),
-              ),
+              LibraryEntriesCompanion(lastOpenedAt: Value(openedAt.toUtc())),
             );
     if (updated != 1) {
       throw StateError('library_entry_not_active');
@@ -108,13 +105,10 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
     final updated =
         await (database.update(database.libraryEntries)..where(
               (row) =>
-                  row.mediaItemId.equals(mediaItemId) &
-                  row.archivedAt.isNull(),
+                  row.mediaItemId.equals(mediaItemId) & row.archivedAt.isNull(),
             ))
             .write(
-              LibraryEntriesCompanion(
-                archivedAt: Value(archivedAt.toUtc()),
-              ),
+              LibraryEntriesCompanion(archivedAt: Value(archivedAt.toUtc())),
             );
     if (updated != 1) {
       throw StateError('library_entry_not_active');
