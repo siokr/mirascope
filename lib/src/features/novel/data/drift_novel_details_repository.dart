@@ -41,6 +41,18 @@ final class DriftNovelDetailsRepository implements NovelDetailsRepository {
               ..limit(1))
             .getSingleOrNull();
 
+    var sourceAvailable = false;
+    if (source != null) {
+      sourceAvailable = await sourceExists(source.sourcePath);
+      if (!sourceAvailable) {
+        await (database.update(database.importRecords)..where(
+              (row) =>
+                  row.id.equals(source.id) & row.status.equals('completed'),
+            ))
+            .write(const ImportRecordsCompanion(status: Value('missing')));
+      }
+    }
+
     return NovelDetails(
       mediaItem: domain.MediaItem(
         id: media.id,
@@ -66,7 +78,7 @@ final class DriftNovelDetailsRepository implements NovelDetailsRepository {
             contentHash: unit.contentHash,
           ),
       ],
-      sourceAvailable: source != null && await sourceExists(source.sourcePath),
+      sourceAvailable: sourceAvailable,
     );
   }
 }

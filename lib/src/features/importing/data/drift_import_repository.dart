@@ -3,10 +3,13 @@ import 'package:drift/drift.dart';
 import '../../../core/database/app_database.dart';
 import '../domain/import_record.dart' as domain;
 import '../domain/import_repository.dart';
+import '../domain/source_relocation_repository.dart';
 import '../domain/successful_import.dart';
 import '../domain/txt_encoding.dart';
+import '../domain/txt_source_candidate.dart';
 
-final class DriftImportRepository implements ImportRepository {
+final class DriftImportRepository
+    implements ImportRepository, SourceRelocationRepository {
   DriftImportRepository(this.database);
 
   final AppDatabase database;
@@ -25,6 +28,81 @@ final class DriftImportRepository implements ImportRepository {
     final record = await query.getSingleOrNull();
 
     return record == null ? null : _toImportRecord(record);
+  }
+
+  @override
+  Future<domain.ImportRecord?> findLatestSourceForMedia(
+    String mediaItemId,
+  ) async {
+    final query = database.select(database.importRecords)
+      ..where(
+        (row) =>
+            row.mediaItemId.equals(mediaItemId) &
+            row.sourceKind.equals(
+              domain.ImportSourceKind.txtFile.storageValue,
+            ) &
+            row.status.isIn([
+              domain.ImportStatus.completed.storageValue,
+              domain.ImportStatus.missing.storageValue,
+            ]),
+      )
+      ..orderBy([(row) => OrderingTerm.desc(row.createdAt)])
+      ..limit(1);
+    final record = await query.getSingleOrNull();
+    return record == null ? null : _toImportRecord(record);
+  }
+
+  @override
+  Future<void> markSourceMissing({
+    required String importRecordId,
+    required String mediaItemId,
+  }) async {
+    final updated =
+        await (database.update(database.importRecords)..where(
+              (row) =>
+                  row.id.equals(importRecordId) &
+                  row.mediaItemId.equals(mediaItemId) &
+                  row.status.equals(domain.ImportStatus.completed.storageValue),
+            ))
+            .write(
+              ImportRecordsCompanion(
+                status: Value(domain.ImportStatus.missing.storageValue),
+              ),
+            );
+    if (updated != 1) throw StateError('source_missing_transition_failed');
+  }
+
+  @override
+  Future<void> relocateMatchingSource({
+    required String importRecordId,
+    required String mediaItemId,
+    required String expectedFingerprint,
+    required TxtSourceCandidate candidate,
+  }) async {
+    if (candidate.fingerprint != expectedFingerprint) {
+      throw ArgumentError('candidate fingerprint must match expected value');
+    }
+    final updated =
+        await (database.update(database.importRecords)..where(
+              (row) =>
+                  row.id.equals(importRecordId) &
+                  row.mediaItemId.equals(mediaItemId) &
+                  row.fingerprint.equals(expectedFingerprint) &
+                  row.status.isIn([
+                    domain.ImportStatus.completed.storageValue,
+                    domain.ImportStatus.missing.storageValue,
+                  ]),
+            ))
+            .write(
+              ImportRecordsCompanion(
+                sourcePath: Value(candidate.path),
+                fileSize: Value(candidate.fileSize),
+                modifiedAt: Value(candidate.modifiedAt.toUtc()),
+                status: Value(domain.ImportStatus.completed.storageValue),
+                errorCode: const Value(null),
+              ),
+            );
+    if (updated != 1) throw StateError('source_relocation_conflict');
   }
 
   @override

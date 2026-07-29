@@ -48,6 +48,28 @@ void main() {
     expect(await repository.findDetails('missing'), isNull);
     expect(checked, isFalse);
   });
+
+  test(
+    'unavailable completed source is marked missing without deleting details',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
+      final repository = DriftNovelDetailsRepository(
+        database,
+        sourceExists: (_) async => false,
+      );
+      await _seed(database);
+
+      final details = await repository.findDetails('media-1');
+      final source = await database.select(database.importRecords).getSingle();
+
+      expect(details?.sourceAvailable, isFalse);
+      expect(details?.chapters, hasLength(2));
+      expect(source.status, 'missing');
+      expect(await database.select(database.mediaItems).get(), hasLength(1));
+      expect(await database.select(database.contentUnits).get(), hasLength(2));
+    },
+  );
 }
 
 Future<void> _seed(AppDatabase database) async {

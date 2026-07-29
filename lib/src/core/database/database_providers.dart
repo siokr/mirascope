@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/importing/data/drift_import_repository.dart';
 import '../../features/importing/domain/import_repository.dart';
+import '../../features/importing/domain/source_relocation_repository.dart';
 import '../../features/library/data/drift_media_library_repository.dart';
 import '../../features/library/domain/media_library_repository.dart';
 import '../../features/novel/data/drift_reading_progress_repository.dart';
@@ -39,3 +40,9 @@ final readerPreferenceRepositoryProvider = Provider<ReaderPreferenceRepository>(
 final importRepositoryProvider = Provider<ImportRepository>((ref) {
   return DriftImportRepository(ref.watch(appDatabaseProvider));
 });
+
+final sourceRelocationRepositoryProvider = Provider<SourceRelocationRepository>(
+  (ref) {
+    return DriftImportRepository(ref.watch(appDatabaseProvider));
+  },
+);

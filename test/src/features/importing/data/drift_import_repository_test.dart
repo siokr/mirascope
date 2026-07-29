@@ -5,6 +5,7 @@ import 'package:mirascope/src/features/importing/data/drift_import_repository.da
 import 'package:mirascope/src/features/importing/domain/import_record.dart'
     as domain_import;
 import 'package:mirascope/src/features/importing/domain/successful_import.dart';
+import 'package:mirascope/src/features/importing/domain/txt_source_candidate.dart';
 import 'package:mirascope/src/features/importing/domain/txt_encoding.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart'
     as domain;
@@ -97,6 +98,77 @@ void main() {
     expect(record?.errorCode, isNull);
     expect(record?.createdAt, _now);
   });
+
+  test(
+    'missing source remains discoverable and matching relocation restores it',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
+      final repository = DriftImportRepository(database);
+      await repository.commitSuccessfulImport(
+        _successfulImport(
+          sourcePath: 'C:/old/book.txt',
+          fingerprint: 'same-fingerprint',
+        ),
+      );
+
+      await repository.markSourceMissing(
+        importRecordId: 'import-one',
+        mediaItemId: 'media-one',
+      );
+      final missing = await repository.findLatestSourceForMedia('media-one');
+      expect(missing?.status, domain_import.ImportStatus.missing);
+
+      final modifiedAt = DateTime.utc(2026, 7, 29);
+      await repository.relocateMatchingSource(
+        importRecordId: 'import-one',
+        mediaItemId: 'media-one',
+        expectedFingerprint: 'same-fingerprint',
+        candidate: TxtSourceCandidate(
+          path: 'D:/moved/book.txt',
+          fileSize: 321,
+          modifiedAt: modifiedAt,
+          fingerprint: 'same-fingerprint',
+        ),
+      );
+
+      final restored = await repository.findLatestSourceForMedia('media-one');
+      expect(restored?.status, domain_import.ImportStatus.completed);
+      expect(restored?.sourcePath, 'D:/moved/book.txt');
+      expect(restored?.fileSize, 321);
+      expect(restored?.modifiedAt, modifiedAt);
+    },
+  );
+
+  test(
+    'different fingerprint and stale state cannot relocate a source',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
+      final repository = DriftImportRepository(database);
+      await repository.commitSuccessfulImport(_successfulImport());
+      final candidate = TxtSourceCandidate(
+        path: 'D:/changed.txt',
+        fileSize: 4,
+        modifiedAt: _now,
+        fingerprint: 'different',
+      );
+
+      await expectLater(
+        repository.relocateMatchingSource(
+          importRecordId: 'import-one',
+          mediaItemId: 'media-one',
+          expectedFingerprint: 'fingerprint-one',
+          candidate: candidate,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        (await repository.findLatestSourceForMedia('media-one'))?.sourcePath,
+        'C:/library/book.txt',
+      );
+    },
+  );
 
   test('the same fingerprint may exist at two source paths', () async {
     final database = createTestDatabase();

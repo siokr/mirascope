@@ -18,6 +18,7 @@ import '../domain/txt_source_reader.dart';
 import 'decode_txt_source.dart';
 import 'import_txt.dart';
 import 'prepare_txt_source.dart';
+import 'relocate_txt_source.dart';
 import 'txt_chapter_detector.dart';
 import 'txt_decoder.dart';
 
@@ -83,5 +84,13 @@ final prepareTxtSourceProvider = Provider<PrepareTxtSource>((ref) {
     filePicker: ref.watch(txtFilePickerProvider),
     sourceInspector: ref.watch(txtSourceInspectorProvider),
     importRepository: ref.watch(importRepositoryProvider),
+  );
+});
+
+final relocateTxtSourceProvider = Provider<RelocateTxtSource>((ref) {
+  return RelocateTxtSource(
+    filePicker: ref.watch(txtFilePickerProvider),
+    sourceInspector: ref.watch(txtSourceInspectorProvider),
+    repository: ref.watch(sourceRelocationRepositoryProvider),
   );
 });

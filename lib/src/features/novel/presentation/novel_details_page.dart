@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../importing/application/importing_providers.dart';
+import '../../importing/application/relocate_txt_source.dart';
 import '../application/novel_providers.dart';
 import '../domain/novel_details.dart';
 
-class NovelDetailsPage extends ConsumerWidget {
+class NovelDetailsPage extends ConsumerStatefulWidget {
   const NovelDetailsPage({
     required this.mediaItemId,
     required this.onStartReading,
@@ -17,24 +19,77 @@ class NovelDetailsPage extends ConsumerWidget {
   final VoidCallback? onRelocateSource;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final details = ref.watch(novelDetailsProvider(mediaItemId));
+  ConsumerState<NovelDetailsPage> createState() => _NovelDetailsPageState();
+}
+
+class _NovelDetailsPageState extends ConsumerState<NovelDetailsPage> {
+  var _relocating = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final details = ref.watch(novelDetailsProvider(widget.mediaItemId));
     return Scaffold(
       appBar: AppBar(title: const Text('小说详情')),
       body: details.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => _ErrorState(
-          onRetry: () => ref.invalidate(novelDetailsProvider(mediaItemId)),
+          onRetry: () =>
+              ref.invalidate(novelDetailsProvider(widget.mediaItemId)),
         ),
         data: (value) => value == null
             ? const Center(child: Text('找不到这部作品'))
             : _DetailsBody(
                 details: value,
-                onStartReading: onStartReading,
-                onRelocateSource: onRelocateSource,
+                onStartReading: widget.onStartReading,
+                onRelocateSource:
+                    widget.onRelocateSource ??
+                    (_relocating ? null : _relocateSource),
               ),
       ),
     );
+  }
+
+  Future<void> _relocateSource() async {
+    setState(() => _relocating = true);
+    final result = await ref.read(relocateTxtSourceProvider)(
+      widget.mediaItemId,
+    );
+    if (!mounted) return;
+    setState(() => _relocating = false);
+
+    switch (result) {
+      case SourceRelocationCancelled():
+        return;
+      case SourceRelocated():
+        ref.invalidate(novelDetailsProvider(widget.mediaItemId));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('源文件已重新关联')));
+        return;
+      case SourceChangeConfirmationRequired():
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('文件内容不同'),
+            content: const Text(
+              '所选文件不是原文件的同一内容，不能直接替换。'
+              '当前可读版本和阅读进度已保留。',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('保留当前版本'),
+              ),
+            ],
+          ),
+        );
+        return;
+      case SourceRelocationFailed(:final failure):
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        return;
+    }
   }
 }
 
