@@ -25,37 +25,61 @@ final class DriftReadingProgressRepository
   Future<ProgressWriteResult> save(domain.ReadingProgress progress) async {
     _validate(progress);
 
-    if (progress.revision == 0) {
-      final affectedRows = await database.customUpdate(
-        'INSERT OR IGNORE INTO reading_progress '
-        '(id, media_item_id, content_unit_id, locator, fraction, updated_at, '
-        'revision) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        variables: [
-          Variable.withString(progress.id),
-          Variable.withString(progress.mediaItemId),
-          Variable.withString(progress.contentUnitId),
-          Variable.withString(progress.locator),
-          Variable.withReal(progress.fraction),
-          Variable.withInt(progress.updatedAt.toUtc().millisecondsSinceEpoch),
-          Variable.withInt(progress.revision),
-        ],
-        updates: {database.readingProgressEntries},
-      );
-      return affectedRows == 1
-          ? ProgressWriteResult.inserted
-          : ProgressWriteResult.revisionConflict;
-    }
+    return database.transaction(() async {
+      await _validateContentUnitOwnership(progress);
 
-    final affectedRows =
-        await (database.update(database.readingProgressEntries)..where(
+      if (progress.revision == 0) {
+        final affectedRows = await database.customUpdate(
+          'INSERT OR IGNORE INTO reading_progress '
+          '(id, media_item_id, content_unit_id, locator, fraction, updated_at, '
+          'revision) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          variables: [
+            Variable.withString(progress.id),
+            Variable.withString(progress.mediaItemId),
+            Variable.withString(progress.contentUnitId),
+            Variable.withString(progress.locator),
+            Variable.withReal(progress.fraction),
+            Variable.withInt(progress.updatedAt.toUtc().millisecondsSinceEpoch),
+            Variable.withInt(progress.revision),
+          ],
+          updates: {database.readingProgressEntries},
+        );
+        return affectedRows == 1
+            ? ProgressWriteResult.inserted
+            : ProgressWriteResult.revisionConflict;
+      }
+
+      final affectedRows =
+          await (database.update(database.readingProgressEntries)..where(
+                (row) =>
+                    row.mediaItemId.equals(progress.mediaItemId) &
+                    row.revision.equals(progress.revision - 1),
+              ))
+              .write(_companion(progress));
+      return affectedRows == 1
+          ? ProgressWriteResult.updated
+          : ProgressWriteResult.revisionConflict;
+    });
+  }
+
+  Future<void> _validateContentUnitOwnership(
+    domain.ReadingProgress progress,
+  ) async {
+    final contentUnit =
+        await (database.select(database.contentUnits)..where(
               (row) =>
-                  row.mediaItemId.equals(progress.mediaItemId) &
-                  row.revision.equals(progress.revision - 1),
+                  row.id.equals(progress.contentUnitId) &
+                  row.mediaItemId.equals(progress.mediaItemId),
             ))
-            .write(_companion(progress));
-    return affectedRows == 1
-        ? ProgressWriteResult.updated
-        : ProgressWriteResult.revisionConflict;
+            .getSingleOrNull();
+
+    if (contentUnit == null) {
+      throw ArgumentError.value(
+        progress.contentUnitId,
+        'progress.contentUnitId',
+        'must belong to progress.mediaItemId',
+      );
+    }
   }
 
   void _validate(domain.ReadingProgress progress) {

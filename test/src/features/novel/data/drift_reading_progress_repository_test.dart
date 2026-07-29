@@ -85,6 +85,32 @@ void main() {
     expect(await repository.findForMedia('media-one'), isNull);
   });
 
+  test(
+    'save rejects a content unit owned by another media item without writing',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
+      await _insertMediaAndContentUnit(database);
+      await _insertMediaAndContentUnit(
+        database,
+        mediaItemId: 'media-two',
+        contentUnitId: 'chapter-two',
+      );
+      final repository = DriftReadingProgressRepository(database);
+
+      await expectLater(
+        repository.save(_progress(contentUnitId: 'chapter-two')),
+        throwsArgumentError,
+      );
+
+      expect(await repository.findForMedia('media-one'), isNull);
+      expect(
+        await database.select(database.readingProgressEntries).get(),
+        isEmpty,
+      );
+    },
+  );
+
   test('invalid progress is rejected before database access', () async {
     final database = createTestDatabase();
     await database.close();
@@ -101,6 +127,8 @@ void main() {
 }
 
 ReadingProgress _progress({
+  String mediaItemId = 'media-one',
+  String contentUnitId = 'chapter-one',
   String locator = 'paragraph:1',
   double fraction = 0.25,
   DateTime? updatedAt,
@@ -108,8 +136,8 @@ ReadingProgress _progress({
 }) {
   return ReadingProgress(
     id: 'progress-one',
-    mediaItemId: 'media-one',
-    contentUnitId: 'chapter-one',
+    mediaItemId: mediaItemId,
+    contentUnitId: contentUnitId,
     locator: locator,
     fraction: fraction,
     updatedAt: updatedAt ?? _now,
@@ -117,14 +145,18 @@ ReadingProgress _progress({
   );
 }
 
-Future<void> _insertMediaAndContentUnit(AppDatabase database) async {
+Future<void> _insertMediaAndContentUnit(
+  AppDatabase database, {
+  String mediaItemId = 'media-one',
+  String contentUnitId = 'chapter-one',
+}) async {
   await database
       .into(database.mediaItems)
       .insert(
         MediaItemsCompanion.insert(
-          id: 'media-one',
+          id: mediaItemId,
           mediaType: 'novel',
-          title: 'Title one',
+          title: 'Title $mediaItemId',
           createdAt: _now,
           updatedAt: _now,
         ),
@@ -133,14 +165,14 @@ Future<void> _insertMediaAndContentUnit(AppDatabase database) async {
       .into(database.contentUnits)
       .insert(
         ContentUnitsCompanion.insert(
-          id: 'chapter-one',
-          mediaItemId: 'media-one',
+          id: contentUnitId,
+          mediaItemId: mediaItemId,
           unitType: 'chapter',
-          title: 'Chapter one',
+          title: 'Chapter $contentUnitId',
           orderIndex: 0,
-          contentRef: 'content/one',
-          sourceLocator: 'source#one',
-          contentHash: 'hash-one',
+          contentRef: 'content/$contentUnitId',
+          sourceLocator: 'source#$contentUnitId',
+          contentHash: 'hash-$contentUnitId',
         ),
       );
 }
