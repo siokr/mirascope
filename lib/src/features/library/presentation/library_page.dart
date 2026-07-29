@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mirascope/src/shared/widgets/empty_state.dart';
 
+import '../../importing/application/import_txt.dart';
+import '../../importing/application/importing_providers.dart';
+import '../../importing/application/prepare_txt_source.dart';
+import '../../importing/domain/txt_encoding.dart';
+import '../../importing/domain/txt_source_candidate.dart';
 import '../application/library_actions_controller.dart';
 import '../application/library_providers.dart';
 import '../domain/library_item.dart';
@@ -12,20 +17,39 @@ import 'widgets/library_error_state.dart';
 import 'widgets/library_grid.dart';
 import 'widgets/library_loading_grid.dart';
 
-class LibraryPage extends ConsumerWidget {
+typedef PrepareTxtForImport = Future<TxtSourcePreparationResult> Function();
+typedef CompleteTxtImport =
+    Future<TxtImportResult> Function({
+      required TxtSourceCandidate candidate,
+      required String title,
+      TxtEncoding? selectedEncoding,
+    });
+
+class LibraryPage extends ConsumerStatefulWidget {
   const LibraryPage({
     required this.onOpenSettings,
     required this.onOpenArchive,
     required this.onOpenNovel,
+    this.prepareTxtForImport,
+    this.completeTxtImport,
     super.key,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenArchive;
   final ValueChanged<String> onOpenNovel;
+  final PrepareTxtForImport? prepareTxtForImport;
+  final CompleteTxtImport? completeTxtImport;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LibraryPage> createState() => _LibraryPageState();
+}
+
+class _LibraryPageState extends ConsumerState<LibraryPage> {
+  var _importing = false;
+
+  @override
+  Widget build(BuildContext context) {
     final library = ref.watch(activeLibraryProvider);
     final busyMediaIds = ref.watch(libraryActionsProvider);
 
@@ -35,13 +59,13 @@ class LibraryPage extends ConsumerWidget {
         actions: [
           IconButton(
             key: const Key('open-archive'),
-            onPressed: onOpenArchive,
+            onPressed: widget.onOpenArchive,
             tooltip: '已归档',
             icon: const Icon(Icons.inventory_2_outlined),
           ),
           IconButton(
             key: const Key('open-settings'),
-            onPressed: onOpenSettings,
+            onPressed: widget.onOpenSettings,
             tooltip: '设置',
             icon: const Icon(Icons.settings_outlined),
           ),
@@ -70,6 +94,147 @@ class LibraryPage extends ConsumerWidget {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        key: const Key('import-txt'),
+        onPressed: _importing ? null : _importTxt,
+        icon: _importing
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.add),
+        label: Text(_importing ? '正在导入' : '导入 TXT'),
+      ),
+    );
+  }
+
+  Future<void> _importTxt() async {
+    setState(() => _importing = true);
+    try {
+      final preparation =
+          await widget.prepareTxtForImport?.call() ??
+          await ref.read(prepareTxtSourceProvider)();
+      if (!mounted) return;
+
+      switch (preparation) {
+        case TxtSourceCancelled():
+          return;
+        case TxtSourceDuplicate(:final mediaItemId):
+          widget.onOpenNovel(mediaItemId);
+          return;
+        case TxtSourceFailed(:final failure):
+          _showMessage(context, failure.message);
+          return;
+        case TxtSourceReady(:final candidate):
+          final title = await _requestTitle();
+          if (title == null || !mounted) return;
+          await _completeImport(candidate, title);
+          return;
+      }
+    } finally {
+      if (mounted) setState(() => _importing = false);
+    }
+  }
+
+  Future<void> _completeImport(
+    TxtSourceCandidate candidate,
+    String title, {
+    TxtEncoding? selectedEncoding,
+  }) async {
+    final importer = widget.completeTxtImport;
+    final result = importer != null
+        ? await importer(
+            candidate: candidate,
+            title: title,
+            selectedEncoding: selectedEncoding,
+          )
+        : await (await ref.read(importTxtProvider.future))(
+            candidate: candidate,
+            title: title,
+            selectedEncoding: selectedEncoding,
+          );
+    if (!mounted) return;
+
+    switch (result) {
+      case TxtImportSucceeded(:final mediaItemId):
+        ref.invalidate(activeLibraryProvider);
+        widget.onOpenNovel(mediaItemId);
+        return;
+      case TxtImportDuplicate(:final mediaItemId):
+        widget.onOpenNovel(mediaItemId);
+        return;
+      case TxtImportEncodingChoiceRequired(:final choice):
+        final encoding = await _requestEncoding(choice.supportedEncodings);
+        if (encoding != null && mounted) {
+          await _completeImport(candidate, title, selectedEncoding: encoding);
+        }
+        return;
+      case TxtImportFailed(:final failure):
+        _showMessage(context, failure.message);
+        return;
+    }
+  }
+
+  Future<String?> _requestTitle() {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('确认书名'),
+        content: TextField(
+          key: const Key('import-title'),
+          controller: controller,
+          autofocus: true,
+          maxLength: 200,
+          decoration: const InputDecoration(
+            labelText: '书名',
+            hintText: '输入这本小说在媒体库中的名称',
+          ),
+          onSubmitted: (value) {
+            final title = value.trim();
+            if (title.isNotEmpty) Navigator.of(dialogContext).pop(title);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            key: const Key('confirm-import-title'),
+            onPressed: () {
+              final title = controller.text.trim();
+              if (title.isNotEmpty) Navigator.of(dialogContext).pop(title);
+            },
+            child: const Text('继续'),
+          ),
+        ],
+      ),
+    ).whenComplete(controller.dispose);
+  }
+
+  Future<TxtEncoding?> _requestEncoding(List<TxtEncoding> encodings) {
+    return showDialog<TxtEncoding>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: const Text('选择文本编码'),
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(24, 0, 24, 8),
+            child: Text('无法可靠自动识别。请选择编码后严格重试，不会静默替换乱码。'),
+          ),
+          for (final encoding in encodings)
+            SimpleDialogOption(
+              key: Key('encoding-${encoding.storageValue}'),
+              onPressed: () => Navigator.of(dialogContext).pop(encoding),
+              child: Text(_encodingLabel(encoding)),
+            ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -85,7 +250,10 @@ class LibraryPage extends ConsumerWidget {
 
     final result = await ref
         .read(libraryActionsProvider.notifier)
-        .open(item.mediaItem.id, onReady: () => onOpenNovel(item.mediaItem.id));
+        .open(
+          item.mediaItem.id,
+          onReady: () => widget.onOpenNovel(item.mediaItem.id),
+        );
     if (context.mounted && result == LibraryActionResult.failed) {
       _showMessage(context, '无法打开这本书，请重试。');
     }
@@ -162,3 +330,10 @@ class LibraryPage extends ConsumerWidget {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
+
+String _encodingLabel(TxtEncoding encoding) => switch (encoding) {
+  TxtEncoding.utf8 => 'UTF-8',
+  TxtEncoding.utf16le => 'UTF-16 LE',
+  TxtEncoding.utf16be => 'UTF-16 BE',
+  TxtEncoding.gb18030 => 'GB18030',
+};

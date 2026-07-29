@@ -1,7 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
+import 'package:mirascope/src/core/errors/app_error_code.dart';
+import 'package:mirascope/src/core/errors/app_failure.dart';
+import 'package:mirascope/src/features/importing/application/import_txt.dart';
+import 'package:mirascope/src/features/importing/application/prepare_txt_source.dart';
+import 'package:mirascope/src/features/importing/domain/decoded_txt.dart';
+import 'package:mirascope/src/features/importing/domain/txt_encoding.dart';
+import 'package:mirascope/src/features/importing/domain/txt_source_candidate.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart';
 import 'package:mirascope/src/features/library/domain/library_item.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
@@ -23,7 +32,172 @@ void main() {
 
     expect(find.text('媒体库还是空的'), findsOneWidget);
     expect(find.text('导入 TXT 小说后，它会出现在这里。'), findsOneWidget);
-    expect(find.text('导入'), findsNothing);
+    expect(find.text('导入 TXT'), findsOneWidget);
+  });
+
+  testWidgets('cancelled import stays on the library without feedback', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    var opened = false;
+    await _pumpPage(
+      tester,
+      repository,
+      onOpenNovel: (_) => opened = true,
+      prepareTxtForImport: () async => const TxtSourceCancelled(),
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-txt')));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(opened, isFalse);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(find.text('导入 TXT'), findsOneWidget);
+  });
+
+  testWidgets('duplicate import opens the existing novel', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    String? openedId;
+    await _pumpPage(
+      tester,
+      repository,
+      onOpenNovel: (id) => openedId = id,
+      prepareTxtForImport: () async => TxtSourceDuplicate(
+        candidate: _candidate,
+        mediaItemId: 'existing-book',
+      ),
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-txt')));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(openedId, 'existing-book');
+  });
+
+  testWidgets('new source confirms title and opens successful import', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    String? importedTitle;
+    String? openedId;
+    await _pumpPage(
+      tester,
+      repository,
+      onOpenNovel: (id) => openedId = id,
+      prepareTxtForImport: () async => TxtSourceReady(_candidate),
+      completeTxtImport:
+          ({required candidate, required title, selectedEncoding}) async {
+            importedTitle = title;
+            expect(selectedEncoding, isNull);
+            return const TxtImportSucceeded('new-book');
+          },
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-txt')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(find.byKey(const Key('import-title')), '  长夜书简  ');
+    await tester.tap(find.byKey(const Key('confirm-import-title')));
+    await tester.pumpAndSettle();
+
+    expect(importedTitle, '长夜书简');
+    expect(openedId, 'new-book');
+  });
+
+  testWidgets('unknown encoding retries with the explicit user choice', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    final encodings = <TxtEncoding?>[];
+    await _pumpPage(
+      tester,
+      repository,
+      prepareTxtForImport: () async => TxtSourceReady(_candidate),
+      completeTxtImport:
+          ({required candidate, required title, selectedEncoding}) async {
+            encodings.add(selectedEncoding);
+            if (selectedEncoding == null) {
+              return TxtImportEncodingChoiceRequired(
+                TxtEncodingChoiceRequired(
+                  AppFailure.fromCode(AppErrorCode.encodingUnknown),
+                ),
+              );
+            }
+            return const TxtImportSucceeded('encoded-book');
+          },
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-txt')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(find.byKey(const Key('import-title')), '编码测试');
+    await tester.tap(find.byKey(const Key('confirm-import-title')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('encoding-gb18030')));
+    await tester.pumpAndSettle();
+
+    expect(encodings, [null, TxtEncoding.gb18030]);
+  });
+
+  testWidgets('import failure shows only the safe message', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    await _pumpPage(
+      tester,
+      repository,
+      prepareTxtForImport: () async => TxtSourceFailed(
+        AppFailure.fromCode(AppErrorCode.filePermissionDenied),
+      ),
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-txt')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(AppErrorCode.filePermissionDenied.message),
+      findsOneWidget,
+    );
+    expect(find.textContaining('C:/'), findsNothing);
+  });
+
+  testWidgets('import button blocks duplicate clicks while work is active', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    final preparation = Completer<TxtSourcePreparationResult>();
+    var calls = 0;
+    await _pumpPage(
+      tester,
+      repository,
+      prepareTxtForImport: () {
+        calls++;
+        return preparation.future;
+      },
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-txt')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('import-txt')), warnIfMissed: false);
+    expect(calls, 1);
+    expect(find.text('正在导入'), findsOneWidget);
+
+    preparation.complete(const TxtSourceCancelled());
+    await tester.pumpAndSettle();
   });
 
   testWidgets('shows stream error safely and retry resubscribes', (
@@ -156,6 +330,8 @@ Future<void> _pumpPage(
   WidgetTester tester,
   FakeMediaLibraryRepository repository, {
   ValueChanged<String>? onOpenNovel,
+  PrepareTxtForImport? prepareTxtForImport,
+  CompleteTxtImport? completeTxtImport,
 }) {
   return tester.pumpWidget(
     ProviderScope(
@@ -165,11 +341,20 @@ Future<void> _pumpPage(
           onOpenSettings: () {},
           onOpenArchive: () {},
           onOpenNovel: onOpenNovel ?? (_) {},
+          prepareTxtForImport: prepareTxtForImport,
+          completeTxtImport: completeTxtImport,
         ),
       ),
     ),
   );
 }
+
+final _candidate = TxtSourceCandidate(
+  path: 'private-source',
+  fileSize: 1024,
+  modifiedAt: DateTime.utc(2026, 7, 29),
+  fingerprint: 'sha256:safe:1024',
+);
 
 LibraryItem _item(String id, String title) {
   final now = DateTime.utc(2026, 7, 29);
