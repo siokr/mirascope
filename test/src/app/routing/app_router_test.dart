@@ -10,6 +10,9 @@ import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
+import 'package:mirascope/src/features/novel/domain/novel_reader_repository.dart';
+import 'package:mirascope/src/features/novel/domain/reader_book.dart';
+import 'package:mirascope/src/features/novel/application/novel_providers.dart';
 
 import '../../features/library/library_test_support.dart';
 
@@ -105,8 +108,8 @@ void main() {
     router.go('/novel/book-42/read');
     await _pumpRoute(tester);
 
-    expect(find.text('阅读器'), findsOneWidget);
-    expect(find.text('正在准备媒体：book-42'), findsOneWidget);
+    expect(find.text('First'), findsOneWidget);
+    expect(find.text('Reader body'), findsOneWidget);
   });
 
   testWidgets('shows a safe page for an unknown path', (tester) async {
@@ -141,6 +144,9 @@ Future<void> _pumpApp(
         mediaLibraryRepositoryProvider.overrideWithValue(repository),
         novelDetailsRepositoryProvider.overrideWithValue(
           const _RouteNovelDetailsRepository(),
+        ),
+        novelReaderRepositoryProvider.overrideWith(
+          (ref) async => const _RouteNovelReaderRepository(),
         ),
       ],
       child: MirascopeApp(router: router),
@@ -178,6 +184,41 @@ final class _RouteNovelDetailsRepository implements NovelDetailsRepository {
       ],
       sourceAvailable: true,
     );
+  }
+}
+
+final class _RouteNovelReaderRepository implements NovelReaderRepository {
+  const _RouteNovelReaderRepository();
+
+  @override
+  Future<ReaderBook?> loadBook(String mediaItemId) async {
+    final now = DateTime.utc(2026, 7, 29);
+    return ReaderBook(
+      mediaItem: MediaItem(
+        id: mediaItemId,
+        mediaType: MediaType.novel,
+        title: 'Book',
+        createdAt: now,
+        updatedAt: now,
+      ),
+      chapters: [
+        ContentUnit(
+          id: 'chapter-1',
+          mediaItemId: mediaItemId,
+          unitType: ContentUnitType.chapter,
+          title: 'First',
+          orderIndex: 0,
+          contentRef: 'content/book.txt',
+          sourceLocator: 'txt-v1:0:0:1',
+          contentHash: 'hash',
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<ReaderChapter> readChapter(ContentUnit unit) async {
+    return ReaderChapter(unit: unit, text: 'Reader body');
   }
 }
 
