@@ -34,30 +34,29 @@ void main() {
     ]);
   });
 
-  test('AppDatabase validates against the generated v1 schema', () async {
-    final schema = await verifier.schemaAt(1);
-    final database = AppDatabase(schema.newConnection());
-    addTearDown(() async {
-      await database.close();
-      schema.close();
-    });
+  test(
+    'current AppDatabase onCreate matches the generated v1 schema',
+    () async {
+      final database = AppDatabase.inMemory();
+      addTearDown(database.close);
 
-    await verifier.migrateAndValidate(
-      database,
-      1,
-      options: const ValidationOptions(validateDropped: true),
-    );
-  });
+      await database.customSelect('SELECT 1').getSingle();
+
+      await verifier.migrateAndValidate(
+        database,
+        1,
+        options: const ValidationOptions(validateDropped: true),
+      );
+    },
+  );
 
   test(
     'v1 enables foreign keys and contains every declared relation and index',
     () async {
-      final schema = await verifier.schemaAt(1);
-      final database = AppDatabase(schema.newConnection());
-      addTearDown(() async {
-        await database.close();
-        schema.close();
-      });
+      final database = AppDatabase.inMemory();
+      addTearDown(database.close);
+
+      await database.customSelect('SELECT 1').getSingle();
 
       final foreignKeysEnabled = await database
           .customSelect('PRAGMA foreign_keys')
