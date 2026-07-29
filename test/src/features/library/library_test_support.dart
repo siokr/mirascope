@@ -12,6 +12,8 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   final archivedAt = <String, DateTime>{};
   final restored = <String>[];
   final deleted = <String>[];
+  var activeWatchCount = 0;
+  var archivedWatchCount = 0;
 
   Completer<void>? markOpenedGate;
   Completer<void>? archiveGate;
@@ -26,10 +28,16 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
-  Stream<List<LibraryItem>> watchActiveLibrary() => activeController.stream;
+  Stream<List<LibraryItem>> watchActiveLibrary() {
+    activeWatchCount += 1;
+    return activeController.stream;
+  }
 
   @override
-  Stream<List<LibraryItem>> watchArchivedLibrary() => archivedController.stream;
+  Stream<List<LibraryItem>> watchArchivedLibrary() {
+    archivedWatchCount += 1;
+    return archivedController.stream;
+  }
 
   @override
   Future<MediaItem?> findMediaItem(String mediaItemId) async => null;

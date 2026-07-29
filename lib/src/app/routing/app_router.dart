@@ -13,8 +13,12 @@ GoRouter createAppRouter() {
       GoRoute(path: '/', redirect: (_, _) => AppRoutes.library),
       GoRoute(
         path: AppRoutes.library,
-        builder: (context, state) =>
-            LibraryPage(onOpenSettings: () => context.push(AppRoutes.settings)),
+        builder: (context, state) => LibraryPage(
+          onOpenSettings: () => context.push(AppRoutes.settings),
+          onOpenArchive: () => context.push(AppRoutes.libraryArchive),
+          onOpenNovel: (mediaItemId) =>
+              context.push(AppRoutes.novelDetails(mediaItemId)),
+        ),
       ),
       GoRoute(
         path: AppRoutes.settings,
