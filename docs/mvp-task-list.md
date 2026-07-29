@@ -209,10 +209,13 @@
 ### M01-016 自动化质量门槛
 
 - 优先级：P0
-- 状态：planned
+- 状态：blocked
 - 依赖：M01-003 至 M01-015
 - 交付物：单元、数据层、Widget 测试和检查命令
 - 验收：`docs/quality-strategy.md` 的 MVP 0.1 合并门槛全部取得当次结果
+- 实施：已新增 GitHub Actions，分别执行格式、静态分析、全量测试和 Windows release 构建；Flutter 固定为 `3.44.8`，并限制工作流为只读权限。
+- 本地证据：格式检查覆盖 130 个文件且 0 变更；`flutter analyze --no-pub` 无问题；`flutter test --no-pub` 共 189 项通过。
+- 阻塞：本机 Windows release 构建再次停在 MSVC/CMake 编译阶段且无后续输出，已终止本轮挂起进程；工作流尚未推送，GitHub Windows runner 没有当次结果，因此不能标记为 `done`。
 
 ### M01-017 性能基线
 

@@ -38,13 +38,15 @@ flutter devices
 ```bash
 flutter pub get
 flutter run -d windows
-dart format --output=none --set-exit-if-changed .
+dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 flutter test
 flutter build windows
 ```
 
 发布前的完整要求以 `docs/quality-strategy.md` 和 `docs/release-checklist.md` 为准。
+
+仓库的 `.github/workflows/quality.yml` 会在推送和 Pull Request 时自动复核这些门槛。CI 结果是当次提交的自动化证据，不能代替 Windows 上的核心路径人工验收。
 
 ## 5. Android（MVP 0.2）
 

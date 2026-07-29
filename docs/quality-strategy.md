@@ -25,7 +25,7 @@ MVP 0.2 增加 Android 构建、实机主流程和平台存储权限检查。Ver
 每次准备合并到主分支前运行：
 
 ```bash
-dart format --output=none --set-exit-if-changed .
+dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 flutter test
 flutter build windows
@@ -39,6 +39,8 @@ flutter build windows
 - Windows 构建退出码为 0；
 - 新增或改变领域规则时包含对应测试；
 - 失败的检查不得以“与本次无关”直接忽略，必须记录原因并修复或获得明确豁免。
+
+GitHub Actions 在推送、面向 `main` 的 Pull Request 和手工触发时执行同等门槛。自动 Windows 构建只证明产物能够生成，不替代真实文件系统和窗口交互的人工验收。
 
 ## 4. 发布门槛
 
