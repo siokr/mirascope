@@ -28,8 +28,8 @@ class LibraryCard extends StatelessWidget {
     final metadata = media.creator ?? media.subtitle ?? 'TXT 小说';
 
     return Semantics(
-      button: !busy,
-      label: '打开《${media.title}》',
+      button: !busy && !archived,
+      label: archived ? '《${media.title}》，已归档' : '打开《${media.title}》',
       child: Card(
         key: Key('library-card-${media.id}'),
         clipBehavior: Clip.antiAlias,

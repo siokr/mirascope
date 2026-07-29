@@ -76,10 +76,15 @@
 ### M01-006 媒体库
 
 - 优先级：P0
-- 状态：planned
+- 状态：done
 - 依赖：M01-005
 - 交付物：媒体库列表、空状态、最近打开排序和归档/恢复
 - 验收：新增、重启、归档和恢复后状态一致；不会删除用户原文件
+- 证据：设计与计划提交 `2cbee0b`、`eb527da`、`751e793`；实现与验收提交 `f4d4711`、`1f66203`、`48ef31c`、`ff3b44d`、`4c602c1`、`634213a`、`7b1f8d5`。
+- 行为证据：活动与归档列表均由 Repository 响应流驱动；打开作品先持久化 UTC 时间；归档可撤销，归档页可恢复；Provider 重建后排序保持；媒体记录与导入源路径均未删除。
+- 界面证据：覆盖 loading、empty、error、data 四类状态，600/900/1440 像素自适应网格、长标题、键盘语义、浅色与深色 Material 3 主题均有 Widget 测试。
+- 验证：`dart run build_runner build` 成功；`dart format .` 无未格式化文件；`flutter analyze --no-pub` 无问题；`flutter test --no-pub` 共 103 项通过；schema dump/generate 重复生成后零差异。
+- 边界审计：domain/presentation 无 Drift import；界面和状态层无永久删除调用；普通日志仅记录稳定代码，不包含标题、路径、原始异常或堆栈。
 
 ### M01-007 TXT 文件选择与指纹
 

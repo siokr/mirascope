@@ -144,6 +144,8 @@ void main() {
     await tester.tap(find.byKey(const Key('library-menu-archived')));
     await tester.pumpAndSettle();
 
+    expect(find.bySemanticsLabel('《旧书》，已归档'), findsOneWidget);
+    expect(find.bySemanticsLabel('打开《旧书》'), findsNothing);
     expect(find.text('恢复到媒体库'), findsOneWidget);
     expect(find.text('移入归档'), findsNothing);
   });
