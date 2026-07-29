@@ -54,9 +54,11 @@
 
 ### 3.7 `ImportRecord`
 
-表示一次导入及其可追踪状态。字段包括 `id`、`mediaItemId`、`sourcePath`、`sourceKind`、`fileSize`、`modifiedAt`、`fingerprint`、`status`、`errorCode` 和 `createdAt`。
+表示一次导入及其可追踪状态。字段包括 `id`、`mediaItemId`、`sourcePath`、`sourceKind`、`fileSize`、`modifiedAt`、`fingerprint`、`textEncoding`、`status`、`errorCode` 和 `createdAt`。
 
 `sourceKind` 可取 `txtFile`、`epubFile`、`mangaDirectory`、`mangaArchive`；`status` 可取 `pending`、`completed`、`failed`、`missing`。
+
+成功记录必须关联 `MediaItem`；失败记录在媒体事务已回滚时允许 `mediaItemId` 为空。TXT 成功记录必须保存实际使用的 `textEncoding`；旧 schema 迁移时不得猜测历史编码。
 
 ## 4. 关系
 
@@ -66,7 +68,7 @@ MediaItem 1 --- 1..n ContentUnit
 MediaItem 1 --- 0..1 ReadingProgress
 MediaItem 1 --- 0..n Bookmark
 MediaItem 1 --- 0..1 ReaderPreference(mediaItem scope)
-MediaItem 1 --- 1..n ImportRecord
+MediaItem 1 --- 0..n ImportRecord
 ```
 
 应用层不得绕过 Repository 分别删除相关表。
