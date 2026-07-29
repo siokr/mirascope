@@ -1,11 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/database_providers.dart';
+import '../data/charset_converter_gb18030_decoder.dart';
 import '../data/dart_io_txt_source_inspector.dart';
+import '../data/dart_io_txt_source_reader.dart';
 import '../data/file_selector_txt_file_picker.dart';
+import '../domain/txt_encoding.dart';
 import '../domain/txt_file_picker.dart';
 import '../domain/txt_source_candidate.dart';
+import '../domain/txt_source_reader.dart';
+import 'decode_txt_source.dart';
 import 'prepare_txt_source.dart';
+import 'txt_decoder.dart';
 
 final txtFilePickerProvider = Provider<TxtFilePicker>((ref) {
   return const FileSelectorTxtFilePicker();
@@ -13,6 +19,25 @@ final txtFilePickerProvider = Provider<TxtFilePicker>((ref) {
 
 final txtSourceInspectorProvider = Provider<TxtSourceInspector>((ref) {
   return DartIoTxtSourceInspector();
+});
+
+final txtSourceReaderProvider = Provider<TxtSourceReader>((ref) {
+  return DartIoTxtSourceReader();
+});
+
+final gb18030DecoderProvider = Provider<Gb18030Decoder>((ref) {
+  return const CharsetConverterGb18030Decoder();
+});
+
+final txtDecoderProvider = Provider<TxtDecoder>((ref) {
+  return TxtDecoder(gb18030Decoder: ref.watch(gb18030DecoderProvider));
+});
+
+final decodeTxtSourceProvider = Provider<DecodeTxtSource>((ref) {
+  return DecodeTxtSource(
+    sourceReader: ref.watch(txtSourceReaderProvider),
+    decoder: ref.watch(txtDecoderProvider),
+  );
 });
 
 final prepareTxtSourceProvider = Provider<PrepareTxtSource>((ref) {
