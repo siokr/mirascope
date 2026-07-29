@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mirascope/src/app/routing/app_routes.dart';
+import 'package:mirascope/src/features/library/presentation/archived_library_page.dart';
 import 'package:mirascope/src/features/library/presentation/library_page.dart';
 import 'package:mirascope/src/features/novel/presentation/novel_details_page.dart';
 import 'package:mirascope/src/features/novel/presentation/novel_reader_page.dart';
@@ -19,6 +20,10 @@ GoRouter createAppRouter() {
           onOpenNovel: (mediaItemId) =>
               context.push(AppRoutes.novelDetails(mediaItemId)),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.libraryArchive,
+        builder: (context, state) => const ArchivedLibraryPage(),
       ),
       GoRoute(
         path: AppRoutes.settings,

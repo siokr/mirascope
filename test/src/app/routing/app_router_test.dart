@@ -32,6 +32,26 @@ void main() {
     expect(find.text('媒体库'), findsOneWidget);
   });
 
+  testWidgets('opens the archived library and returns', (tester) async {
+    final router = createAppRouter();
+    addTearDown(router.dispose);
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(() {
+      repository.close();
+    });
+
+    await _pumpApp(tester, router, repository);
+    await tester.tap(find.byKey(const Key('open-archive')));
+    repository.archivedController.add([]);
+    await _pumpRoute(tester);
+
+    expect(find.text('已归档'), findsOneWidget);
+
+    await tester.pageBack();
+    await _pumpRoute(tester);
+    expect(find.text('媒体库'), findsOneWidget);
+  });
+
   testWidgets('opens novel details with the media id', (tester) async {
     final router = createAppRouter();
     addTearDown(router.dispose);
