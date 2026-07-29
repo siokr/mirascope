@@ -20,13 +20,14 @@ final class SourceRelocated extends SourceRelocationResult {
 }
 
 final class SourceChangeConfirmationRequired extends SourceRelocationResult {
-  const SourceChangeConfirmationRequired({
+  SourceChangeConfirmationRequired({
     required this.current,
     required this.candidate,
-  });
+  }) : failure = AppFailure.fromCode(AppErrorCode.sourceChanged);
 
   final ImportRecord current;
   final TxtSourceCandidate candidate;
+  final AppFailure failure;
 }
 
 final class SourceRelocationFailed extends SourceRelocationResult {

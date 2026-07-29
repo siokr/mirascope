@@ -68,6 +68,10 @@ void main() {
       )('media-1');
 
       expect(result, isA<SourceChangeConfirmationRequired>());
+      expect(
+        (result as SourceChangeConfirmationRequired).failure.code,
+        'source_changed',
+      );
       expect(repository.relocations, isEmpty);
     },
   );
