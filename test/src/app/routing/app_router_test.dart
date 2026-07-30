@@ -155,6 +155,10 @@ void main() {
   test('route helpers encode media ids as one path segment', () {
     expect(AppRoutes.novelDetails('folder/book 1'), '/novel/folder%2Fbook%201');
     expect(AppRoutes.novelReader('book?#1'), '/novel/book%3F%231/read');
+    expect(
+      AppRoutes.novelReader('book-1', contentUnitId: 'chapter #2'),
+      '/novel/book-1/read?chapter=chapter+%232',
+    );
   });
 }
 

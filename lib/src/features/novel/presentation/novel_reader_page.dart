@@ -12,15 +12,21 @@ class NovelReaderPage extends ConsumerWidget {
   const NovelReaderPage({
     required this.mediaItemId,
     required this.onExit,
+    this.initialContentUnitId,
     super.key,
   });
 
   final String mediaItemId;
   final VoidCallback onExit;
+  final String? initialContentUnitId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(novelReaderControllerProvider(mediaItemId));
+    final request = (
+      mediaItemId: mediaItemId,
+      initialContentUnitId: initialContentUnitId,
+    );
+    final controller = ref.watch(novelReaderControllerProvider(request));
     final settings = ref.watch(readerSettingsControllerProvider(mediaItemId));
     if (controller.isLoading || settings.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -32,7 +38,7 @@ class NovelReaderPage extends ConsumerWidget {
           child: OutlinedButton(
             onPressed: () {
               ref
-                ..invalidate(novelReaderControllerProvider(mediaItemId))
+                ..invalidate(novelReaderControllerProvider(request))
                 ..invalidate(readerSettingsControllerProvider(mediaItemId));
             },
             child: const Text('重试'),
@@ -124,10 +130,14 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
           bindings: {
             const SingleActivator(LogicalKeyboardKey.arrowLeft):
                 controller.previous,
+            const SingleActivator(LogicalKeyboardKey.arrowUp): () =>
+                _scrollBy(-80),
             const SingleActivator(LogicalKeyboardKey.pageUp):
                 controller.previous,
             const SingleActivator(LogicalKeyboardKey.arrowRight):
                 controller.next,
+            const SingleActivator(LogicalKeyboardKey.arrowDown): () =>
+                _scrollBy(80),
             const SingleActivator(LogicalKeyboardKey.pageDown): controller.next,
           },
           child: Focus(
@@ -196,6 +206,19 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
           ),
         );
       },
+    );
+  }
+
+  void _scrollBy(double delta) {
+    if (!_scrollController.hasClients) return;
+    final target = (_scrollController.offset + delta).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
+    _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
     );
   }
 

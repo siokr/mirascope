@@ -13,6 +13,7 @@ void main() {
     tester,
   ) async {
     var opened = false;
+    String? openedChapter;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -23,7 +24,10 @@ void main() {
         child: MaterialApp(
           home: NovelDetailsPage(
             mediaItemId: 'media-1',
-            onStartReading: () => opened = true,
+            onStartReading: (chapterId) {
+              opened = true;
+              openedChapter = chapterId;
+            },
           ),
         ),
       ),
@@ -36,6 +40,12 @@ void main() {
     expect(find.text('Second'), findsOneWidget);
     await tester.tap(find.text('开始阅读'));
     expect(opened, isTrue);
+    expect(openedChapter, isNull);
+
+    opened = false;
+    await tester.tap(find.text('Second'));
+    expect(opened, isTrue);
+    expect(openedChapter, 'unit-2');
   });
 
   testWidgets('missing source preserves directory and offers relocation', (
@@ -53,7 +63,7 @@ void main() {
         child: MaterialApp(
           home: NovelDetailsPage(
             mediaItemId: 'media-1',
-            onStartReading: () => opened = true,
+            onStartReading: (_) => opened = true,
             onRelocateSource: () => relocated = true,
           ),
         ),

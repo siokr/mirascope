@@ -15,7 +15,7 @@ class NovelDetailsPage extends ConsumerStatefulWidget {
   });
 
   final String mediaItemId;
-  final VoidCallback onStartReading;
+  final ValueChanged<String?> onStartReading;
   final VoidCallback? onRelocateSource;
 
   @override
@@ -101,7 +101,7 @@ class _DetailsBody extends StatelessWidget {
   });
 
   final NovelDetails details;
-  final VoidCallback onStartReading;
+  final ValueChanged<String?> onStartReading;
   final VoidCallback? onRelocateSource;
 
   @override
@@ -122,7 +122,9 @@ class _DetailsBody extends StatelessWidget {
                 Text('共 ${details.chapters.length} 章'),
                 const SizedBox(height: 16),
                 FilledButton.icon(
-                  onPressed: details.chapters.isEmpty ? null : onStartReading,
+                  onPressed: details.chapters.isEmpty
+                      ? null
+                      : () => onStartReading(null),
                   icon: const Icon(Icons.menu_book),
                   label: const Text('开始阅读'),
                 ),
@@ -160,7 +162,7 @@ class _DetailsBody extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              onTap: onStartReading,
+              onTap: () => onStartReading(chapter.id),
             );
           },
         ),

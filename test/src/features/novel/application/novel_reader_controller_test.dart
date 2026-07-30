@@ -74,6 +74,37 @@ void main() {
     expect(controller.restoredCharacterOffset, 4);
   });
 
+  test('explicit chapter selection overrides stored progress', () async {
+    final progress = _ProgressRepository(
+      stored: ReadingProgress(
+        id: 'progress-1',
+        mediaItemId: 'media-1',
+        contentUnitId: 'unit-1',
+        locator: 'char-v1:4',
+        fraction: 0.5,
+        updatedAt: DateTime.utc(2026, 7, 29),
+        revision: 2,
+      ),
+    );
+    final controller = NovelReaderController(
+      mediaItemId: 'media-1',
+      initialContentUnitId: 'unit-0',
+      repository: _ReaderRepository(),
+      progressRepository: progress,
+      idGenerator: _Ids(),
+      clock: () => DateTime.utc(2026, 7, 30),
+      saveDebounce: Duration.zero,
+    );
+    addTearDown(controller.dispose);
+
+    await controller.initialize();
+
+    expect(controller.currentIndex, 0);
+    expect(controller.chapter?.unit.id, 'unit-0');
+    expect(controller.restoredCharacterOffset, 0);
+    expect(progress.saved.last.contentUnitId, 'unit-0');
+  });
+
   test('missing chapter and invalid locator fall back safely', () async {
     final progress = _ProgressRepository(
       stored: ReadingProgress(

@@ -38,8 +38,9 @@ GoRouter createAppRouter() {
           }
           return NovelDetailsPage(
             mediaItemId: mediaItemId,
-            onStartReading: () =>
-                context.push(AppRoutes.novelReader(mediaItemId)),
+            onStartReading: (contentUnitId) => context.push(
+              AppRoutes.novelReader(mediaItemId, contentUnitId: contentUnitId),
+            ),
           );
         },
         routes: [
@@ -53,6 +54,7 @@ GoRouter createAppRouter() {
               }
               return NovelReaderPage(
                 mediaItemId: mediaItemId,
+                initialContentUnitId: state.uri.queryParameters['chapter'],
                 onExit: () => context.go(AppRoutes.library),
               );
             },

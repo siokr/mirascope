@@ -15,6 +15,7 @@ final class NovelReaderController extends ChangeNotifier {
   NovelReaderController({
     required this.mediaItemId,
     required this.repository,
+    this.initialContentUnitId,
     this.progressRepository,
     this.idGenerator,
     this.clock,
@@ -23,6 +24,7 @@ final class NovelReaderController extends ChangeNotifier {
 
   final String mediaItemId;
   final NovelReaderRepository repository;
+  final String? initialContentUnitId;
   final ReadingProgressRepository? progressRepository;
   final IdGenerator? idGenerator;
   final ReaderClock? clock;
@@ -55,16 +57,31 @@ final class NovelReaderController extends ChangeNotifier {
         return;
       }
       _storedProgress = await progressRepository?.findForMedia(mediaItemId);
+      final requestedIndex = initialContentUnitId == null
+          ? -1
+          : book!.chapters.indexWhere(
+              (unit) => unit.id == initialContentUnitId,
+            );
       final restoredIndex = _storedProgress == null
           ? 0
           : book!.chapters.indexWhere(
               (unit) => unit.id == _storedProgress!.contentUnitId,
             );
-      await _load(restoredIndex < 0 ? 0 : restoredIndex);
-      restoredCharacterOffset = _restoreOffset(
-        _storedProgress,
-        chapter!.text.length,
+      await _load(
+        requestedIndex >= 0
+            ? requestedIndex
+            : (restoredIndex < 0 ? 0 : restoredIndex),
       );
+      if (requestedIndex >= 0) {
+        restoredCharacterOffset = 0;
+        updatePosition(characterOffset: 0, fraction: 0);
+        await flushProgress();
+      } else {
+        restoredCharacterOffset = _restoreOffset(
+          _storedProgress,
+          chapter!.text.length,
+        );
+      }
     } on Object {
       errorMessage = '无法加载阅读内容';
     } finally {

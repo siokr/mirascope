@@ -27,10 +27,16 @@ final novelReaderRepositoryProvider = FutureProvider<NovelReaderRepository>((
   );
 });
 
+typedef NovelReaderRequest = ({
+  String mediaItemId,
+  String? initialContentUnitId,
+});
+
 final novelReaderControllerProvider = FutureProvider.autoDispose
-    .family<NovelReaderController, String>((ref, mediaItemId) async {
+    .family<NovelReaderController, NovelReaderRequest>((ref, request) async {
       final controller = NovelReaderController(
-        mediaItemId: mediaItemId,
+        mediaItemId: request.mediaItemId,
+        initialContentUnitId: request.initialContentUnitId,
         repository: await ref.watch(novelReaderRepositoryProvider.future),
         progressRepository: ref.watch(readingProgressRepositoryProvider),
         idGenerator: const UuidIdGenerator(),

@@ -160,6 +160,42 @@ void main() {
     );
     expect(scrollView.controller!.offset, greaterThan(0));
   });
+
+  testWidgets('up and down arrow keys scroll the current chapter', (
+    tester,
+  ) async {
+    final longText = List.filled(300, '一行用于键盘滚动测试的正文').join('\n');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          novelReaderRepositoryProvider.overrideWith(
+            (ref) async => _Repository(text: longText),
+          ),
+          readerPreferenceRepositoryProvider.overrideWithValue(
+            _PreferenceRepository(),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _ProgressRepository(),
+          ),
+        ],
+        child: MaterialApp(
+          home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final scrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView).first,
+    );
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(scrollView.controller!.offset, greaterThan(0));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+    expect(scrollView.controller!.offset, 0);
+  });
 }
 
 final class _Repository implements NovelReaderRepository {
