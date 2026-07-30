@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/database_providers.dart';
@@ -19,10 +17,7 @@ final class LibraryActionsController extends Notifier<Set<String>> {
   @override
   Set<String> build() => const {};
 
-  Future<LibraryActionResult> open(
-    String mediaItemId, {
-    required FutureOr<void> Function() onReady,
-  }) {
+  Future<LibraryActionResult> open(String mediaItemId) {
     return _run(
       mediaItemId,
       failureCode: AppErrorCode.libraryOpenFailed,
@@ -31,7 +26,6 @@ final class LibraryActionsController extends Notifier<Set<String>> {
         await ref
             .read(mediaLibraryRepositoryProvider)
             .markOpened(mediaItemId, openedAt);
-        await onReady();
       },
     );
   }
@@ -84,7 +78,7 @@ final class LibraryActionsController extends Notifier<Set<String>> {
   Future<LibraryActionResult> _run(
     String mediaItemId, {
     required AppErrorCode failureCode,
-    required FutureOr<void> Function() operation,
+    required Future<void> Function() operation,
   }) async {
     if (state.contains(mediaItemId)) {
       return LibraryActionResult.busy;

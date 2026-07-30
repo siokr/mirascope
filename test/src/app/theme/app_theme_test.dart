@@ -8,5 +8,17 @@ void main() {
     expect(AppTheme.light.brightness, Brightness.light);
     expect(AppTheme.dark.useMaterial3, isTrue);
     expect(AppTheme.dark.brightness, Brightness.dark);
+    expect(
+      AppTheme.light.textTheme.bodyMedium?.fontFamily,
+      AppTheme.chineseFontFamily,
+    );
+    expect(
+      AppTheme.dark.textTheme.bodyMedium?.fontFamily,
+      AppTheme.chineseFontFamily,
+    );
+    expect(
+      AppTheme.light.textTheme.bodyMedium?.fontFamilyFallback,
+      AppTheme.chineseFontFallback,
+    );
   });
 }

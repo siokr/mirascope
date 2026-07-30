@@ -220,12 +220,13 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
 
     final result = await ref
         .read(libraryActionsProvider.notifier)
-        .open(
-          item.mediaItem.id,
-          onReady: () => widget.onOpenNovel(item.mediaItem.id),
-        );
+        .open(item.mediaItem.id);
     if (context.mounted && result == LibraryActionResult.failed) {
       _showMessage(context, '无法打开这本书，请重试。');
+      return;
+    }
+    if (context.mounted && result == LibraryActionResult.succeeded) {
+      widget.onOpenNovel(item.mediaItem.id);
     }
   }
 

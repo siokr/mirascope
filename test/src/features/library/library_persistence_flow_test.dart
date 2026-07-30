@@ -50,7 +50,7 @@ void main() {
       expect(
         await firstContainer
             .read(libraryActionsProvider.notifier)
-            .open('older', onReady: () {}),
+            .open('older'),
         LibraryActionResult.succeeded,
       );
       firstContainer.dispose();

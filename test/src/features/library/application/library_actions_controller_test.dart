@@ -12,25 +12,18 @@ import '../library_test_support.dart';
 final _localNow = DateTime(2026, 7, 29, 18, 30);
 
 void main() {
-  test('open stores injected UTC time before calling navigation', () async {
+  test('open stores injected UTC time and releases busy state', () async {
     final repository = FakeMediaLibraryRepository();
     addTearDown(repository.close);
     final container = _container(repository);
     addTearDown(container.dispose);
-    var navigated = false;
-
     final result = await container
         .read(libraryActionsProvider.notifier)
-        .open(
-          'book-1',
-          onReady: () {
-            expect(repository.openedAt['book-1'], _localNow.toUtc());
-            navigated = true;
-          },
-        );
+        .open('book-1');
 
     expect(result, LibraryActionResult.succeeded);
-    expect(navigated, isTrue);
+    expect(repository.openedAt['book-1'], _localNow.toUtc());
+    expect(container.read(libraryActionsProvider), isEmpty);
   });
 
   test('open failure returns a stable result and does not navigate', () async {
@@ -39,14 +32,11 @@ void main() {
     addTearDown(repository.close);
     final container = _container(repository);
     addTearDown(container.dispose);
-    var navigated = false;
-
     final result = await container
         .read(libraryActionsProvider.notifier)
-        .open('book-1', onReady: () => navigated = true);
+        .open('book-1');
 
     expect(result, LibraryActionResult.failed);
-    expect(navigated, isFalse);
   });
 
   test('duplicate action for one media item is blocked', () async {
