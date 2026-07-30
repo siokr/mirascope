@@ -92,6 +92,37 @@ jobs:
             -Destination "build/windows/x64/runner/Release" `
             -Force
 
+      - name: Add license materials
+        shell: pwsh
+        run: |
+          $releaseDirectory = "build/windows/x64/runner/Release"
+          $compressedNotices = Join-Path `
+            $releaseDirectory `
+            "data/flutter_assets/NOTICES.Z"
+          $noticesTarget = Join-Path `
+            $releaseDirectory `
+            "THIRD_PARTY_LICENSES.txt"
+
+          $inputStream = [IO.File]::OpenRead($compressedNotices)
+          $outputStream = [IO.File]::Create($noticesTarget)
+          try {
+            $gzipStream = [IO.Compression.GZipStream]::new(
+              $inputStream,
+              [IO.Compression.CompressionMode]::Decompress
+            )
+            try {
+              $gzipStream.CopyTo($outputStream)
+            } finally {
+              $gzipStream.Dispose()
+            }
+          } finally {
+            $outputStream.Dispose()
+            $inputStream.Dispose()
+          }
+
+          Copy-Item LICENSE $releaseDirectory
+          Copy-Item THIRD_PARTY_NOTICES.md $releaseDirectory
+
       - name: Upload Windows release
         uses: actions/upload-artifact@v4
         with:
