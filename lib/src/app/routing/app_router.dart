@@ -51,7 +51,10 @@ GoRouter createAppRouter() {
               if (mediaItemId.isEmpty) {
                 return const _InvalidMediaPage();
               }
-              return NovelReaderPage(mediaItemId: mediaItemId);
+              return NovelReaderPage(
+                mediaItemId: mediaItemId,
+                onExit: () => context.go(AppRoutes.library),
+              );
             },
           ),
         ],

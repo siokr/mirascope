@@ -42,6 +42,7 @@ void main() {
     tester,
   ) async {
     var relocated = false;
+    var opened = false;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -52,7 +53,7 @@ void main() {
         child: MaterialApp(
           home: NovelDetailsPage(
             mediaItemId: 'media-1',
-            onStartReading: () {},
+            onStartReading: () => opened = true,
             onRelocateSource: () => relocated = true,
           ),
         ),
@@ -62,7 +63,9 @@ void main() {
 
     expect(find.text('源文件已移动或不可用，请重新定位。'), findsOneWidget);
     expect(find.text('First'), findsOneWidget);
-    expect(find.text('开始阅读'), findsNothing);
+    expect(find.text('开始阅读'), findsOneWidget);
+    await tester.tap(find.text('开始阅读'));
+    expect(opened, isTrue);
     await tester.tap(find.text('重新定位源文件'));
     expect(relocated, isTrue);
   });

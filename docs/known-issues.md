@@ -2,13 +2,14 @@
 
 > 适用版本：`0.1.0+1` 候选开发版
 
-## 1. 本机 Windows 构建工具链挂起
+## 1. 本机 Windows release 构建仍需复验
 
-- 状态：阻塞本机实机验收；
-- 现象：CMake/MSVC 选择 `HostX86 → x64` 后长时间无编译输出；
+- 状态：debug 构建与启动已恢复，release 构建尚未重新确认；
+- 历史现象：CMake/MSVC 选择 `HostX86 → x64` 后长时间无编译输出；
 - 已知证据：相同仓库在 GitHub `windows-latest` runner 上可生成 release 构建；
-- 影响：维护者机器尚未完成原生文件选择、窗口交互、正常/异常退出恢复和安装验证；
-- 处理：检查 Visual Studio C++ 工作负载与 HostX64 工具链选择，不通过粗暴删除 Flutter 缓存掩盖问题。
+- 当前证据：2026-07-30 本机 `flutter run -d windows` 在 26.2 秒内完成 debug 构建并启动真实窗口，已开始核心路径人工验收；
+- 剩余影响：release 构建、安装验证和被缺陷阻断的人工场景仍待补验；
+- 处理：继续复验 release；若再次挂起，检查 Visual Studio C++ 工作负载与 HostX64 工具链选择，不通过粗暴删除 Flutter 缓存掩盖问题。
 
 ## 2. 内容变化后的原位重解析未实现
 

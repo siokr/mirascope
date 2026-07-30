@@ -15,6 +15,11 @@ void main() {
       ('第十二回 标题', ChapterHeadingKind.chineseOrdinal),
       ('卷一 标题', ChapterHeadingKind.chineseVolume),
       ('第一卷 标题', ChapterHeadingKind.chineseOrdinal),
+      ('第一话 标题', ChapterHeadingKind.chineseOrdinal),
+      ('最终话 标题', ChapterHeadingKind.chineseOrdinal),
+      ('闲话 标题', ChapterHeadingKind.chineseOrdinal),
+      ('尾声', ChapterHeadingKind.chineseOrdinal),
+      ('后记', ChapterHeadingKind.chineseOrdinal),
       ('Chapter 1 Title', ChapterHeadingKind.englishChapter),
       ('CHAPTER 24 A Title', ChapterHeadingKind.englishChapter),
     ];
@@ -29,6 +34,27 @@ void main() {
         expect(chapters.single.headingStartOffset, 0);
       });
     }
+  });
+
+  test('normalizes decorated light-novel headings', () {
+    const text =
+        '作品信息\n'
+        '▶︎▶︎【【第一话】 掷骰子问题（Day176）】\n'
+        '甲\n'
+        '▶︎▶︎【【第二话】 Abstract•Queen的败北（Day58）】\n'
+        '乙\n'
+        '▶︎▶︎【【闲话】 Rental•Instruction（Day94）】\n'
+        '丙';
+
+    final chapters = detector.detect(_decoded(text));
+
+    expect(chapters.map((chapter) => chapter.title), [
+      '正文',
+      '第一话 掷骰子问题（Day176）',
+      '第二话 Abstract•Queen的败北（Day58）',
+      '闲话 Rental•Instruction（Day94）',
+    ]);
+    expect(chapters[1].headingStartOffset, '作品信息\n'.length);
   });
 
   test('requires the complete line to be a heading', () {

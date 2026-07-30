@@ -121,13 +121,13 @@ class _DetailsBody extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text('共 ${details.chapters.length} 章'),
                 const SizedBox(height: 16),
-                if (details.sourceAvailable)
-                  FilledButton.icon(
-                    onPressed: onStartReading,
-                    icon: const Icon(Icons.menu_book),
-                    label: const Text('开始阅读'),
-                  )
-                else
+                FilledButton.icon(
+                  onPressed: details.chapters.isEmpty ? null : onStartReading,
+                  icon: const Icon(Icons.menu_book),
+                  label: const Text('开始阅读'),
+                ),
+                if (!details.sourceAvailable) ...[
+                  const SizedBox(height: 12),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -142,6 +142,7 @@ class _DetailsBody extends StatelessWidget {
                       ),
                     ),
                   ),
+                ],
                 const SizedBox(height: 24),
                 Text('目录', style: Theme.of(context).textTheme.titleLarge),
               ],
@@ -159,7 +160,7 @@ class _DetailsBody extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              onTap: details.sourceAvailable ? onStartReading : null,
+              onTap: onStartReading,
             );
           },
         ),

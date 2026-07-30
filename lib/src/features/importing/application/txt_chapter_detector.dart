@@ -7,7 +7,7 @@ final class TxtChapterDetector {
   final int maximumHeadingCodePoints;
 
   static final RegExp _chineseOrdinal = RegExp(
-    r'^第\s*[0-9零〇一二三四五六七八九十百千万两]+\s*[章节回卷](?:\s+.+)?$',
+    r'^第\s*[0-9零〇一二三四五六七八九十百千万两]+\s*[章节回卷话](?:\s+.+)?$',
   );
   static final RegExp _chineseVolume = RegExp(
     r'^卷\s*[0-9零〇一二三四五六七八九十百千万两]+(?:\s+.+)?$',
@@ -15,6 +15,9 @@ final class TxtChapterDetector {
   static final RegExp _englishChapter = RegExp(
     r'^chapter\s+[0-9]+(?:\s+.+)?$',
     caseSensitive: false,
+  );
+  static final RegExp _namedChineseSection = RegExp(
+    r'^(?:序章|楔子|前言|后记|尾声|闲话|最终话|番外)(?:\s+.+)?$',
   );
 
   List<DetectedChapter> detect(DecodedTxt decodedTxt) {
@@ -86,7 +89,7 @@ final class TxtChapterDetector {
     while (lineStart < text.length) {
       final newline = text.indexOf('\n', lineStart);
       final lineEnd = newline == -1 ? text.length : newline;
-      final line = text.substring(lineStart, lineEnd).trim();
+      final line = _normalizeHeading(text.substring(lineStart, lineEnd).trim());
       final kind = _classify(line);
       if (kind != null) {
         candidates.add(
@@ -122,7 +125,31 @@ final class TxtChapterDetector {
     if (_englishChapter.hasMatch(line)) {
       return ChapterHeadingKind.englishChapter;
     }
+    if (_namedChineseSection.hasMatch(line)) {
+      return ChapterHeadingKind.chineseOrdinal;
+    }
     return null;
+  }
+
+  String _normalizeHeading(String line) {
+    final firstBracket = line.indexOf('【');
+    if (firstBracket < 0 || !line.endsWith('】')) return line;
+    final prefix = line.substring(0, firstBracket);
+    if (prefix.runes.any(
+      (codePoint) =>
+          codePoint != 0x25b6 &&
+          codePoint != 0xfe0e &&
+          codePoint != 0xfe0f &&
+          !_isWhitespace(codePoint),
+    )) {
+      return line;
+    }
+    return line
+        .substring(firstBracket)
+        .replaceAll('【', ' ')
+        .replaceAll('】', ' ')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ');
   }
 
   bool _containsReadableBody(String text, int start, int end) {

@@ -9,9 +9,14 @@ import '../application/novel_providers.dart';
 import '../application/novel_reader_controller.dart';
 
 class NovelReaderPage extends ConsumerWidget {
-  const NovelReaderPage({required this.mediaItemId, super.key});
+  const NovelReaderPage({
+    required this.mediaItemId,
+    required this.onExit,
+    super.key,
+  });
 
   final String mediaItemId;
+  final VoidCallback onExit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,14 +43,20 @@ class NovelReaderPage extends ConsumerWidget {
     return _ReaderScaffold(
       controller: controller.requireValue,
       settings: settings.requireValue,
+      onExit: onExit,
     );
   }
 }
 
 class _ReaderScaffold extends StatefulWidget {
-  const _ReaderScaffold({required this.controller, required this.settings});
+  const _ReaderScaffold({
+    required this.controller,
+    required this.settings,
+    required this.onExit,
+  });
   final NovelReaderController controller;
   final ReaderSettingsController settings;
+  final VoidCallback onExit;
 
   @override
   State<_ReaderScaffold> createState() => _ReaderScaffoldState();
@@ -123,8 +134,22 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
             autofocus: true,
             child: Scaffold(
               appBar: AppBar(
+                leading: IconButton(
+                  key: const Key('reader-exit'),
+                  tooltip: '返回',
+                  onPressed: _exitReader,
+                  icon: const Icon(Icons.arrow_back),
+                ),
                 title: Text(controller.chapter?.unit.title ?? '阅读器'),
                 actions: [
+                  Builder(
+                    builder: (context) => IconButton(
+                      key: const Key('reader-directory'),
+                      tooltip: '目录',
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      icon: const Icon(Icons.menu),
+                    ),
+                  ),
                   IconButton(
                     key: const Key('reader-settings'),
                     tooltip: '阅读设置',
@@ -172,6 +197,11 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
         );
       },
     );
+  }
+
+  Future<void> _exitReader() async {
+    await widget.controller.flushProgress();
+    if (mounted) widget.onExit();
   }
 
   void _recordScrollPosition() {

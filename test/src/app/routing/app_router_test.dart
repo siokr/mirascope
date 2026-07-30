@@ -118,6 +118,25 @@ void main() {
     expect(find.text('Reader body'), findsOneWidget);
   });
 
+  testWidgets('direct reader route always returns to the library', (
+    tester,
+  ) async {
+    final router = createAppRouter();
+    addTearDown(router.dispose);
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+
+    await _pumpApp(tester, router, repository);
+    router.go('/novel/book-42/read');
+    await _pumpRoute(tester);
+
+    expect(find.byKey(const Key('reader-exit')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('reader-exit')));
+    await _pumpRoute(tester);
+
+    expect(find.text('媒体库还是空的'), findsOneWidget);
+  });
+
   testWidgets('shows a safe page for an unknown path', (tester) async {
     final router = createAppRouter();
     addTearDown(router.dispose);

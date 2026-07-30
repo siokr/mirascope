@@ -33,7 +33,9 @@ void main() {
             _ProgressRepository(),
           ),
         ],
-        child: const MaterialApp(home: NovelReaderPage(mediaItemId: 'media-1')),
+        child: MaterialApp(
+          home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -70,7 +72,9 @@ void main() {
             _ProgressRepository(),
           ),
         ],
-        child: const MaterialApp(home: NovelReaderPage(mediaItemId: 'media-1')),
+        child: MaterialApp(
+          home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -98,7 +102,9 @@ void main() {
             _ProgressRepository(),
           ),
         ],
-        child: const MaterialApp(home: NovelReaderPage(mediaItemId: 'media-1')),
+        child: MaterialApp(
+          home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -142,7 +148,9 @@ void main() {
             ),
           ),
         ],
-        child: const MaterialApp(home: NovelReaderPage(mediaItemId: 'media-1')),
+        child: MaterialApp(
+          home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
+        ),
       ),
     );
     await tester.pumpAndSettle();

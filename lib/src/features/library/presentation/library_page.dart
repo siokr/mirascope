@@ -176,41 +176,10 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   Future<String?> _requestTitle() {
-    final controller = TextEditingController();
     return showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('确认书名'),
-        content: TextField(
-          key: const Key('import-title'),
-          controller: controller,
-          autofocus: true,
-          maxLength: 200,
-          decoration: const InputDecoration(
-            labelText: '书名',
-            hintText: '输入这本小说在媒体库中的名称',
-          ),
-          onSubmitted: (value) {
-            final title = value.trim();
-            if (title.isNotEmpty) Navigator.of(dialogContext).pop(title);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            key: const Key('confirm-import-title'),
-            onPressed: () {
-              final title = controller.text.trim();
-              if (title.isNotEmpty) Navigator.of(dialogContext).pop(title);
-            },
-            child: const Text('继续'),
-          ),
-        ],
-      ),
-    ).whenComplete(controller.dispose);
+      builder: (_) => const _ImportTitleDialog(),
+    );
   }
 
   Future<TxtEncoding?> _requestEncoding(List<TxtEncoding> encodings) {
@@ -328,6 +297,57 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _ImportTitleDialog extends StatefulWidget {
+  const _ImportTitleDialog();
+
+  @override
+  State<_ImportTitleDialog> createState() => _ImportTitleDialogState();
+}
+
+class _ImportTitleDialogState extends State<_ImportTitleDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('确认书名'),
+      content: TextField(
+        key: const Key('import-title'),
+        controller: _controller,
+        autofocus: true,
+        maxLength: 200,
+        decoration: const InputDecoration(
+          labelText: '书名',
+          hintText: '输入这本小说在媒体库中的名称',
+        ),
+        onSubmitted: _submit,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          key: const Key('confirm-import-title'),
+          onPressed: () => _submit(_controller.text),
+          child: const Text('继续'),
+        ),
+      ],
+    );
+  }
+
+  void _submit(String value) {
+    final title = value.trim();
+    if (title.isNotEmpty) Navigator.of(context).pop(title);
   }
 }
 
