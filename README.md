@@ -130,7 +130,15 @@ flutter build windows --release
 - [候选版本记录](docs/releases/0.1.0-rc.1.md)
 - [发布检查清单](docs/release-checklist.md)
 
-当前没有运行截图。取得 `0.1.0+1` Windows 候选构建的真实截图后再加入 README，不使用设计稿或测试渲染冒充发布截图。
+### Windows 候选版实机截图
+
+以下截图来自提交 `3d182ca` 构建的 `0.1.0+1` Windows 候选版，并在全新 Windows Sandbox 中使用无版权测试文本拍摄。
+
+![媒体库与多编码 TXT](docs/assets/screenshots/0.1.0-rc.1/01-library.png)
+
+![小说详情与目录](docs/assets/screenshots/0.1.0-rc.1/02-novel-details.png)
+
+![阅读器与阅读设置](docs/assets/screenshots/0.1.0-rc.1/03-reader-settings.png)
 
 ## 文档导航
 
