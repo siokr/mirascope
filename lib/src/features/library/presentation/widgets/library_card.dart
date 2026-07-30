@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/library_item.dart';
 
-enum LibraryCardAction { archive, restore }
+enum LibraryCardAction { archive, restore, delete }
 
 class LibraryCard extends StatelessWidget {
   const LibraryCard({
@@ -12,6 +12,7 @@ class LibraryCard extends StatelessWidget {
     required this.onOpen,
     required this.onArchive,
     required this.onRestore,
+    required this.onDelete,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class LibraryCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onArchive;
   final VoidCallback onRestore;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -114,19 +116,26 @@ class LibraryCard extends StatelessWidget {
                               onArchive();
                             case LibraryCardAction.restore:
                               onRestore();
+                            case LibraryCardAction.delete:
+                              onDelete();
                           }
                         },
                         itemBuilder: (context) => [
-                          if (archived)
-                            const PopupMenuItem(
+                          if (archived) ...const [
+                            PopupMenuItem(
                               value: LibraryCardAction.restore,
                               child: Text('恢复到媒体库'),
-                            )
-                          else
-                            const PopupMenuItem(
+                            ),
+                            PopupMenuItem(
+                              value: LibraryCardAction.delete,
+                              child: Text('永久删除'),
+                            ),
+                          ] else ...const [
+                            PopupMenuItem(
                               value: LibraryCardAction.archive,
                               child: Text('移入归档'),
                             ),
+                          ],
                         ],
                         icon: busy
                             ? const SizedBox.square(

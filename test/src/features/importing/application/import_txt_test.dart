@@ -150,6 +150,9 @@ final class _Store implements DerivedTxtStore {
 
   @override
   Future<void> removeCommitted(StagedDerivedTxt staged) async {}
+
+  @override
+  Future<void> removeCommittedRef(String contentRef) async {}
 }
 
 final class _Repository implements ImportRepository {

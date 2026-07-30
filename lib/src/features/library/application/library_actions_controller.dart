@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database_providers.dart';
 import '../../../core/errors/app_error_code.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../importing/application/importing_providers.dart';
 import 'library_providers.dart';
 
 enum LibraryActionResult { succeeded, busy, failed }
@@ -54,6 +55,29 @@ final class LibraryActionsController extends Notifier<Set<String>> {
       failureCode: AppErrorCode.libraryRestoreFailed,
       operation: () =>
           ref.read(mediaLibraryRepositoryProvider).restore(mediaItemId),
+    );
+  }
+
+  Future<LibraryActionResult> delete(String mediaItemId) {
+    return _run(
+      mediaItemId,
+      failureCode: AppErrorCode.libraryDeleteFailed,
+      operation: () async {
+        final contentRefs = await ref
+            .read(mediaLibraryRepositoryProvider)
+            .deleteApplicationData(mediaItemId);
+        try {
+          final store = await ref.read(derivedTxtStoreProvider.future);
+          for (final contentRef in contentRefs) {
+            await store.removeCommittedRef(contentRef);
+          }
+        } on Object {
+          logAppWarning(
+            AppErrorCode.libraryDeleteFailed.value,
+            stage: 'derived_cleanup',
+          );
+        }
+      },
     );
   }
 

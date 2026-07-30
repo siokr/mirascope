@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/application/library_actions_controller.dart';
 import 'package:mirascope/src/features/library/application/library_providers.dart';
+import 'package:mirascope/src/features/importing/application/importing_providers.dart';
 
 import '../library_test_support.dart';
 
@@ -97,13 +98,37 @@ void main() {
     expect(await controller.archive('book-1'), LibraryActionResult.failed);
     expect(await controller.restore('book-2'), LibraryActionResult.failed);
   });
+
+  test(
+    'delete removes database aggregate then committed derived text',
+    () async {
+      final repository = FakeMediaLibraryRepository();
+      final store = FakeDerivedTxtStore();
+      addTearDown(repository.close);
+      final container = _container(repository, store: store);
+      addTearDown(container.dispose);
+
+      final result = await container
+          .read(libraryActionsProvider.notifier)
+          .delete('book-1');
+
+      expect(result, LibraryActionResult.succeeded);
+      expect(repository.deleted, ['book-1']);
+      expect(store.removedRefs, ['content/book-1.txt']);
+    },
+  );
 }
 
-ProviderContainer _container(FakeMediaLibraryRepository repository) {
+ProviderContainer _container(
+  FakeMediaLibraryRepository repository, {
+  FakeDerivedTxtStore? store,
+}) {
   return ProviderContainer(
     overrides: [
       mediaLibraryRepositoryProvider.overrideWithValue(repository),
       libraryClockProvider.overrideWithValue(() => _localNow),
+      if (store != null)
+        derivedTxtStoreProvider.overrideWith((ref) async => store),
     ],
   );
 }

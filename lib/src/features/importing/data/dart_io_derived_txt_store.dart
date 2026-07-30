@@ -48,6 +48,13 @@ final class DartIoDerivedTxtStore implements DerivedTxtStore {
     await _deleteIfPresent(_committedFile(staged));
   }
 
+  @override
+  Future<void> removeCommittedRef(String contentRef) {
+    return removeCommitted(
+      StagedDerivedTxt(contentRef: contentRef, temporaryToken: ''),
+    );
+  }
+
   File _committedFile(StagedDerivedTxt staged) {
     final segments = staged.contentRef.split('/');
     if (segments.length != 2 ||

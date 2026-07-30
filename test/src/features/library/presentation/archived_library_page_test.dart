@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
+import 'package:mirascope/src/features/importing/application/importing_providers.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart';
 import 'package:mirascope/src/features/library/domain/library_item.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
@@ -42,9 +43,7 @@ void main() {
     expect(repository.archivedWatchCount, 2);
   });
 
-  testWidgets('restores an archived item without a delete action', (
-    tester,
-  ) async {
+  testWidgets('restores an archived item', (tester) async {
     final repository = FakeMediaLibraryRepository();
     addTearDown(repository.close);
 
@@ -54,13 +53,41 @@ void main() {
 
     await tester.tap(find.byKey(const Key('library-menu-book-1')));
     await tester.pumpAndSettle();
-    expect(find.text('永久删除'), findsNothing);
+    expect(find.text('永久删除'), findsOneWidget);
     expect(find.text('恢复到媒体库'), findsOneWidget);
     await tester.tap(find.text('恢复到媒体库'));
     await tester.pumpAndSettle();
 
     expect(repository.restored, ['book-1']);
     expect(find.text('已恢复到媒体库'), findsOneWidget);
+  });
+
+  testWidgets('permanent deletion requires confirmation and preserves source', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    final store = FakeDerivedTxtStore();
+    addTearDown(repository.close);
+
+    await _pumpPage(tester, repository, store: store);
+    repository.archivedController.add([_item('book-1')]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('library-menu-book-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('永久删除'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('永久删除《长夜书简》？'), findsOneWidget);
+    expect(find.textContaining('不会删除原始 TXT 文件'), findsOneWidget);
+    expect(repository.deleted, isEmpty);
+
+    await tester.tap(find.byKey(const Key('confirm-permanent-delete')));
+    await tester.pumpAndSettle();
+
+    expect(repository.deleted, ['book-1']);
+    expect(store.removedRefs, ['content/book-1.txt']);
+    expect(find.text('已永久删除，可重新导入'), findsOneWidget);
   });
 
   testWidgets('restore failure shows stable feedback', (tester) async {
@@ -102,11 +129,16 @@ void main() {
 
 Future<void> _pumpPage(
   WidgetTester tester,
-  FakeMediaLibraryRepository repository,
-) {
+  FakeMediaLibraryRepository repository, {
+  FakeDerivedTxtStore? store,
+}) {
   return tester.pumpWidget(
     ProviderScope(
-      overrides: [mediaLibraryRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        mediaLibraryRepositoryProvider.overrideWithValue(repository),
+        if (store != null)
+          derivedTxtStoreProvider.overrideWith((ref) async => store),
+      ],
       child: const MaterialApp(home: ArchivedLibraryPage()),
     ),
   );

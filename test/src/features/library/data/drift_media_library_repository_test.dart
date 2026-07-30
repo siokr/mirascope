@@ -264,7 +264,12 @@ void main() {
     final database = createTestDatabase();
     addTearDown(database.close);
     final repository = DriftMediaLibraryRepository(database);
-    await _insertMediaAndLibraryEntry(database, id: 'media-1', title: 'Book');
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'media-1',
+      title: 'Book',
+      archivedAt: _now,
+    );
     await database
         .into(database.contentUnits)
         .insert(
@@ -317,8 +322,9 @@ void main() {
           ),
         );
 
-    await repository.deleteApplicationData('media-1');
+    final contentRefs = await repository.deleteApplicationData('media-1');
 
+    expect(contentRefs, {'content/unit-1'});
     expect(await repository.findMediaItem('media-1'), isNull);
     expect(await database.select(database.libraryEntries).get(), isEmpty);
     expect(await database.select(database.contentUnits).get(), isEmpty);
@@ -328,6 +334,19 @@ void main() {
     );
     expect(await database.select(database.readerPreferences).get(), isEmpty);
     expect(await database.select(database.importRecords).get(), isEmpty);
+  });
+
+  test('permanent deletion rejects an active library item', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(database, id: 'active', title: 'Active');
+
+    await expectLater(
+      repository.deleteApplicationData('active'),
+      throwsStateError,
+    );
+    expect(await repository.findMediaItem('active'), isNotNull);
   });
 }
 

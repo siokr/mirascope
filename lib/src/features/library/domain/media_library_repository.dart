@@ -8,5 +8,5 @@ abstract interface class MediaLibraryRepository {
   Future<void> markOpened(String mediaItemId, DateTime openedAt);
   Future<void> archive(String mediaItemId, DateTime archivedAt);
   Future<void> restore(String mediaItemId);
-  Future<void> deleteApplicationData(String mediaItemId);
+  Future<Set<String>> deleteApplicationData(String mediaItemId);
 }

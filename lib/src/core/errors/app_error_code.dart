@@ -5,6 +5,7 @@ enum AppErrorCode {
   libraryOpenFailed('library_open_failed', '无法打开作品', '请稍后重试。'),
   libraryArchiveFailed('library_archive_failed', '无法归档作品', '请稍后重试。'),
   libraryRestoreFailed('library_restore_failed', '无法恢复作品', '请稍后重试。'),
+  libraryDeleteFailed('library_delete_failed', '无法删除作品', '请稍后重试。'),
   fileNotFound('file_not_found', '找不到所选文件', '请重新选择文件。'),
   filePermissionDenied(
     'file_permission_denied',

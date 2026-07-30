@@ -41,10 +41,59 @@ class ArchivedLibraryPage extends ConsumerWidget {
             onOpen: (_) {},
             onArchive: (_) {},
             onRestore: (item) => unawaited(_restore(context, ref, item)),
+            onDelete: (item) => unawaited(_confirmDelete(context, ref, item)),
           );
         },
       ),
     );
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    LibraryItem item,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('永久删除《${item.mediaItem.title}》？'),
+        content: const Text(
+          '将删除应用内的书籍、章节、阅读进度、阅读设置和派生正文。'
+          '不会删除原始 TXT 文件。此操作无法撤销，删除后可以重新导入。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            key: const Key('confirm-permanent-delete'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('永久删除'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final result = await ref
+        .read(libraryActionsProvider.notifier)
+        .delete(item.mediaItem.id);
+    if (!context.mounted) return;
+    final message = switch (result) {
+      LibraryActionResult.succeeded => '已永久删除，可重新导入',
+      LibraryActionResult.failed => '无法删除，请重试。',
+      LibraryActionResult.busy => null,
+    };
+    if (message != null) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   Future<void> _restore(

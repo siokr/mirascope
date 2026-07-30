@@ -29,6 +29,7 @@ void main() {
               onOpen: () => opened = true,
               onArchive: () {},
               onRestore: () {},
+              onDelete: () {},
             ),
           ),
         ),
@@ -100,6 +101,7 @@ void main() {
               onOpen: () => opened = true,
               onArchive: () {},
               onRestore: () {},
+              onDelete: () {},
             ),
           ),
         ),
@@ -136,6 +138,7 @@ void main() {
               onOpen: () {},
               onArchive: () {},
               onRestore: () {},
+              onDelete: () {},
             ),
           ),
         ),
@@ -159,6 +162,7 @@ LibraryCard _card(LibraryItem item) {
     onOpen: () {},
     onArchive: () {},
     onRestore: () {},
+    onDelete: () {},
   );
 }
 

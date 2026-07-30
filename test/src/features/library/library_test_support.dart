@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:mirascope/src/features/library/domain/library_item.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/features/library/domain/media_library_repository.dart';
+import 'package:mirascope/src/features/importing/domain/derived_txt_store.dart';
 
 final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   final activeController = StreamController<List<LibraryItem>>.broadcast();
@@ -21,6 +22,7 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   Object? markOpenedError;
   Object? archiveError;
   Object? restoreError;
+  Object? deleteError;
 
   Future<void> close() async {
     await activeController.close();
@@ -70,7 +72,39 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
-  Future<void> deleteApplicationData(String mediaItemId) async {
+  Future<Set<String>> deleteApplicationData(String mediaItemId) async {
+    if (deleteError case final error?) {
+      throw error;
+    }
     deleted.add(mediaItemId);
+    return {'content/$mediaItemId.txt'};
   }
+}
+
+final class FakeDerivedTxtStore implements DerivedTxtStore {
+  final removedRefs = <String>[];
+
+  @override
+  Future<void> removeCommittedRef(String contentRef) async {
+    removedRefs.add(contentRef);
+  }
+
+  @override
+  Future<void> removeCommitted(StagedDerivedTxt staged) =>
+      removeCommittedRef(staged.contentRef);
+
+  @override
+  Future<void> discard(StagedDerivedTxt staged) async {}
+
+  @override
+  Future<void> promote(StagedDerivedTxt staged) async {}
+
+  @override
+  Future<StagedDerivedTxt> stage({
+    required String mediaItemId,
+    required String text,
+  }) async => StagedDerivedTxt(
+    contentRef: 'content/$mediaItemId.txt',
+    temporaryToken: 'temporary',
+  );
 }

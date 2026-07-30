@@ -91,6 +91,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             onOpen: (item) => unawaited(_open(context, ref, item)),
             onArchive: (item) => unawaited(_confirmArchive(context, ref, item)),
             onRestore: (_) {},
+            onDelete: (_) {},
           );
         },
       ),

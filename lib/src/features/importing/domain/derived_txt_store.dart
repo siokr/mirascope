@@ -19,4 +19,6 @@ abstract interface class DerivedTxtStore {
   Future<void> discard(StagedDerivedTxt staged);
 
   Future<void> removeCommitted(StagedDerivedTxt staged);
+
+  Future<void> removeCommittedRef(String contentRef);
 }

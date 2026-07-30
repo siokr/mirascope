@@ -11,6 +11,7 @@ class LibraryGrid extends StatelessWidget {
     required this.onOpen,
     required this.onArchive,
     required this.onRestore,
+    required this.onDelete,
     super.key,
   });
 
@@ -20,6 +21,7 @@ class LibraryGrid extends StatelessWidget {
   final ValueChanged<LibraryItem> onOpen;
   final ValueChanged<LibraryItem> onArchive;
   final ValueChanged<LibraryItem> onRestore;
+  final ValueChanged<LibraryItem> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +50,7 @@ class LibraryGrid extends StatelessWidget {
                   onOpen: () => onOpen(item),
                   onArchive: () => onArchive(item),
                   onRestore: () => onRestore(item),
+                  onDelete: () => onDelete(item),
                 );
               },
             );

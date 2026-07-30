@@ -130,11 +130,28 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
-  Future<void> deleteApplicationData(String mediaItemId) async {
-    await database.transaction(() async {
-      await (database.delete(
+  Future<Set<String>> deleteApplicationData(String mediaItemId) async {
+    return database.transaction(() async {
+      final archivedEntry =
+          await (database.select(database.libraryEntries)..where(
+                (row) =>
+                    row.mediaItemId.equals(mediaItemId) &
+                    row.archivedAt.isNotNull(),
+              ))
+              .getSingleOrNull();
+      if (archivedEntry == null) {
+        throw StateError('library_entry_not_archived');
+      }
+      final units = await (database.select(
+        database.contentUnits,
+      )..where((row) => row.mediaItemId.equals(mediaItemId))).get();
+      final deleted = await (database.delete(
         database.mediaItems,
       )..where((row) => row.id.equals(mediaItemId))).go();
+      if (deleted != 1) {
+        throw StateError('media_item_not_found');
+      }
+      return {for (final unit in units) unit.contentRef};
     });
   }
 
