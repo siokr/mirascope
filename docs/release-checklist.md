@@ -17,6 +17,8 @@
 - [ ] 依赖锁文件与发布提交一致
 - [ ] 数据库从上一发布版本迁移成功
 - [ ] 迁移失败和数据恢复路径已验证
+  - v1 合成迁移与整目录备份恢复流程：
+    [`v1-migration-and-backup-acceptance.md`](v1-migration-and-backup-acceptance.md)
 - [ ] 不包含 Token、密码、私有路径或测试账号
 
 ## 4. 自动检查
