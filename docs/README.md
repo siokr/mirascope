@@ -9,7 +9,8 @@
 
 ### 当前执行
 
-- [`mvp-task-list.md`](mvp-task-list.md)：当前版本任务、依赖、状态、交付物和验收。
+- [`m02-task-list.md`](m02-task-list.md)：MVP 0.2 当前任务、阶段门槛和状态。
+- [`mvp-task-list.md`](mvp-task-list.md)：已完成的 MVP 0.1 任务与验收证据。
 - [`quality-strategy.md`](quality-strategy.md)：测试层级、质量门槛和性能基准方法。
 - [`release-checklist.md`](release-checklist.md)：候选版本与 GitHub Release 检查。
 - [`demo-guide.md`](demo-guide.md)：MVP 0.1 核心演示路径和记录要求。
@@ -32,6 +33,8 @@
 
 ### 设计与实施记录
 
+- [`superpowers/specs/2026-08-05-m02-epub-import-design.md`](superpowers/specs/2026-08-05-m02-epub-import-design.md)：MVP 0.2 EPUB 导入与阅读设计。
+- [`superpowers/plans/2026-08-05-m02-epub-import.md`](superpowers/plans/2026-08-05-m02-epub-import.md)：MVP 0.2 EPUB 实施计划。
 - [`superpowers/specs/2026-07-26-documentation-restructure-design.md`](superpowers/specs/2026-07-26-documentation-restructure-design.md)：本轮文档重构设计。
 - [`superpowers/plans/2026-07-26-documentation-restructure.md`](superpowers/plans/2026-07-26-documentation-restructure.md)：本轮实施计划。
 
@@ -43,7 +46,7 @@ Flutter 生成的 `ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md` �
 
 1. 根 README；
 2. `plan.md`；
-3. `mvp-task-list.md`。
+3. `m02-task-list.md`。
 
 ### 开始 MVP 0.1
 
@@ -65,7 +68,7 @@ Flutter 生成的 `ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md` �
 | 信息 | 权威文件 |
 |---|---|
 | 版本包含与排除范围 | `plan.md` |
-| 当前任务和状态 | `mvp-task-list.md` |
+| 当前任务和状态 | `m02-task-list.md` |
 | 本地实体和字段语义 | `data-model.md` |
 | 小说导入与阅读行为 | `novel-reader-spec.md` |
 | 本地漫画行为 | `manga-reader-spec.md` |

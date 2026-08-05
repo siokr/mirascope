@@ -68,13 +68,15 @@ MVP 0.1 已正式发布，GitHub Release 提供经过 Windows Sandbox 验证的�
 ## 6. 建议阅读顺序
 
 1. `plan.md`
-2. `docs/mvp-task-list.md`
-3. `docs/novel-reader-spec.md`
-4. `docs/data-model.md`
-5. `docs/quality-strategy.md`
-6. `lib/src/features/importing/`
-7. `lib/src/features/novel/`
-8. 对应的 `test/src/features/` 测试
+2. `docs/m02-task-list.md`
+3. `docs/superpowers/specs/2026-08-05-m02-epub-import-design.md`
+4. `docs/superpowers/plans/2026-08-05-m02-epub-import.md`
+5. `docs/novel-reader-spec.md`
+6. `docs/data-model.md`
+7. `docs/quality-strategy.md`
+8. `lib/src/features/importing/`
+9. `lib/src/features/novel/`
+10. 对应的 `test/src/features/` 测试
 
 ## 7. 一句话状态
 
