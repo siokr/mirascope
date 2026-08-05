@@ -10,12 +10,7 @@ Uint8List buildTestEpub(TestEpubVersion version) {
   final mimetype = ArchiveFile.string('mimetype', 'application/epub+zip')
     ..compression = CompressionType.none;
   archive.add(mimetype);
-  archive.add(
-    ArchiveFile.string(
-      'META-INF/container.xml',
-      _containerXml,
-    ),
-  );
+  archive.add(ArchiveFile.string('META-INF/container.xml', _containerXml));
 
   switch (version) {
     case TestEpubVersion.epub2:
@@ -30,10 +25,7 @@ Uint8List buildTestEpub(TestEpubVersion version) {
         ..add(ArchiveFile.string('OEBPS/chapter.xhtml', _chapter));
   }
 
-  return ZipEncoder().encodeBytes(
-    archive,
-    modified: DateTime.utc(2026, 8, 5),
-  );
+  return ZipEncoder().encodeBytes(archive, modified: DateTime.utc(2026, 8, 5));
 }
 
 const _containerXml = '''<?xml version="1.0" encoding="UTF-8"?>

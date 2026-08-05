@@ -28,14 +28,12 @@ void main() {
 
       final package = XmlDocument.parse(_text(files, packagePath!));
       expect(package.findAllElements('itemref'), hasLength(1));
-      final title = package.descendants
-          .whereType<XmlElement>()
-          .singleWhere((element) => element.name.local == 'title');
+      final title = package.descendants.whereType<XmlElement>().singleWhere(
+        (element) => element.name.local == 'title',
+      );
       expect(title.innerText, contains('测试书'));
 
-      final chapter = html_parser.parse(
-        _text(files, 'OEBPS/chapter.xhtml'),
-      );
+      final chapter = html_parser.parse(_text(files, 'OEBPS/chapter.xhtml'));
       expect(chapter.querySelector('h1')?.text, '第一章');
       expect(chapter.querySelector('p')?.text, contains('mirascope'));
 
