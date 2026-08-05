@@ -15,6 +15,7 @@
 - [`release-checklist.md`](release-checklist.md)：候选版本与 GitHub Release 检查。
 - [`demo-guide.md`](demo-guide.md)：MVP 0.1 核心演示路径和记录要求。
 - [`known-issues.md`](known-issues.md)：当前限制、影响与处理计划。
+- [`dependency-audit.md`](dependency-audit.md)：第三方包许可证、用途和平台兼容性审计。
 - [`releases/0.1.0-rc.1.md`](releases/0.1.0-rc.1.md)：首个候选版本的真实检查状态。
 
 ### 架构与工程
