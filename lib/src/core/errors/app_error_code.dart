@@ -27,6 +27,12 @@ enum AppErrorCode {
     'EPUB 文件超出安全限制',
     '请选择不超过 100 MiB 的 EPUB 文件。',
   ),
+  epubUnsafePath(
+    'epub_unsafe_path',
+    'EPUB 包含不安全的内部路径',
+    '请选择来源可信且未损坏的 EPUB 文件。',
+  ),
+  epubResourceMissing('epub_resource_missing', 'EPUB 缺少必要资源', '请检查文件是否完整。'),
   parseFailed('parse_failed', '无法解析文件内容', '请检查文件后重试。'),
   storageFailed('storage_failed', '无法保存导入结果', '请稍后重试。'),
   sourceChanged('source_changed', '原文件内容已经变化', '确认重新解析或取消。');
