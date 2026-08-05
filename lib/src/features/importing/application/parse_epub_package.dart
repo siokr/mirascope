@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:html/dom.dart' as html_dom;
 import 'package:html/parser.dart' as html_parser;
 import 'package:xml/xml.dart';
@@ -8,6 +6,7 @@ import '../../../core/errors/app_error_code.dart';
 import '../../../core/errors/app_failure.dart';
 import '../domain/epub_container.dart';
 import '../domain/parsed_epub.dart';
+import 'decode_epub_markup.dart';
 
 final class ParseEpubPackage {
   const ParseEpubPackage({this.maximumSpineItems = 5000});
@@ -154,7 +153,7 @@ final class ParseEpubPackage {
         throw AppFailure.fromCode(AppErrorCode.epubResourceMissing);
       }
       final document = html_parser.parse(
-        _decodeMarkup(await container.readBytes(navItem.path)),
+        decodeEpubMarkup(await container.readBytes(navItem.path)),
       );
       final nav = document.querySelectorAll('nav').where((element) {
         final type = element.attributes.entries
@@ -312,37 +311,10 @@ final class ParseEpubPackage {
 
 XmlDocument _parseXml(List<int> bytes, AppErrorCode failureCode) {
   try {
-    return XmlDocument.parse(_decodeMarkup(bytes));
+    return XmlDocument.parse(decodeEpubMarkup(bytes));
   } on Object {
     throw AppFailure.fromCode(failureCode);
   }
-}
-
-String _decodeMarkup(List<int> bytes) {
-  if (bytes.length >= 2) {
-    final littleEndian =
-        (bytes[0] == 0xff && bytes[1] == 0xfe) ||
-        (bytes[0] == 0x3c && bytes[1] == 0x00);
-    final bigEndian =
-        (bytes[0] == 0xfe && bytes[1] == 0xff) ||
-        (bytes[0] == 0x00 && bytes[1] == 0x3c);
-    if (littleEndian || bigEndian) {
-      final start = (bytes[0] == 0xff || bytes[0] == 0xfe) ? 2 : 0;
-      if ((bytes.length - start).isOdd) {
-        throw const FormatException('Invalid UTF-16 byte length');
-      }
-      final codeUnits = <int>[];
-      for (var index = start; index < bytes.length; index += 2) {
-        codeUnits.add(
-          littleEndian
-              ? bytes[index] | (bytes[index + 1] << 8)
-              : (bytes[index] << 8) | bytes[index + 1],
-        );
-      }
-      return String.fromCharCodes(codeUnits);
-    }
-  }
-  return utf8.decode(bytes, allowMalformed: false);
 }
 
 Iterable<XmlElement> _elements(XmlNode node, String localName) => node

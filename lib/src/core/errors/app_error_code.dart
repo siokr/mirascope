@@ -45,6 +45,11 @@ enum AppErrorCode {
     '暂不支持受 DRM 保护的 EPUB',
     '请选择未加密且可合法阅读的 EPUB 文件。',
   ),
+  epubContentUnsupported(
+    'epub_content_unsupported',
+    'EPUB 正文格式暂不支持',
+    '请选择使用常规流式 XHTML 正文的 EPUB 文件。',
+  ),
   parseFailed('parse_failed', '无法解析文件内容', '请检查文件后重试。'),
   storageFailed('storage_failed', '无法保存导入结果', '请稍后重试。'),
   sourceChanged('source_changed', '原文件内容已经变化', '确认重新解析或取消。');
