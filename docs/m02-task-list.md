@@ -5,7 +5,7 @@
 ## Windows EPUB 主线
 
 - [x] `M02-001` 依赖审计与可再分发 EPUB 2/3 样本（done：依赖锁定、许可证复核、自建 EPUB 2/3 样本及解析测试）
-- [ ] `M02-002` EPUB 选择、验证、指纹与重复项处理（pending）
+- [x] `M02-002` EPUB 选择、验证、指纹与重复项处理（done：来源检查与准备测试 12 项、完整回归 224 项、静态分析通过）
 - [ ] `M02-003` 安全 ZIP 容器与资源预算（pending）
 - [ ] `M02-004` container、OPF、NCX/nav 与 spine 解析（pending）
 - [ ] `M02-005` XHTML 语义块、本地图片与安全降级（pending）

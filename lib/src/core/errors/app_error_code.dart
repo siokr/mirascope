@@ -12,11 +12,21 @@ enum AppErrorCode {
     '没有权限读取所选文件',
     '请调整文件权限，或复制文件后重试。',
   ),
-  emptyFile('empty_file', '所选文件为空', '请选择包含正文的 TXT 文件。'),
+  emptyFile('empty_file', '所选文件为空', '请选择包含内容的文件。'),
   encodingUnknown('encoding_unknown', '无法可靠识别文本编码', '请选择编码并预览。'),
   decodeFailed('decode_failed', '无法按所选编码读取文本', '请更换编码或取消导入。'),
   noReadableContent('no_readable_content', '文件中没有可读正文', '请检查文件内容。'),
   importDuplicate('import_duplicate', '这个文件已经导入', '打开已有作品即可。'),
+  epubInvalidContainer(
+    'epub_invalid_container',
+    '所选文件不是有效的 EPUB',
+    '请选择未损坏的 EPUB 文件。',
+  ),
+  epubResourceLimit(
+    'epub_resource_limit',
+    'EPUB 文件超出安全限制',
+    '请选择不超过 100 MiB 的 EPUB 文件。',
+  ),
   parseFailed('parse_failed', '无法解析文件内容', '请检查文件后重试。'),
   storageFailed('storage_failed', '无法保存导入结果', '请稍后重试。'),
   sourceChanged('source_changed', '原文件内容已经变化', '确认重新解析或取消。');

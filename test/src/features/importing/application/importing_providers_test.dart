@@ -4,8 +4,10 @@ import 'package:mirascope/src/core/database/app_database.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/importing/application/importing_providers.dart';
 import 'package:mirascope/src/features/importing/data/charset_converter_gb18030_decoder.dart';
+import 'package:mirascope/src/features/importing/data/dart_io_epub_source_inspector.dart';
 import 'package:mirascope/src/features/importing/data/dart_io_txt_source_inspector.dart';
 import 'package:mirascope/src/features/importing/data/dart_io_txt_source_reader.dart';
+import 'package:mirascope/src/features/importing/data/file_selector_epub_file_picker.dart';
 import 'package:mirascope/src/features/importing/data/file_selector_txt_file_picker.dart';
 import 'package:mirascope/src/features/importing/data/drift_import_repository.dart';
 
@@ -35,6 +37,10 @@ void main() {
         decodeUseCase.decoder.gb18030Decoder,
         isA<CharsetConverterGb18030Decoder>(),
       );
+      final epubUseCase = container.read(prepareEpubSourceProvider);
+      expect(epubUseCase.filePicker, isA<FileSelectorEpubFilePicker>());
+      expect(epubUseCase.sourceInspector, isA<DartIoEpubSourceInspector>());
+      expect(epubUseCase.importRepository, same(useCase.importRepository));
     },
   );
 }

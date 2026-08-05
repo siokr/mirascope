@@ -7,9 +7,13 @@ import '../../../core/database/database_providers.dart';
 import '../../../core/ids/id_generator.dart';
 import '../data/charset_converter_gb18030_decoder.dart';
 import '../data/dart_io_derived_txt_store.dart';
+import '../data/dart_io_epub_source_inspector.dart';
 import '../data/dart_io_txt_source_inspector.dart';
 import '../data/dart_io_txt_source_reader.dart';
 import '../data/file_selector_txt_file_picker.dart';
+import '../data/file_selector_epub_file_picker.dart';
+import '../domain/epub_file_picker.dart';
+import '../domain/epub_source_candidate.dart';
 import '../domain/txt_encoding.dart';
 import '../domain/derived_txt_store.dart';
 import '../domain/txt_file_picker.dart';
@@ -17,6 +21,7 @@ import '../domain/txt_source_candidate.dart';
 import '../domain/txt_source_reader.dart';
 import 'decode_txt_source.dart';
 import 'import_txt.dart';
+import 'prepare_epub_source.dart';
 import 'prepare_txt_source.dart';
 import 'relocate_txt_source.dart';
 import 'txt_chapter_detector.dart';
@@ -28,6 +33,14 @@ final txtFilePickerProvider = Provider<TxtFilePicker>((ref) {
 
 final txtSourceInspectorProvider = Provider<TxtSourceInspector>((ref) {
   return DartIoTxtSourceInspector();
+});
+
+final epubFilePickerProvider = Provider<EpubFilePicker>((ref) {
+  return const FileSelectorEpubFilePicker();
+});
+
+final epubSourceInspectorProvider = Provider<EpubSourceInspector>((ref) {
+  return DartIoEpubSourceInspector();
 });
 
 final txtSourceReaderProvider = Provider<TxtSourceReader>((ref) {
@@ -83,6 +96,14 @@ final prepareTxtSourceProvider = Provider<PrepareTxtSource>((ref) {
   return PrepareTxtSource(
     filePicker: ref.watch(txtFilePickerProvider),
     sourceInspector: ref.watch(txtSourceInspectorProvider),
+    importRepository: ref.watch(importRepositoryProvider),
+  );
+});
+
+final prepareEpubSourceProvider = Provider<PrepareEpubSource>((ref) {
+  return PrepareEpubSource(
+    filePicker: ref.watch(epubFilePickerProvider),
+    sourceInspector: ref.watch(epubSourceInspectorProvider),
     importRepository: ref.watch(importRepositoryProvider),
   );
 });
