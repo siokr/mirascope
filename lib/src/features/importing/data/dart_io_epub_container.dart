@@ -101,6 +101,57 @@ final class DartIoEpubContainer implements EpubContainer {
   }
 
   @override
+  String resolvePath(String baseFilePath, String reference) {
+    _ensureOpen();
+    final base = normalizeEpubContainerPath(baseFilePath);
+    if (reference.isEmpty ||
+        reference.contains('\u0000') ||
+        reference.contains('\\')) {
+      if (reference.isEmpty) {
+        return base;
+      }
+      throw AppFailure.fromCode(AppErrorCode.epubUnsafePath);
+    }
+
+    late Uri uri;
+    try {
+      uri = Uri.parse(reference);
+    } on Object {
+      throw AppFailure.fromCode(AppErrorCode.epubUnsafePath);
+    }
+    if (uri.hasScheme || uri.hasAuthority || uri.path.startsWith('/')) {
+      throw AppFailure.fromCode(AppErrorCode.epubUnsafePath);
+    }
+
+    final resolved = base.split('/')..removeLast();
+    for (final encodedSegment in uri.path.split('/')) {
+      late String segment;
+      try {
+        segment = Uri.decodeComponent(encodedSegment);
+      } on Object {
+        throw AppFailure.fromCode(AppErrorCode.epubUnsafePath);
+      }
+      if (segment.isEmpty || segment == '.') {
+        continue;
+      }
+      if (segment == '..') {
+        if (resolved.isEmpty) {
+          throw AppFailure.fromCode(AppErrorCode.epubUnsafePath);
+        }
+        resolved.removeLast();
+      } else if (segment.contains('/') || segment.contains('\\')) {
+        throw AppFailure.fromCode(AppErrorCode.epubUnsafePath);
+      } else {
+        resolved.add(segment);
+      }
+    }
+    if (resolved.isEmpty) {
+      throw AppFailure.fromCode(AppErrorCode.epubUnsafePath);
+    }
+    return normalizeEpubContainerPath(resolved.join('/'));
+  }
+
+  @override
   Future<Uint8List> readBytes(String path) async {
     _ensureOpen();
     final normalized = normalizeEpubContainerPath(path);

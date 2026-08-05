@@ -17,6 +17,8 @@ abstract interface class EpubContainer {
 
   bool contains(String path);
 
+  String resolvePath(String baseFilePath, String reference);
+
   Future<Uint8List> readBytes(String path);
 
   Future<void> close();

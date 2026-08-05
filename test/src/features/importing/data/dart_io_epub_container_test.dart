@@ -185,6 +185,31 @@ void main() {
       throwsCode('epub_invalid_container'),
     );
   });
+
+  test('resolves safe relative references without escaping the root', () async {
+    final source = await _writeBytes(
+      temporaryDirectory,
+      buildTestEpub(TestEpubVersion.epub3),
+    );
+    final container = await DartIoEpubContainer.open(source.path);
+    addTearDown(container.close);
+
+    expect(
+      container.resolvePath(
+        'OEBPS/package/content.opf',
+        '../Text/chapter.xhtml',
+      ),
+      'OEBPS/Text/chapter.xhtml',
+    );
+    expect(
+      () => container.resolvePath('content.opf', '../secret'),
+      throwsCode('epub_unsafe_path'),
+    );
+    expect(
+      () => container.resolvePath('content.opf', 'https://example.com/book'),
+      throwsCode('epub_unsafe_path'),
+    );
+  });
 }
 
 Future<File> _writeArchive(

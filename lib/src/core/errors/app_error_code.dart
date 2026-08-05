@@ -33,6 +33,18 @@ enum AppErrorCode {
     '请选择来源可信且未损坏的 EPUB 文件。',
   ),
   epubResourceMissing('epub_resource_missing', 'EPUB 缺少必要资源', '请检查文件是否完整。'),
+  epubPackageMissing('epub_package_missing', 'EPUB 缺少书籍描述文件', '请检查文件是否完整。'),
+  epubManifestInvalid(
+    'epub_manifest_invalid',
+    'EPUB 书籍结构无效',
+    '请选择结构完整的 EPUB 文件。',
+  ),
+  epubSpineEmpty('epub_spine_empty', 'EPUB 没有可阅读内容', '请选择包含正文的 EPUB 文件。'),
+  epubDrmUnsupported(
+    'epub_drm_unsupported',
+    '暂不支持受 DRM 保护的 EPUB',
+    '请选择未加密且可合法阅读的 EPUB 文件。',
+  ),
   parseFailed('parse_failed', '无法解析文件内容', '请检查文件后重试。'),
   storageFailed('storage_failed', '无法保存导入结果', '请稍后重试。'),
   sourceChanged('source_changed', '原文件内容已经变化', '确认重新解析或取消。');
