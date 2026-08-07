@@ -6,6 +6,10 @@ import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/application/library_actions_controller.dart';
 import 'package:mirascope/src/features/library/application/library_providers.dart';
 import 'package:mirascope/src/features/importing/application/importing_providers.dart';
+import 'package:mirascope/src/features/importing/domain/derived_epub_store.dart';
+import 'package:mirascope/src/features/importing/domain/epub_container.dart';
+import 'package:mirascope/src/features/importing/domain/epub_semantic_content.dart';
+import 'package:mirascope/src/features/importing/domain/parsed_epub.dart';
 
 import '../library_test_support.dart';
 
@@ -107,11 +111,32 @@ void main() {
       expect(store.removedRefs, ['content/book-1.txt']);
     },
   );
+
+  test('delete routes EPUB chapter refs to the EPUB store', () async {
+    final repository = FakeMediaLibraryRepository(
+      deletedContentRefs: const {
+        'epub/book-1/chapters/00000.json',
+        'epub/book-1/chapters/00001.json',
+      },
+    );
+    final epubStore = _FakeDerivedEpubStore();
+    addTearDown(repository.close);
+    final container = _container(repository, epubStore: epubStore);
+    addTearDown(container.dispose);
+
+    final result = await container
+        .read(libraryActionsProvider.notifier)
+        .delete('book-1');
+
+    expect(result, LibraryActionResult.succeeded);
+    expect(epubStore.removedRefs, hasLength(2));
+  });
 }
 
 ProviderContainer _container(
   FakeMediaLibraryRepository repository, {
   FakeDerivedTxtStore? store,
+  _FakeDerivedEpubStore? epubStore,
 }) {
   return ProviderContainer(
     overrides: [
@@ -119,6 +144,31 @@ ProviderContainer _container(
       libraryClockProvider.overrideWithValue(() => _localNow),
       if (store != null)
         derivedTxtStoreProvider.overrideWith((ref) async => store),
+      if (epubStore != null)
+        derivedEpubStoreProvider.overrideWith((ref) async => epubStore),
     ],
   );
+}
+
+final class _FakeDerivedEpubStore implements DerivedEpubStore {
+  final removedRefs = <String>[];
+
+  @override
+  Future<void> removeCommittedRef(String contentRef) async {
+    removedRefs.add(contentRef);
+  }
+
+  @override
+  Future<void> removeCommitted(StagedDerivedEpub staged) async {}
+  @override
+  Future<void> discard(StagedDerivedEpub staged) async {}
+  @override
+  Future<void> promote(StagedDerivedEpub staged) async {}
+  @override
+  Future<StagedDerivedEpub> stage({
+    required String mediaItemId,
+    required ParsedEpub book,
+    required List<EpubSemanticChapter> chapters,
+    required EpubContainer container,
+  }) => throw UnimplementedError();
 }

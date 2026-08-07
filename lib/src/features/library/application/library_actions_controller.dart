@@ -61,9 +61,14 @@ final class LibraryActionsController extends Notifier<Set<String>> {
             .read(mediaLibraryRepositoryProvider)
             .deleteApplicationData(mediaItemId);
         try {
-          final store = await ref.read(derivedTxtStoreProvider.future);
           for (final contentRef in contentRefs) {
-            await store.removeCommittedRef(contentRef);
+            if (contentRef.startsWith('epub/')) {
+              final epubStore = await ref.read(derivedEpubStoreProvider.future);
+              await epubStore.removeCommittedRef(contentRef);
+            } else {
+              final txtStore = await ref.read(derivedTxtStoreProvider.future);
+              await txtStore.removeCommittedRef(contentRef);
+            }
           }
         } on Object {
           logAppWarning(

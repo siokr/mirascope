@@ -7,12 +7,15 @@ import '../../../core/database/database_providers.dart';
 import '../../../core/ids/id_generator.dart';
 import '../data/charset_converter_gb18030_decoder.dart';
 import '../data/dart_io_derived_txt_store.dart';
+import '../data/dart_io_derived_epub_store.dart';
+import '../data/dart_io_epub_container.dart';
 import '../data/dart_io_epub_source_inspector.dart';
 import '../data/dart_io_txt_source_inspector.dart';
 import '../data/dart_io_txt_source_reader.dart';
 import '../data/file_selector_txt_file_picker.dart';
 import '../data/file_selector_epub_file_picker.dart';
 import '../domain/epub_file_picker.dart';
+import '../domain/derived_epub_store.dart';
 import '../domain/epub_source_candidate.dart';
 import '../domain/txt_encoding.dart';
 import '../domain/derived_txt_store.dart';
@@ -20,7 +23,10 @@ import '../domain/txt_file_picker.dart';
 import '../domain/txt_source_candidate.dart';
 import '../domain/txt_source_reader.dart';
 import 'decode_txt_source.dart';
+import 'import_epub.dart';
 import 'import_txt.dart';
+import 'normalize_epub_content.dart';
+import 'parse_epub_package.dart';
 import 'prepare_epub_source.dart';
 import 'prepare_txt_source.dart';
 import 'relocate_txt_source.dart';
@@ -78,6 +84,37 @@ final derivedTxtStoreProvider = FutureProvider<DerivedTxtStore>((ref) async {
   final supportDirectory = await getApplicationSupportDirectory();
   return DartIoDerivedTxtStore(
     Directory('${supportDirectory.path}${Platform.pathSeparator}derived_txt'),
+  );
+});
+
+final derivedEpubStoreProvider = FutureProvider<DerivedEpubStore>((ref) async {
+  final supportDirectory = await getApplicationSupportDirectory();
+  return DartIoDerivedEpubStore(
+    Directory('${supportDirectory.path}${Platform.pathSeparator}derived_epub'),
+  );
+});
+
+final epubContainerFactoryProvider = Provider<EpubContainerFactory>((ref) {
+  return (path) => DartIoEpubContainer.open(path);
+});
+
+final parseEpubPackageProvider = Provider<ParseEpubPackage>((ref) {
+  return const ParseEpubPackage();
+});
+
+final normalizeEpubContentProvider = Provider<NormalizeEpubContent>((ref) {
+  return const NormalizeEpubContent();
+});
+
+final importEpubProvider = FutureProvider<ImportEpub>((ref) async {
+  return ImportEpub(
+    openContainer: ref.watch(epubContainerFactoryProvider),
+    parsePackage: ref.watch(parseEpubPackageProvider).call,
+    normalizeContent: ref.watch(normalizeEpubContentProvider).call,
+    importRepository: ref.watch(importRepositoryProvider),
+    derivedEpubStore: await ref.watch(derivedEpubStoreProvider.future),
+    idGenerator: ref.watch(importIdGeneratorProvider),
+    clock: ref.watch(importClockProvider),
   );
 });
 

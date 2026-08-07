@@ -6,6 +6,9 @@ import 'package:mirascope/src/features/library/domain/media_library_repository.d
 import 'package:mirascope/src/features/importing/domain/derived_txt_store.dart';
 
 final class FakeMediaLibraryRepository implements MediaLibraryRepository {
+  FakeMediaLibraryRepository({this.deletedContentRefs});
+
+  final Set<String>? deletedContentRefs;
   final activeController = StreamController<List<LibraryItem>>.broadcast();
   final archivedController = StreamController<List<LibraryItem>>.broadcast();
 
@@ -77,7 +80,7 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
       throw error;
     }
     deleted.add(mediaItemId);
-    return {'content/$mediaItemId.txt'};
+    return deletedContentRefs ?? {'content/$mediaItemId.txt'};
   }
 }
 
