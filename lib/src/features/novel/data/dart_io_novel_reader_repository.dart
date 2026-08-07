@@ -11,10 +11,15 @@ import '../domain/novel_reader_repository.dart';
 import '../domain/reader_book.dart';
 
 final class DartIoNovelReaderRepository implements NovelReaderRepository {
-  DartIoNovelReaderRepository(this.database, this.derivedRoot);
+  DartIoNovelReaderRepository(
+    this.database,
+    this.derivedTxtRoot, {
+    Directory? derivedEpubRoot,
+  }) : derivedEpubRoot = derivedEpubRoot ?? derivedTxtRoot;
 
   final AppDatabase database;
-  final Directory derivedRoot;
+  final Directory derivedTxtRoot;
+  final Directory derivedEpubRoot;
   final Map<String, String> _textCache = {};
 
   @override
@@ -46,6 +51,9 @@ final class DartIoNovelReaderRepository implements NovelReaderRepository {
 
   @override
   Future<ReaderChapter> readChapter(domain.ContentUnit unit) async {
+    if (unit.contentRef.startsWith('epub/')) {
+      return _readEpubChapter(unit);
+    }
     final file = _resolveContentRef(unit.contentRef);
     final text =
         _textCache[unit.contentRef] ??
@@ -62,6 +70,93 @@ final class DartIoNovelReaderRepository implements NovelReaderRepository {
     );
   }
 
+  Future<ReaderChapter> _readEpubChapter(domain.ContentUnit unit) async {
+    final file = _resolveEpubChapterRef(unit.contentRef);
+    final bytes = await file.readAsBytes();
+    if (sha256.convert(bytes).toString() != unit.contentHash) {
+      throw const FormatException('content_hash_mismatch');
+    }
+    final value = jsonDecode(utf8.decode(bytes, allowMalformed: false));
+    if (value is! Map<String, dynamic> ||
+        value['schema'] != 'epub-derived-v1' ||
+        value['blocks'] is! List<dynamic>) {
+      throw const FormatException('invalid_epub_chapter');
+    }
+    final blocks = <ReaderBlock>[];
+    for (final value in value['blocks'] as List<dynamic>) {
+      blocks.add(_parseEpubBlock(value, unit.mediaItemId));
+    }
+    if (blocks.isEmpty) {
+      throw const FormatException('empty_epub_chapter');
+    }
+    return ReaderChapter(
+      unit: unit,
+      text: blocks
+          .where((block) => block.text != null)
+          .map((block) => block.text!)
+          .join('\n\n'),
+      blocks: List.unmodifiable(blocks),
+    );
+  }
+
+  ReaderBlock _parseEpubBlock(Object? value, String mediaItemId) {
+    if (value is! Map<String, dynamic>) {
+      throw const FormatException('invalid_epub_block');
+    }
+    final kindName = value['kind'];
+    final kind = ReaderBlockKind.values
+        .where((candidate) => candidate.name == kindName)
+        .firstOrNull;
+    if (kind == null) throw const FormatException('invalid_epub_block_kind');
+    final text = value['text'];
+    final spansValue = value['styleSpans'];
+    if (text != null && text is! String ||
+        spansValue != null && spansValue is! List<dynamic>) {
+      throw const FormatException('invalid_epub_block');
+    }
+    String? imagePath;
+    if (kind == ReaderBlockKind.image) {
+      final imageRef = value['imageRef'];
+      if (imageRef is! String) {
+        throw const FormatException('invalid_epub_image_ref');
+      }
+      imagePath = _resolveEpubImageRef(imageRef, mediaItemId).path;
+    }
+    final spans = <ReaderTextStyleSpan>[];
+    for (final span in spansValue as List<dynamic>? ?? const []) {
+      if (span is! Map<String, dynamic> ||
+          span['start'] is! int ||
+          span['end'] is! int ||
+          span['bold'] is! bool ||
+          span['italic'] is! bool) {
+        throw const FormatException('invalid_epub_style_span');
+      }
+      final start = span['start'] as int;
+      final end = span['end'] as int;
+      if (text == null || start < 0 || end <= start || end > text.length) {
+        throw const FormatException('invalid_epub_style_range');
+      }
+      spans.add(
+        ReaderTextStyleSpan(
+          start: start,
+          end: end,
+          bold: span['bold'] as bool,
+          italic: span['italic'] as bool,
+        ),
+      );
+    }
+    return ReaderBlock(
+      kind: kind,
+      text: text as String?,
+      headingLevel: value['headingLevel'] as int?,
+      listDepth: value['listDepth'] as int?,
+      ordered: value['ordered'] as bool?,
+      imagePath: imagePath,
+      altText: value['altText'] as String?,
+      styleSpans: List.unmodifiable(spans),
+    );
+  }
+
   File _resolveContentRef(String contentRef) {
     final parts = contentRef.split('/');
     if (parts.length != 2 ||
@@ -70,8 +165,37 @@ final class DartIoNovelReaderRepository implements NovelReaderRepository {
       throw const FormatException('invalid_content_ref');
     }
     return File(
-      '${derivedRoot.path}${Platform.pathSeparator}content'
+      '${derivedTxtRoot.path}${Platform.pathSeparator}content'
       '${Platform.pathSeparator}${parts.last}',
+    );
+  }
+
+  File _resolveEpubChapterRef(String contentRef) {
+    final match = RegExp(
+      r'^epub/([A-Za-z0-9_-]+)/chapters/([0-9]{5}\.json)$',
+    ).firstMatch(contentRef);
+    if (match == null) throw const FormatException('invalid_content_ref');
+    return File(
+      '${derivedEpubRoot.path}${Platform.pathSeparator}content'
+      '${Platform.pathSeparator}${match.group(1)}'
+      '${Platform.pathSeparator}chapters'
+      '${Platform.pathSeparator}${match.group(2)}',
+    );
+  }
+
+  File _resolveEpubImageRef(String imageRef, String mediaItemId) {
+    final match = RegExp(
+      r'^epub/([A-Za-z0-9_-]+)/images/'
+      r'([a-f0-9]{64}\.(?:jpg|png|gif|webp|bmp))$',
+    ).firstMatch(imageRef);
+    if (match == null || match.group(1) != mediaItemId) {
+      throw const FormatException('invalid_epub_image_ref');
+    }
+    return File(
+      '${derivedEpubRoot.path}${Platform.pathSeparator}content'
+      '${Platform.pathSeparator}$mediaItemId'
+      '${Platform.pathSeparator}images'
+      '${Platform.pathSeparator}${match.group(2)}',
     );
   }
 

@@ -38,6 +38,7 @@ final class NovelReaderController extends ChangeNotifier {
   String? errorMessage;
   bool initialLoading = true;
   int restoredCharacterOffset = 0;
+  double restoredFraction = 0;
   ReadingProgress? _storedProgress;
   _PendingProgress? _pendingProgress;
   Timer? _saveTimer;
@@ -74,6 +75,7 @@ final class NovelReaderController extends ChangeNotifier {
       );
       if (requestedIndex >= 0) {
         restoredCharacterOffset = 0;
+        restoredFraction = 0;
         updatePosition(characterOffset: 0, fraction: 0);
         await flushProgress();
       } else {
@@ -81,6 +83,7 @@ final class NovelReaderController extends ChangeNotifier {
           _storedProgress,
           chapter!.text.length,
         );
+        restoredFraction = _restoreFraction(_storedProgress, chapter!);
       }
     } on Object {
       errorMessage = '无法加载阅读内容';
@@ -106,6 +109,7 @@ final class NovelReaderController extends ChangeNotifier {
     await _load(index);
     if (currentIndex == index && chapter != null) {
       restoredCharacterOffset = 0;
+      restoredFraction = 0;
       updatePosition(characterOffset: 0, fraction: 0);
       await flushProgress();
     }
@@ -184,7 +188,7 @@ final class NovelReaderController extends ChangeNotifier {
       id: previous?.id ?? idGenerator!.newId(),
       mediaItemId: mediaItemId,
       contentUnitId: pending.contentUnitId,
-      locator: 'char-v1:${pending.characterOffset}',
+      locator: _progressLocator(pending),
       fraction: pending.fraction,
       updatedAt: clock!().toUtc(),
       revision: previous == null ? 0 : previous.revision + 1,
@@ -198,7 +202,7 @@ final class NovelReaderController extends ChangeNotifier {
           id: current.id,
           mediaItemId: mediaItemId,
           contentUnitId: pending.contentUnitId,
-          locator: 'char-v1:${pending.characterOffset}',
+          locator: _progressLocator(pending),
           fraction: pending.fraction,
           updatedAt: clock!().toUtc(),
           revision: current.revision + 1,
@@ -226,6 +230,30 @@ final class NovelReaderController extends ChangeNotifier {
     }
     return 0;
   }
+
+  double _restoreFraction(ReadingProgress? progress, ReaderChapter chapter) {
+    if (progress == null) return 0;
+    final blockMatch = RegExp(
+      r'^epub-block-v1:(\d+):(\d+)$',
+    ).firstMatch(progress.locator);
+    if (blockMatch != null && chapter.blocks.isNotEmpty) {
+      final index = int.parse(
+        blockMatch.group(1)!,
+      ).clamp(0, chapter.blocks.length - 1);
+      final block = chapter.blocks[index];
+      final offset = int.parse(blockMatch.group(2)!);
+      final withinBlock = block.text == null || block.text!.isEmpty
+          ? 0.0
+          : offset.clamp(0, block.text!.length) / block.text!.length;
+      return ((index + withinBlock) / chapter.blocks.length).clamp(0.0, 1.0);
+    }
+    return progress.fraction.isFinite ? progress.fraction.clamp(0.0, 1.0) : 0;
+  }
+
+  String _progressLocator(_PendingProgress pending) => chapter!.progressLocator(
+    characterOffset: pending.characterOffset,
+    fraction: pending.fraction,
+  );
 
   Future<void> close() async {
     _saveTimer?.cancel();

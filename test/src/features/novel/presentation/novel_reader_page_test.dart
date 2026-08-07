@@ -196,20 +196,80 @@ void main() {
     await tester.pumpAndSettle();
     expect(scrollView.controller!.offset, 0);
   });
+
+  testWidgets(
+    'renders EPUB semantic headings, styled text, and image fallback',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            novelReaderRepositoryProvider.overrideWith(
+              (ref) async => _Repository(semantic: true),
+            ),
+            readerPreferenceRepositoryProvider.overrideWithValue(
+              _PreferenceRepository(),
+            ),
+            readingProgressRepositoryProvider.overrideWithValue(
+              _ProgressRepository(),
+            ),
+          ],
+          child: MaterialApp(
+            home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('EPUB 标题'), findsOneWidget);
+      expect(find.text('带样式正文', findRichText: true), findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
+      expect(find.bySemanticsLabel('测试插图'), findsOneWidget);
+      expect(find.byKey(const ValueKey('epub-block-0')), findsOneWidget);
+    },
+  );
 }
 
 final class _Repository implements NovelReaderRepository {
-  _Repository({this.text});
+  _Repository({this.text, this.semantic = false});
 
   final String? text;
+  final bool semantic;
   final book = _book();
 
   @override
   Future<ReaderBook?> loadBook(String mediaItemId) async => book;
 
   @override
-  Future<ReaderChapter> readChapter(ContentUnit unit) async =>
-      ReaderChapter(unit: unit, text: text ?? 'Body ${unit.orderIndex + 1}');
+  Future<ReaderChapter> readChapter(ContentUnit unit) async => semantic
+      ? ReaderChapter(
+          unit: unit,
+          text: 'EPUB 标题\n\n带样式正文',
+          blocks: const [
+            ReaderBlock(
+              kind: ReaderBlockKind.heading,
+              text: 'EPUB 标题',
+              headingLevel: 1,
+            ),
+            ReaderBlock(
+              kind: ReaderBlockKind.paragraph,
+              text: '带样式正文',
+              styleSpans: [
+                ReaderTextStyleSpan(
+                  start: 0,
+                  end: 3,
+                  bold: true,
+                  italic: false,
+                ),
+              ],
+            ),
+            ReaderBlock(
+              kind: ReaderBlockKind.image,
+              imagePath: 'Z:/missing-image.png',
+              altText: '测试插图',
+            ),
+          ],
+        )
+      : ReaderChapter(unit: unit, text: text ?? 'Body ${unit.orderIndex + 1}');
 }
 
 ReaderBook _book() {

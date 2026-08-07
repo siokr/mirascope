@@ -24,6 +24,9 @@ final novelReaderRepositoryProvider = FutureProvider<NovelReaderRepository>((
   return DartIoNovelReaderRepository(
     ref.watch(appDatabaseProvider),
     Directory('${supportDirectory.path}${Platform.pathSeparator}derived_txt'),
+    derivedEpubRoot: Directory(
+      '${supportDirectory.path}${Platform.pathSeparator}derived_epub',
+    ),
   );
 });
 

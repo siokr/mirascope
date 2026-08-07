@@ -187,11 +187,41 @@ void main() {
       expect(progress.saved.last.locator, 'char-v1:4');
     },
   );
+
+  test('stores and restores EPUB block progress', () async {
+    final progress = _ProgressRepository(
+      stored: ReadingProgress(
+        id: 'progress-1',
+        mediaItemId: 'media-1',
+        contentUnitId: 'unit-0',
+        locator: 'epub-block-v1:1:0',
+        fraction: 0.5,
+        updatedAt: DateTime.utc(2026, 8, 7),
+        revision: 1,
+      ),
+    );
+    final controller = NovelReaderController(
+      mediaItemId: 'media-1',
+      repository: _ReaderRepository(semantic: true),
+      progressRepository: progress,
+      idGenerator: _Ids(),
+      clock: () => DateTime.utc(2026, 8, 7),
+    );
+    addTearDown(controller.dispose);
+
+    await controller.initialize();
+    expect(controller.restoredFraction, closeTo(1 / 3, 0.001));
+    controller.updatePosition(characterOffset: 5, fraction: 1);
+    await controller.flushProgress();
+
+    expect(progress.saved.last.locator, 'epub-block-v1:2:1');
+  });
 }
 
 final class _ReaderRepository implements NovelReaderRepository {
-  _ReaderRepository({this.failSecond = false});
+  _ReaderRepository({this.failSecond = false, this.semantic = false});
   final bool failSecond;
+  final bool semantic;
   final book = _book();
 
   @override
@@ -200,6 +230,17 @@ final class _ReaderRepository implements NovelReaderRepository {
   @override
   Future<ReaderChapter> readChapter(ContentUnit unit) async {
     if (failSecond && unit.orderIndex == 1) throw StateError('failed');
+    if (semantic) {
+      return ReaderChapter(
+        unit: unit,
+        text: '一\n\n二\n\n三',
+        blocks: const [
+          ReaderBlock(kind: ReaderBlockKind.paragraph, text: '一'),
+          ReaderBlock(kind: ReaderBlockKind.paragraph, text: '二'),
+          ReaderBlock(kind: ReaderBlockKind.paragraph, text: '三'),
+        ],
+      );
+    }
     return ReaderChapter(unit: unit, text: 'Body ${unit.orderIndex + 1}');
   }
 }

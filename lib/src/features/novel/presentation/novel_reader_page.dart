@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../settings/application/reader_settings_controller.dart';
 import '../application/novel_providers.dart';
 import '../application/novel_reader_controller.dart';
+import '../domain/reader_book.dart';
 
 class NovelReaderPage extends ConsumerWidget {
   const NovelReaderPage({
@@ -114,9 +116,11 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
               if (!_initialPositionRestored) {
                 _initialPositionRestored = true;
                 final textLength = controller.chapter!.text.length;
-                final ratio = textLength == 0
-                    ? 0.0
-                    : controller.restoredCharacterOffset / textLength;
+                final ratio = controller.chapter!.isSemantic
+                    ? controller.restoredFraction
+                    : (textLength == 0
+                          ? 0.0
+                          : controller.restoredCharacterOffset / textLength);
                 _scrollController.jumpTo(
                   _scrollController.position.maxScrollExtent * ratio,
                 );
@@ -278,14 +282,21 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 760),
-                  child: Text(
-                    controller.chapter!.text,
-                    style: TextStyle(
-                      fontSize: widget.settings.preference.fontSize,
-                      height: widget.settings.preference.lineHeight,
-                      color: palette.foreground,
-                    ),
-                  ),
+                  child: controller.chapter!.isSemantic
+                      ? _SemanticChapter(
+                          chapter: controller.chapter!,
+                          fontSize: widget.settings.preference.fontSize,
+                          lineHeight: widget.settings.preference.lineHeight,
+                          foreground: palette.foreground,
+                        )
+                      : Text(
+                          controller.chapter!.text,
+                          style: TextStyle(
+                            fontSize: widget.settings.preference.fontSize,
+                            height: widget.settings.preference.lineHeight,
+                            color: palette.foreground,
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -323,6 +334,113 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
       isScrollControlled: true,
       builder: (context) => _ReaderSettingsSheet(controller: widget.settings),
     );
+  }
+}
+
+class _SemanticChapter extends StatelessWidget {
+  const _SemanticChapter({
+    required this.chapter,
+    required this.fontSize,
+    required this.lineHeight,
+    required this.foreground,
+  });
+
+  final ReaderChapter chapter;
+  final double fontSize;
+  final double lineHeight;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [for (final block in chapter.blocks) _buildBlock(context, block)],
+  );
+
+  Widget _buildBlock(BuildContext context, ReaderBlock block) {
+    if (block.kind == ReaderBlockKind.divider) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Divider(),
+      );
+    }
+    if (block.kind == ReaderBlockKind.image) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Semantics(
+          label: block.altText ?? '插图',
+          image: true,
+          child: Image.file(
+            File(block.imagePath!),
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('插图无法显示'),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    final baseStyle = TextStyle(
+      fontSize: block.kind == ReaderBlockKind.heading
+          ? fontSize + (7 - (block.headingLevel ?? 2))
+          : fontSize,
+      height: lineHeight,
+      color: foreground,
+      fontWeight: block.kind == ReaderBlockKind.heading
+          ? FontWeight.w600
+          : null,
+    );
+    final prefix = switch (block.kind) {
+      ReaderBlockKind.listItem => block.ordered == true ? '•  ' : '•  ',
+      ReaderBlockKind.quote => '│  ',
+      _ => '',
+    };
+    return Padding(
+      padding: EdgeInsets.only(
+        left: block.kind == ReaderBlockKind.listItem
+            ? 16.0 * (block.listDepth ?? 1)
+            : 0,
+        bottom: block.kind == ReaderBlockKind.heading ? 16 : 12,
+      ),
+      child: Text.rich(
+        _styledSpan(prefix, block, baseStyle),
+        key: ValueKey('epub-block-${chapter.blocks.indexOf(block)}'),
+      ),
+    );
+  }
+
+  TextSpan _styledSpan(String prefix, ReaderBlock block, TextStyle baseStyle) {
+    final text = block.text ?? '';
+    if (block.styleSpans.isEmpty) {
+      return TextSpan(text: '$prefix$text', style: baseStyle);
+    }
+    final children = <InlineSpan>[];
+    if (prefix.isNotEmpty) children.add(TextSpan(text: prefix));
+    var cursor = 0;
+    final spans = [...block.styleSpans]
+      ..sort((left, right) => left.start.compareTo(right.start));
+    for (final span in spans) {
+      if (span.start < cursor) continue;
+      if (span.start > cursor) {
+        children.add(TextSpan(text: text.substring(cursor, span.start)));
+      }
+      children.add(
+        TextSpan(
+          text: text.substring(span.start, span.end),
+          style: TextStyle(
+            fontWeight: span.bold ? FontWeight.bold : null,
+            fontStyle: span.italic ? FontStyle.italic : null,
+          ),
+        ),
+      );
+      cursor = span.end;
+    }
+    if (cursor < text.length) {
+      children.add(TextSpan(text: text.substring(cursor)));
+    }
+    return TextSpan(style: baseStyle, children: children);
   }
 }
 

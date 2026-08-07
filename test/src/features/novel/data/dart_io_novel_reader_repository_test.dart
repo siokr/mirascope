@@ -61,6 +61,103 @@ void main() {
       await expectLater(repository.readChapter(unit), throwsA(anything));
     }
   });
+
+  test('reads validated EPUB semantic blocks and local image paths', () async {
+    final payload = utf8.encode(
+      jsonEncode({
+        'schema': 'epub-derived-v1',
+        'blocks': [
+          {
+            'kind': 'heading',
+            'text': '第一章',
+            'headingLevel': 1,
+            'styleSpans': [
+              {'start': 0, 'end': 2, 'bold': true, 'italic': false},
+            ],
+          },
+          {
+            'kind': 'image',
+            'imageRef':
+                'epub/media-1/images/'
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.png',
+            'altText': '插图',
+          },
+          {'kind': 'paragraph', 'text': '正文'},
+        ],
+      }),
+    );
+    final epubRoot = Directory('${root.path}-epub');
+    addTearDown(() async {
+      if (await epubRoot.exists()) await epubRoot.delete(recursive: true);
+    });
+    final file = File(
+      '${epubRoot.path}${Platform.pathSeparator}content'
+      '${Platform.pathSeparator}media-1${Platform.pathSeparator}chapters'
+      '${Platform.pathSeparator}00000.json',
+    );
+    await file.parent.create(recursive: true);
+    await file.writeAsBytes(payload);
+    final repository = DartIoNovelReaderRepository(
+      database,
+      root,
+      derivedEpubRoot: epubRoot,
+    );
+
+    final chapter = await repository.readChapter(
+      _unit(
+        contentRef: 'epub/media-1/chapters/00000.json',
+        locator: 'epub-v1:chapter-1',
+        hash: sha256.convert(payload).toString(),
+      ),
+    );
+
+    expect(chapter.isSemantic, isTrue);
+    expect(chapter.text, '第一章\n\n正文');
+    expect(chapter.blocks, hasLength(3));
+    expect(chapter.blocks.first.styleSpans.single.bold, isTrue);
+    expect(chapter.blocks[1].imagePath, contains('media-1'));
+  });
+
+  test('rejects EPUB image refs belonging to another media item', () async {
+    final payload = utf8.encode(
+      jsonEncode({
+        'schema': 'epub-derived-v1',
+        'blocks': [
+          {
+            'kind': 'image',
+            'imageRef':
+                'epub/other/images/'
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.png',
+          },
+        ],
+      }),
+    );
+    final file = File(
+      '${root.path}${Platform.pathSeparator}content'
+      '${Platform.pathSeparator}media-1${Platform.pathSeparator}chapters'
+      '${Platform.pathSeparator}00000.json',
+    );
+    await file.parent.create(recursive: true);
+    await file.writeAsBytes(payload);
+    final repository = DartIoNovelReaderRepository(
+      database,
+      root,
+      derivedEpubRoot: root,
+    );
+
+    await expectLater(
+      repository.readChapter(
+        _unit(
+          contentRef: 'epub/media-1/chapters/00000.json',
+          locator: 'epub-v1:chapter-1',
+          hash: sha256.convert(payload).toString(),
+        ),
+      ),
+      throwsFormatException,
+    );
+  });
 }
 
 domain.ContentUnit _unit({
