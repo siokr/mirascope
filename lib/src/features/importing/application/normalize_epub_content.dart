@@ -41,8 +41,12 @@ final class NormalizeEpubContent {
             manifestByPath: manifestByPath,
           );
         }
+        // Real-world EPUBs commonly put an SVG-only cover or other decorative
+        // page in the spine. SVG is intentionally not rendered as reading
+        // content, so continue to the next spine item instead of rejecting an
+        // otherwise readable book.
         if (blocks.isEmpty) {
-          throw AppFailure.fromCode(AppErrorCode.epubContentUnsupported);
+          continue;
         }
         final firstHeading = blocks
             .where((block) => block.kind == EpubBlockKind.heading)
@@ -61,6 +65,9 @@ final class NormalizeEpubContent {
       } on Object {
         throw AppFailure.fromCode(AppErrorCode.epubContentUnsupported);
       }
+    }
+    if (chapters.isEmpty) {
+      throw AppFailure.fromCode(AppErrorCode.epubContentUnsupported);
     }
     return List.unmodifiable(chapters);
   }

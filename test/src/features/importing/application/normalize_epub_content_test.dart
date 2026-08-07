@@ -199,6 +199,20 @@ void main() {
     );
   });
 
+  test('skips an SVG-only cover before readable XHTML content', () async {
+    final fixture = await _openBookWithSvgCover(temporaryDirectory);
+    addTearDown(fixture.container.close);
+
+    final chapters = await const NormalizeEpubContent()(
+      fixture.container,
+      fixture.book,
+    );
+
+    expect(chapters, hasLength(1));
+    expect(chapters.single.title, '正文');
+    expect(chapters.single.sourcePath, 'OEBPS/chapter.xhtml');
+  });
+
   test('UTF-16 XHTML is decoded before normalization', () async {
     final fixture = await _openBook(
       temporaryDirectory,
@@ -246,6 +260,24 @@ Future<_OpenedBook> _openBook(
   return _OpenedBook(container, book);
 }
 
+Future<_OpenedBook> _openBookWithSvgCover(Directory directory) async {
+  final archive = Archive()
+    ..add(ArchiveFile.string('mimetype', 'application/epub+zip'))
+    ..add(ArchiveFile.string('META-INF/container.xml', _containerXml))
+    ..add(ArchiveFile.string('OEBPS/content.opf', _packageWithSvgCoverXml))
+    ..add(ArchiveFile.string('OEBPS/cover.xhtml', _svgCoverChapter))
+    ..add(
+      ArchiveFile.string(
+        'OEBPS/chapter.xhtml',
+        '<html><body><h1>正文</h1><p>可读内容</p></body></html>',
+      ),
+    );
+  final path = await _writeBytes(directory, ZipEncoder().encodeBytes(archive));
+  final container = await DartIoEpubContainer.open(path);
+  final book = await const ParseEpubPackage()(container);
+  return _OpenedBook(container, book);
+}
+
 Future<String> _writeBytes(Directory directory, List<int> bytes) async {
   final file = File(
     '${directory.path}${Platform.pathSeparator}${DateTime.now().microsecondsSinceEpoch}.epub',
@@ -284,6 +316,21 @@ String _packageXml({required bool includeImage}) =>
   </manifest>
   <spine><itemref idref="chapter"/></spine>
 </package>''';
+
+const _packageWithSvgCoverXml = '''
+<package version="3.0" xmlns="http://www.idpf.org/2007/opf">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>测试书</dc:title></metadata>
+  <manifest>
+    <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
+    <item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine><itemref idref="cover"/><itemref idref="chapter"/></spine>
+</package>''';
+
+const _svgCoverChapter = '''
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <body><svg xmlns="http://www.w3.org/2000/svg"><image href="cover.jpg"/></svg></body>
+</html>''';
 
 const _richChapter = '''
 <html><head><style>p { color: red; }</style></head><body>
