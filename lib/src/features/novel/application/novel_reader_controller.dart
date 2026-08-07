@@ -233,6 +233,15 @@ final class NovelReaderController extends ChangeNotifier {
 
   double _restoreFraction(ReadingProgress? progress, ReaderChapter chapter) {
     if (progress == null) return 0;
+    // The stored fraction represents the exact scroll position for the
+    // current immutable derived chapter. Prefer it for ordinary reopen and
+    // app-restart restoration; the semantic locator remains a safe fallback
+    // for legacy or otherwise invalid display progress.
+    if (progress.fraction.isFinite &&
+        progress.fraction >= 0 &&
+        progress.fraction <= 1) {
+      return progress.fraction;
+    }
     final blockMatch = RegExp(
       r'^epub-block-v1:(\d+):(\d+)$',
     ).firstMatch(progress.locator);
@@ -247,7 +256,7 @@ final class NovelReaderController extends ChangeNotifier {
           : offset.clamp(0, block.text!.length) / block.text!.length;
       return ((index + withinBlock) / chapter.blocks.length).clamp(0.0, 1.0);
     }
-    return progress.fraction.isFinite ? progress.fraction.clamp(0.0, 1.0) : 0;
+    return 0;
   }
 
   String _progressLocator(_PendingProgress pending) => chapter!.progressLocator(

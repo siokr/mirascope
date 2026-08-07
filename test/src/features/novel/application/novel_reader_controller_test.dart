@@ -210,12 +210,41 @@ void main() {
     addTearDown(controller.dispose);
 
     await controller.initialize();
-    expect(controller.restoredFraction, closeTo(1 / 3, 0.001));
+    expect(controller.restoredFraction, 0.5);
     controller.updatePosition(characterOffset: 5, fraction: 1);
     await controller.flushProgress();
 
     expect(progress.saved.last.locator, 'epub-block-v1:2:1');
   });
+
+  test(
+    'falls back to EPUB block progress when display fraction is invalid',
+    () async {
+      final progress = _ProgressRepository(
+        stored: ReadingProgress(
+          id: 'progress-1',
+          mediaItemId: 'media-1',
+          contentUnitId: 'unit-0',
+          locator: 'epub-block-v1:1:0',
+          fraction: double.nan,
+          updatedAt: DateTime.utc(2026, 8, 7),
+          revision: 1,
+        ),
+      );
+      final controller = NovelReaderController(
+        mediaItemId: 'media-1',
+        repository: _ReaderRepository(semantic: true),
+        progressRepository: progress,
+        idGenerator: _Ids(),
+        clock: () => DateTime.utc(2026, 8, 7),
+      );
+      addTearDown(controller.dispose);
+
+      await controller.initialize();
+
+      expect(controller.restoredFraction, closeTo(1 / 3, 0.001));
+    },
+  );
 }
 
 final class _ReaderRepository implements NovelReaderRepository {
