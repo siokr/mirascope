@@ -79,7 +79,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('永久删除《长夜书简》？'), findsOneWidget);
-    expect(find.textContaining('不会删除原始 TXT 文件'), findsOneWidget);
+    expect(find.textContaining('不会删除原始小说文件'), findsOneWidget);
     expect(repository.deleted, isEmpty);
 
     await tester.tap(find.byKey(const Key('confirm-permanent-delete')));

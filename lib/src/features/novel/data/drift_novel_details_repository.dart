@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../library/domain/media_item.dart' as domain;
+import '../../importing/domain/import_record.dart';
 import '../domain/content_unit.dart' as domain;
 import '../domain/novel_details.dart';
 import '../domain/novel_details_repository.dart';
@@ -34,8 +35,8 @@ final class DriftNovelDetailsRepository implements NovelDetailsRepository {
               ..where(
                 (row) =>
                     row.mediaItemId.equals(mediaItemId) &
-                    row.status.equals('completed') &
-                    row.sourceKind.equals('txtFile'),
+                    row.status.isIn(['completed', 'missing']) &
+                    row.sourceKind.isIn(['txtFile', 'epubFile']),
               )
               ..orderBy([(row) => OrderingTerm.desc(row.createdAt)])
               ..limit(1))
@@ -43,8 +44,9 @@ final class DriftNovelDetailsRepository implements NovelDetailsRepository {
 
     var sourceAvailable = false;
     if (source != null) {
-      sourceAvailable = await sourceExists(source.sourcePath);
-      if (!sourceAvailable) {
+      sourceAvailable =
+          source.status == 'completed' && await sourceExists(source.sourcePath);
+      if (!sourceAvailable && source.status == 'completed') {
         await (database.update(database.importRecords)..where(
               (row) =>
                   row.id.equals(source.id) & row.status.equals('completed'),
@@ -79,6 +81,9 @@ final class DriftNovelDetailsRepository implements NovelDetailsRepository {
           ),
       ],
       sourceAvailable: sourceAvailable,
+      sourceKind: source == null
+          ? null
+          : ImportSourceKind.fromStorageValue(source.sourceKind),
     );
   }
 }

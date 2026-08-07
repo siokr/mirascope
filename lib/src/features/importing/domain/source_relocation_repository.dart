@@ -1,8 +1,11 @@
 import 'import_record.dart';
-import 'txt_source_candidate.dart';
+import 'source_candidate.dart';
 
 abstract interface class SourceRelocationRepository {
-  Future<ImportRecord?> findLatestSourceForMedia(String mediaItemId);
+  Future<ImportRecord?> findLatestSourceForMedia(
+    String mediaItemId, {
+    ImportSourceKind sourceKind = ImportSourceKind.txtFile,
+  });
 
   Future<void> markSourceMissing({
     required String importRecordId,
@@ -13,6 +16,6 @@ abstract interface class SourceRelocationRepository {
     required String importRecordId,
     required String mediaItemId,
     required String expectedFingerprint,
-    required TxtSourceCandidate candidate,
+    required SourceCandidate candidate,
   });
 }

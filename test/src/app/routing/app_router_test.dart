@@ -9,6 +9,7 @@ import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details.dart';
+import 'package:mirascope/src/features/importing/domain/import_record.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
 import 'package:mirascope/src/features/novel/domain/novel_reader_repository.dart';
 import 'package:mirascope/src/features/novel/domain/reader_book.dart';
@@ -218,6 +219,7 @@ final class _RouteNovelDetailsRepository implements NovelDetailsRepository {
         ),
       ],
       sourceAvailable: true,
+      sourceKind: ImportSourceKind.txtFile,
     );
   }
 }

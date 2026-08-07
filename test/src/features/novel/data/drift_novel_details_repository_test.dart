@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/app_database.dart';
 import 'package:mirascope/src/features/novel/data/drift_novel_details_repository.dart';
+import 'package:mirascope/src/features/importing/domain/import_record.dart';
 
 import '../../../core/database/database_test_support.dart';
 
@@ -32,6 +33,25 @@ void main() {
       expect(checkedPaths, ['private/source.txt']);
     },
   );
+
+  test('checks an EPUB source and reports its kind', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftNovelDetailsRepository(
+      database,
+      sourceExists: (path) async => path.endsWith('.epub'),
+    );
+    await _seed(
+      database,
+      sourceKind: 'epubFile',
+      sourcePath: 'private/source.epub',
+    );
+
+    final details = await repository.findDetails('media-1');
+
+    expect(details?.sourceAvailable, isTrue);
+    expect(details?.sourceKind, ImportSourceKind.epubFile);
+  });
 
   test('missing media returns null without checking a path', () async {
     final database = createTestDatabase();
@@ -72,7 +92,11 @@ void main() {
   );
 }
 
-Future<void> _seed(AppDatabase database) async {
+Future<void> _seed(
+  AppDatabase database, {
+  String sourceKind = 'txtFile',
+  String sourcePath = 'private/source.txt',
+}) async {
   final now = DateTime.utc(2026, 7, 29);
   await database
       .into(database.mediaItems)
@@ -115,8 +139,8 @@ Future<void> _seed(AppDatabase database) async {
         ImportRecordsCompanion.insert(
           id: 'import-1',
           mediaItemId: const Value('media-1'),
-          sourcePath: 'private/source.txt',
-          sourceKind: 'txtFile',
+          sourcePath: sourcePath,
+          sourceKind: sourceKind,
           fileSize: 20,
           fingerprint: 'sha256:test:20',
           textEncoding: const Value('utf8'),

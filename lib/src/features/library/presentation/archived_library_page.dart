@@ -59,7 +59,7 @@ class ArchivedLibraryPage extends ConsumerWidget {
         title: Text('永久删除《${item.mediaItem.title}》？'),
         content: const Text(
           '将删除应用内的书籍、章节、阅读进度、阅读设置和派生正文。'
-          '不会删除原始 TXT 文件。此操作无法撤销，删除后可以重新导入。',
+          '不会删除原始小说文件。此操作无法撤销，删除后可以重新导入。',
         ),
         actions: [
           TextButton(

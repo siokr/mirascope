@@ -24,6 +24,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('媒体库还是空的'), findsOneWidget);
-    expect(find.text('导入 TXT 小说后，它会出现在这里。'), findsOneWidget);
+    expect(find.text('导入 TXT 或 EPUB 小说后，它会出现在这里。'), findsOneWidget);
   });
 }

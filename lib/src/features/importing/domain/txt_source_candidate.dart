@@ -1,4 +1,6 @@
-final class TxtSourceCandidate {
+import 'source_candidate.dart';
+
+final class TxtSourceCandidate implements SourceCandidate {
   const TxtSourceCandidate({
     required this.path,
     required this.fileSize,
@@ -6,9 +8,13 @@ final class TxtSourceCandidate {
     required this.fingerprint,
   });
 
+  @override
   final String path;
+  @override
   final int fileSize;
+  @override
   final DateTime modifiedAt;
+  @override
   final String fingerprint;
 }
 

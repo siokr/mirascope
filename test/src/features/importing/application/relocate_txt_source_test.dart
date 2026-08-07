@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/features/importing/application/relocate_txt_source.dart';
 import 'package:mirascope/src/features/importing/domain/import_record.dart';
 import 'package:mirascope/src/features/importing/domain/source_relocation_repository.dart';
+import 'package:mirascope/src/features/importing/domain/source_candidate.dart';
 import 'package:mirascope/src/features/importing/domain/txt_encoding.dart';
 import 'package:mirascope/src/features/importing/domain/txt_file_picker.dart';
 import 'package:mirascope/src/features/importing/domain/txt_source_candidate.dart';
@@ -105,11 +106,13 @@ final class _Inspector implements TxtSourceInspector {
 final class _FakeRelocationRepository implements SourceRelocationRepository {
   _FakeRelocationRepository(this.current);
   final ImportRecord? current;
-  final relocations = <TxtSourceCandidate>[];
+  final relocations = <SourceCandidate>[];
 
   @override
-  Future<ImportRecord?> findLatestSourceForMedia(String mediaItemId) async =>
-      current;
+  Future<ImportRecord?> findLatestSourceForMedia(
+    String mediaItemId, {
+    ImportSourceKind sourceKind = ImportSourceKind.txtFile,
+  }) async => current;
 
   @override
   Future<void> markSourceMissing({
@@ -122,7 +125,7 @@ final class _FakeRelocationRepository implements SourceRelocationRepository {
     required String importRecordId,
     required String mediaItemId,
     required String expectedFingerprint,
-    required TxtSourceCandidate candidate,
+    required SourceCandidate candidate,
   }) async {
     relocations.add(candidate);
   }

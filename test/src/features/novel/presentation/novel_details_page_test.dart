@@ -5,6 +5,7 @@ import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details.dart';
+import 'package:mirascope/src/features/importing/domain/import_record.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
 import 'package:mirascope/src/features/novel/presentation/novel_details_page.dart';
 
@@ -93,6 +94,7 @@ NovelDetails _details({required bool sourceAvailable}) {
     ),
     chapters: [_chapter('unit-1', 'First', 0), _chapter('unit-2', 'Second', 1)],
     sourceAvailable: sourceAvailable,
+    sourceKind: ImportSourceKind.txtFile,
   );
 }
 

@@ -7,8 +7,11 @@ import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/core/errors/app_error_code.dart';
 import 'package:mirascope/src/core/errors/app_failure.dart';
 import 'package:mirascope/src/features/importing/application/import_txt.dart';
+import 'package:mirascope/src/features/importing/application/import_epub.dart';
+import 'package:mirascope/src/features/importing/application/prepare_epub_source.dart';
 import 'package:mirascope/src/features/importing/application/prepare_txt_source.dart';
 import 'package:mirascope/src/features/importing/domain/decoded_txt.dart';
+import 'package:mirascope/src/features/importing/domain/epub_source_candidate.dart';
 import 'package:mirascope/src/features/importing/domain/txt_encoding.dart';
 import 'package:mirascope/src/features/importing/domain/txt_source_candidate.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart';
@@ -31,8 +34,9 @@ void main() {
     await tester.pump();
 
     expect(find.text('媒体库还是空的'), findsOneWidget);
-    expect(find.text('导入 TXT 小说后，它会出现在这里。'), findsOneWidget);
+    expect(find.text('导入 TXT 或 EPUB 小说后，它会出现在这里。'), findsOneWidget);
     expect(find.text('导入 TXT'), findsOneWidget);
+    expect(find.text('导入 EPUB'), findsOneWidget);
   });
 
   testWidgets('cancelled import stays on the library without feedback', (
@@ -200,6 +204,57 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('EPUB source imports metadata and opens the new novel', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    String? openedId;
+    EpubSourceCandidate? importedCandidate;
+    await _pumpPage(
+      tester,
+      repository,
+      onOpenNovel: (id) => openedId = id,
+      prepareEpubForImport: () async => EpubSourceReady(_epubCandidate),
+      completeEpubImport: (candidate) async {
+        importedCandidate = candidate;
+        return const EpubImportSucceeded('epub-book');
+      },
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-epub')));
+    await tester.pumpAndSettle();
+
+    expect(importedCandidate, same(_epubCandidate));
+    expect(openedId, 'epub-book');
+  });
+
+  testWidgets('EPUB DRM failure shows message and recovery without details', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    await _pumpPage(
+      tester,
+      repository,
+      prepareEpubForImport: () async => EpubSourceReady(_epubCandidate),
+      completeEpubImport: (_) async => EpubImportFailed(
+        AppFailure.fromCode(AppErrorCode.epubDrmUnsupported),
+      ),
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-epub')));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppErrorCode.epubDrmUnsupported.message), findsOneWidget);
+    expect(find.text(AppErrorCode.epubDrmUnsupported.recovery), findsOneWidget);
+    expect(find.textContaining('private-source'), findsNothing);
+  });
+
   testWidgets('shows stream error safely and retry resubscribes', (
     tester,
   ) async {
@@ -332,6 +387,8 @@ Future<void> _pumpPage(
   ValueChanged<String>? onOpenNovel,
   PrepareTxtForImport? prepareTxtForImport,
   CompleteTxtImport? completeTxtImport,
+  PrepareEpubForImport? prepareEpubForImport,
+  CompleteEpubImport? completeEpubImport,
 }) {
   return tester.pumpWidget(
     ProviderScope(
@@ -343,6 +400,8 @@ Future<void> _pumpPage(
           onOpenNovel: onOpenNovel ?? (_) {},
           prepareTxtForImport: prepareTxtForImport,
           completeTxtImport: completeTxtImport,
+          prepareEpubForImport: prepareEpubForImport,
+          completeEpubImport: completeEpubImport,
         ),
       ),
     ),
@@ -354,6 +413,13 @@ final _candidate = TxtSourceCandidate(
   fileSize: 1024,
   modifiedAt: DateTime.utc(2026, 7, 29),
   fingerprint: 'sha256:safe:1024',
+);
+
+final _epubCandidate = EpubSourceCandidate(
+  path: 'private-source.epub',
+  fileSize: 2048,
+  modifiedAt: DateTime.utc(2026, 8, 7),
+  fingerprint: 'sha256:epub:2048',
 );
 
 LibraryItem _item(String id, String title) {

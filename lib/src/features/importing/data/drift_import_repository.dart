@@ -6,7 +6,7 @@ import '../domain/import_repository.dart';
 import '../domain/source_relocation_repository.dart';
 import '../domain/successful_import.dart';
 import '../domain/txt_encoding.dart';
-import '../domain/txt_source_candidate.dart';
+import '../domain/source_candidate.dart';
 
 final class DriftImportRepository
     implements ImportRepository, SourceRelocationRepository {
@@ -32,15 +32,14 @@ final class DriftImportRepository
 
   @override
   Future<domain.ImportRecord?> findLatestSourceForMedia(
-    String mediaItemId,
-  ) async {
+    String mediaItemId, {
+    domain.ImportSourceKind sourceKind = domain.ImportSourceKind.txtFile,
+  }) async {
     final query = database.select(database.importRecords)
       ..where(
         (row) =>
             row.mediaItemId.equals(mediaItemId) &
-            row.sourceKind.equals(
-              domain.ImportSourceKind.txtFile.storageValue,
-            ) &
+            row.sourceKind.equals(sourceKind.storageValue) &
             row.status.isIn([
               domain.ImportStatus.completed.storageValue,
               domain.ImportStatus.missing.storageValue,
@@ -77,7 +76,7 @@ final class DriftImportRepository
     required String importRecordId,
     required String mediaItemId,
     required String expectedFingerprint,
-    required TxtSourceCandidate candidate,
+    required SourceCandidate candidate,
   }) async {
     if (candidate.fingerprint != expectedFingerprint) {
       throw ArgumentError('candidate fingerprint must match expected value');

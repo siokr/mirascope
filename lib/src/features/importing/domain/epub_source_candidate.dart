@@ -1,4 +1,6 @@
-final class EpubSourceCandidate {
+import 'source_candidate.dart';
+
+final class EpubSourceCandidate implements SourceCandidate {
   const EpubSourceCandidate({
     required this.path,
     required this.fileSize,
@@ -6,9 +8,13 @@ final class EpubSourceCandidate {
     required this.fingerprint,
   });
 
+  @override
   final String path;
+  @override
   final int fileSize;
+  @override
   final DateTime modifiedAt;
+  @override
   final String fingerprint;
 }
 

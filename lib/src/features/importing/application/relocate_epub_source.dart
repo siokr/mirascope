@@ -1,61 +1,35 @@
 import '../../../core/errors/app_error_code.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/logging/app_logger.dart';
+import '../domain/epub_file_picker.dart';
+import '../domain/epub_source_candidate.dart';
 import '../domain/import_record.dart';
-import '../domain/source_candidate.dart';
 import '../domain/source_relocation_repository.dart';
-import '../domain/txt_file_picker.dart';
-import '../domain/txt_source_candidate.dart';
+import 'relocate_txt_source.dart';
 
-sealed class SourceRelocationResult {
-  const SourceRelocationResult();
-}
-
-final class SourceRelocationCancelled extends SourceRelocationResult {
-  const SourceRelocationCancelled();
-}
-
-final class SourceRelocated extends SourceRelocationResult {
-  const SourceRelocated(this.candidate);
-  final SourceCandidate candidate;
-}
-
-final class SourceChangeConfirmationRequired extends SourceRelocationResult {
-  SourceChangeConfirmationRequired({
-    required this.current,
-    required this.candidate,
-  }) : failure = AppFailure.fromCode(AppErrorCode.sourceChanged);
-
-  final ImportRecord current;
-  final SourceCandidate candidate;
-  final AppFailure failure;
-}
-
-final class SourceRelocationFailed extends SourceRelocationResult {
-  const SourceRelocationFailed(this.failure);
-  final AppFailure failure;
-}
-
-final class RelocateTxtSource {
-  const RelocateTxtSource({
+final class RelocateEpubSource {
+  const RelocateEpubSource({
     required this.filePicker,
     required this.sourceInspector,
     required this.repository,
   });
 
-  final TxtFilePicker filePicker;
-  final TxtSourceInspector sourceInspector;
+  final EpubFilePicker filePicker;
+  final EpubSourceInspector sourceInspector;
   final SourceRelocationRepository repository;
 
   Future<SourceRelocationResult> call(String mediaItemId) async {
     try {
-      final current = await repository.findLatestSourceForMedia(mediaItemId);
+      final current = await repository.findLatestSourceForMedia(
+        mediaItemId,
+        sourceKind: ImportSourceKind.epubFile,
+      );
       if (current == null) {
         return SourceRelocationFailed(
           AppFailure.fromCode(AppErrorCode.fileNotFound),
         );
       }
-      final path = await filePicker.pickTxtFile();
+      final path = await filePicker.pickEpubFile();
       if (path == null) return const SourceRelocationCancelled();
       final candidate = await sourceInspector.inspect(path);
       if (candidate.fingerprint != current.fingerprint) {
@@ -76,7 +50,7 @@ final class RelocateTxtSource {
         error,
         fallback: AppErrorCode.storageFailed,
       );
-      logAppWarning(failure.code, stage: 'relocate_txt_source');
+      logAppWarning(failure.code, stage: 'relocate_epub_source');
       return SourceRelocationFailed(failure);
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../importing/application/importing_providers.dart';
 import '../../importing/application/relocate_txt_source.dart';
+import '../../importing/domain/import_record.dart';
 import '../application/novel_providers.dart';
 import '../domain/novel_details.dart';
 
@@ -51,9 +52,12 @@ class _NovelDetailsPageState extends ConsumerState<NovelDetailsPage> {
 
   Future<void> _relocateSource() async {
     setState(() => _relocating = true);
-    final result = await ref.read(relocateTxtSourceProvider)(
-      widget.mediaItemId,
+    final details = await ref.read(
+      novelDetailsProvider(widget.mediaItemId).future,
     );
+    final result = details?.sourceKind == ImportSourceKind.epubFile
+        ? await ref.read(relocateEpubSourceProvider)(widget.mediaItemId)
+        : await ref.read(relocateTxtSourceProvider)(widget.mediaItemId);
     if (!mounted) return;
     setState(() => _relocating = false);
 

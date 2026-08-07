@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mirascope/src/shared/widgets/empty_state.dart';
 
+import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/app_error_code.dart';
 import '../../importing/application/import_txt.dart';
+import '../../importing/application/import_epub.dart';
 import '../../importing/application/importing_providers.dart';
+import '../../importing/application/prepare_epub_source.dart';
 import '../../importing/application/prepare_txt_source.dart';
+import '../../importing/domain/epub_source_candidate.dart';
 import '../../importing/domain/txt_encoding.dart';
 import '../../importing/domain/txt_source_candidate.dart';
 import '../application/library_actions_controller.dart';
@@ -18,6 +23,9 @@ import 'widgets/library_grid.dart';
 import 'widgets/library_loading_grid.dart';
 
 typedef PrepareTxtForImport = Future<TxtSourcePreparationResult> Function();
+typedef PrepareEpubForImport = Future<EpubSourcePreparationResult> Function();
+typedef CompleteEpubImport =
+    Future<EpubImportResult> Function(EpubSourceCandidate candidate);
 typedef CompleteTxtImport =
     Future<TxtImportResult> Function({
       required TxtSourceCandidate candidate,
@@ -32,6 +40,8 @@ class LibraryPage extends ConsumerStatefulWidget {
     required this.onOpenNovel,
     this.prepareTxtForImport,
     this.completeTxtImport,
+    this.prepareEpubForImport,
+    this.completeEpubImport,
     super.key,
   });
 
@@ -40,6 +50,8 @@ class LibraryPage extends ConsumerStatefulWidget {
   final ValueChanged<String> onOpenNovel;
   final PrepareTxtForImport? prepareTxtForImport;
   final CompleteTxtImport? completeTxtImport;
+  final PrepareEpubForImport? prepareEpubForImport;
+  final CompleteEpubImport? completeEpubImport;
 
   @override
   ConsumerState<LibraryPage> createState() => _LibraryPageState();
@@ -81,7 +93,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             return const EmptyState(
               icon: Icons.menu_book_outlined,
               title: '媒体库还是空的',
-              message: '导入 TXT 小说后，它会出现在这里。',
+              message: '导入 TXT 或 EPUB 小说后，它会出现在这里。',
             );
           }
           return LibraryGrid(
@@ -95,16 +107,31 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const Key('import-txt'),
-        onPressed: _importing ? null : _importTxt,
-        icon: _importing
-            ? const SizedBox.square(
-                dimension: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Icons.add),
-        label: Text(_importing ? '正在导入' : '导入 TXT'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            key: const Key('import-epub'),
+            heroTag: 'import-epub',
+            onPressed: _importing ? null : _importEpub,
+            icon: const Icon(Icons.book_outlined),
+            label: const Text('导入 EPUB'),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            key: const Key('import-txt'),
+            heroTag: 'import-txt',
+            onPressed: _importing ? null : _importTxt,
+            icon: _importing
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add),
+            label: Text(_importing ? '正在导入' : '导入 TXT'),
+          ),
+        ],
       ),
     );
   }
@@ -124,13 +151,17 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           widget.onOpenNovel(mediaItemId);
           return;
         case TxtSourceFailed(:final failure):
-          _showMessage(context, failure.message);
+          _showFailure(context, failure);
           return;
         case TxtSourceReady(:final candidate):
           final title = await _requestTitle();
           if (title == null || !mounted) return;
           await _completeImport(candidate, title);
           return;
+      }
+    } on Object {
+      if (mounted) {
+        _showFailure(context, AppFailure.fromCode(AppErrorCode.storageFailed));
       }
     } finally {
       if (mounted) setState(() => _importing = false);
@@ -171,8 +202,53 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         }
         return;
       case TxtImportFailed(:final failure):
-        _showMessage(context, failure.message);
+        _showFailure(context, failure);
         return;
+    }
+  }
+
+  Future<void> _importEpub() async {
+    setState(() => _importing = true);
+    try {
+      final preparation =
+          await widget.prepareEpubForImport?.call() ??
+          await ref.read(prepareEpubSourceProvider)();
+      if (!mounted) return;
+
+      switch (preparation) {
+        case EpubSourceCancelled():
+          return;
+        case EpubSourceDuplicate(:final mediaItemId):
+          widget.onOpenNovel(mediaItemId);
+          return;
+        case EpubSourceFailed(:final failure):
+          _showFailure(context, failure);
+          return;
+        case EpubSourceReady(:final candidate):
+          final importer = widget.completeEpubImport;
+          final result = importer != null
+              ? await importer(candidate)
+              : await (await ref.read(importEpubProvider.future))(candidate);
+          if (!mounted) return;
+          switch (result) {
+            case EpubImportSucceeded(:final mediaItemId):
+              ref.invalidate(activeLibraryProvider);
+              widget.onOpenNovel(mediaItemId);
+              return;
+            case EpubImportDuplicate(:final mediaItemId):
+              widget.onOpenNovel(mediaItemId);
+              return;
+            case EpubImportFailed(:final failure):
+              _showFailure(context, failure);
+              return;
+          }
+      }
+    } on Object {
+      if (mounted) {
+        _showFailure(context, AppFailure.fromCode(AppErrorCode.storageFailed));
+      }
+    } finally {
+      if (mounted) setState(() => _importing = false);
     }
   }
 
@@ -299,6 +375,23 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showFailure(BuildContext context, AppFailure failure) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(failure.message),
+              if (failure.recovery case final recovery?) Text(recovery),
+            ],
+          ),
+        ),
+      );
   }
 }
 

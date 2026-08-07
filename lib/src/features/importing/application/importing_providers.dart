@@ -30,6 +30,7 @@ import 'parse_epub_package.dart';
 import 'prepare_epub_source.dart';
 import 'prepare_txt_source.dart';
 import 'relocate_txt_source.dart';
+import 'relocate_epub_source.dart';
 import 'txt_chapter_detector.dart';
 import 'txt_decoder.dart';
 
@@ -149,6 +150,14 @@ final relocateTxtSourceProvider = Provider<RelocateTxtSource>((ref) {
   return RelocateTxtSource(
     filePicker: ref.watch(txtFilePickerProvider),
     sourceInspector: ref.watch(txtSourceInspectorProvider),
+    repository: ref.watch(sourceRelocationRepositoryProvider),
+  );
+});
+
+final relocateEpubSourceProvider = Provider<RelocateEpubSource>((ref) {
+  return RelocateEpubSource(
+    filePicker: ref.watch(epubFilePickerProvider),
+    sourceInspector: ref.watch(epubSourceInspectorProvider),
     repository: ref.watch(sourceRelocationRepositoryProvider),
   );
 });
