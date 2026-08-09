@@ -15,8 +15,8 @@
 
 ## Windows EPUB 稳定后
 
-- [ ] `M02-009` Android 主流程（in_progress：Windows EPUB 阶段门槛已通过，开始 Android 构建、文件选择、数据库路径与核心阅读闭环审计）
-- [ ] `M02-010` 书签（pending）
+- [x] `M02-009` Android 主流程（done：Android 36 模拟器上的 TXT/EPUB 导入、详情、目录、阅读、进度恢复、图片、重复导入、归档/恢复/彻底删除、文件选择取消、错误提示、横竖屏与导航手势人工验收通过；稳定应用 ID、本地及 CI Android debug APK 构建通过）
+- [ ] `M02-010` 书签（in_progress）
 - [ ] `M02-011` 布局、导航与无障碍完善（pending）
 - [ ] `M02-012` 性能验证与 `v0.2.0` 发布准备（pending）
 
