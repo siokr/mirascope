@@ -1,4 +1,4 @@
-package com.example.mirascope
+package io.github.siokr.mirascope
 
 import io.flutter.embedding.android.FlutterActivity
 
