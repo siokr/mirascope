@@ -2,7 +2,7 @@
 
 `mirascope` 是一个使用 Flutter 开发的本地优先个人阅读与媒体管理应用。文件留在用户设备上，应用负责可靠导入、章节组织、阅读设置、书签和进度恢复。
 
-> 当前状态：`0.2.0+2` 发布候选已通过。Windows 与 Android 的 TXT/EPUB 阅读闭环、书签、双平台人工验收、50 MiB TXT 性能复测及 Android 正式签名包复验已经完成；`v0.2.0` GitHub Release 尚未创建。
+> 当前状态：`v0.2.0` 已正式发布。Windows 与 Android 的 TXT/EPUB 阅读闭环、书签、双平台人工验收、50 MiB TXT 性能复测及 Android 正式签名包复验均已完成。
 
 ## 当前能力
 
@@ -27,7 +27,7 @@
 尚未完成：
 
 - 不同内容文件经用户确认后的安全原位重解析；
-- 商店安装包和 `v0.2.0` GitHub Release；
+- Windows 与 Android 应用商店安装包；
 - 漫画、在线内容源、账号和同步。
 
 完整限制见 [已知问题](docs/known-issues.md)。
