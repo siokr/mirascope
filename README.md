@@ -1,14 +1,15 @@
 # mirascope
 
-`mirascope` 是一个使用 Flutter 开发的本地优先个人阅读与媒体管理应用。当前 MVP 聚焦 Windows 本地 TXT 小说：文件留在用户设备上，应用负责可靠导入、章节组织、阅读设置和进度恢复。
+`mirascope` 是一个使用 Flutter 开发的本地优先个人阅读与媒体管理应用。文件留在用户设备上，应用负责可靠导入、章节组织、阅读设置、书签和进度恢复。
 
-> 当前状态：`0.1.0+1` 候选开发版。核心代码、自动化测试、Windows CI 构建和 50 MiB 性能基线已经完成；Windows 原生文件选择与完整阅读路径仍等待本机实机验收，因此尚未发布正式安装包。
+> 当前状态：`0.2.0+2` 发布候选开发中。Windows 与 Android 的 TXT/EPUB 阅读闭环、书签、双平台人工验收和 50 MiB TXT 性能复测已经完成；正式 Android 签名和 `v0.2.0` Release 尚未完成。
 
 ## 当前能力
 
 已经实现：
 
 - 单个 TXT 文件选择、元数据校验和流式 SHA-256 指纹；
+- 未加密 EPUB 2/3 的结构解析、章节、语义正文和本地图片；
 - UTF-8、UTF-16 LE/BE 和 GB18030 严格解码；
 - 中英文常见章节识别与无章节回退；
 - 媒体、媒体库、章节和导入记录的原子事务；
@@ -17,16 +18,17 @@
 - 小说详情、目录和纵向滚动阅读器；
 - 字号、行距、跟随系统、浅色、深色和护眼主题；
 - 章节与字符偏移进度持久化，使用 revision 防止旧写入覆盖新进度；
+- TXT/EPUB 稳定位置书签的添加、跳转、持久化和删除；
 - 原文件丢失检测和同指纹文件重新定位；
-- GitHub Actions 格式、静态分析、全量测试和 Windows release 构建；
+- Windows 与 Android 文件选择、阅读和核心交互；
+- GitHub Actions 格式、静态分析、全量测试、Windows release 和 Android debug 构建；
 - 100 KiB、5 MiB、50 MiB TXT 的可复现 AOT 性能基线。
 
-尚未完成或尚未实机确认：
+尚未完成：
 
-- Windows 核心演示路径与重启恢复的人工验收；
 - 不同内容文件经用户确认后的安全原位重解析；
-- 正式截图、演示视频、安装包和 GitHub Release；
-- EPUB、Android、书签、漫画、账号和同步。
+- Android 正式发布签名、商店安装包和 `v0.2.0` GitHub Release；
+- 漫画、在线内容源、账号和同步。
 
 完整限制见 [已知问题](docs/known-issues.md)。
 
@@ -73,26 +75,26 @@ Data          Drift、文件系统和平台插件实现
 最近一次本地检查：
 
 ```text
-格式检查：134 个 Dart 文件，0 变化
+格式检查：通过
 静态分析：0 问题
-自动化测试：199/199 通过
+自动化测试：290/290 通过
 ```
 
 最近一次远程质量门禁：
 
 - Flutter `3.44.8` / Dart `3.12.2`；
 - 通用质量检查通过；
-- GitHub `windows-latest` release 构建通过；
-- [查看 M01-017 CI 记录](https://github.com/siokr/mirascope/actions/runs/30457172195)。
+- GitHub Windows release 与 Android debug APK 构建通过；
+- [查看 MVP 0.2 布局候选 CI 记录](https://github.com/siokr/mirascope/actions/runs/31305783164)。
 
-50 MiB TXT 首次 AOT 基线：
+50 MiB TXT 当前 AOT 复测：
 
 - 800 章；
-- 导入中位数 `2808.843 ms`；
-- 首次打开中位数 `61.365 ms`；
-- RSS 增量中位数 `209.52 MiB`。
+- 导入中位数 `1565.328 ms`；
+- 首次打开中位数 `68.469 ms`；
+- RSS 增量中位数 `206.74 MiB`。
 
-这些数字是回归基线，不代表已经冻结性能阈值。完整环境和三次原始结果见 [性能报告](docs/performance/2026-07-29-txt-baseline.md)。
+与 `v0.1.0` 同机基线相比没有阻塞发布的回归。完整环境和三次原始结果见 [当前性能报告](docs/performance/2026-08-09-txt-baseline.md)。
 
 ## 在 Windows 上运行
 
@@ -127,7 +129,7 @@ flutter build windows --release
 - [候选版本演示指南](docs/demo-guide.md)
 - [MVP 任务与证据](docs/mvp-task-list.md)
 - [质量策略](docs/quality-strategy.md)
-- [候选版本记录](docs/releases/0.1.0-rc.1.md)
+- [MVP 0.2 候选版本记录](docs/releases/0.2.0-rc.1.md)
 - [发布检查清单](docs/release-checklist.md)
 
 ### Windows 候选版实机截图
@@ -156,7 +158,7 @@ flutter build windows --release
 | 版本 | 目标 | 平台 |
 |---|---|---|
 | MVP 0.1 | 本地 TXT 小说闭环 | Windows |
-| MVP 0.2 | EPUB、Android、书签和公开 Release | Windows、Android |
+| MVP 0.2 | EPUB、Android、书签和公开 Release（候选收口中） | Windows、Android |
 | Version 0.3 | 本地漫画导入与阅读 | 已支持平台 |
 | Version 0.4 | 账号、设备和同步 | 客户端 + Go/PostgreSQL |
 

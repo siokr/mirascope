@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "environment": {
+    "date": "2026-08-09T09:44:59.370258Z",
+    "git_commit": "33f1475b137e1ce7b2e802e906ad4320bc5424cb",
+    "operating_system": "windows \"Windows 10 Pro\" 10.0 (Build 19045)",
+    "cpu": "unavailable",
+    "processors": 12,
+    "total_memory": "unavailable",
+    "flutter_version": "3.44.8",
+    "dart_version": "3.12.2",
+    "build_mode": "Dart AOT executable"
+  },
+  "samples": [
+    {
+      "name": "small",
+      "bytes": 102400,
+      "sha256": "ab061de14d4f8b86afeff9b7dc10a31e65b653ab8ebd49e8ccfc8ebe45a0fe55",
+      "runs": [
+        {
+          "import_us": 9473,
+          "open_us": 8077,
+          "switch_us": 630,
+          "chapter_count": 2,
+          "rss_start_bytes": 13524992,
+          "rss_peak_bytes": 18006016,
+          "rss_delta_bytes": 4481024,
+          "fingerprint": "sha256:ab061de14d4f8b86afeff9b7dc10a31e65b653ab8ebd49e8ccfc8ebe45a0fe55:102400"
+        },
+        {
+          "import_us": 9833,
+          "open_us": 9231,
+          "switch_us": 737,
+          "chapter_count": 2,
+          "rss_start_bytes": 13520896,
+          "rss_peak_bytes": 17940480,
+          "rss_delta_bytes": 4419584,
+          "fingerprint": "sha256:ab061de14d4f8b86afeff9b7dc10a31e65b653ab8ebd49e8ccfc8ebe45a0fe55:102400"
+        },
+        {
+          "import_us": 9675,
+          "open_us": 7880,
+          "switch_us": 615,
+          "chapter_count": 2,
+          "rss_start_bytes": 13529088,
+          "rss_peak_bytes": 17997824,
+          "rss_delta_bytes": 4468736,
+          "fingerprint": "sha256:ab061de14d4f8b86afeff9b7dc10a31e65b653ab8ebd49e8ccfc8ebe45a0fe55:102400"
+        }
+      ],
+      "median": {
+        "import_us": 9675,
+        "open_us": 8077,
+        "switch_us": 630,
+        "chapter_count": 2,
+        "rss_start_bytes": 13524992,
+        "rss_peak_bytes": 17997824,
+        "rss_delta_bytes": 4468736
+      }
+    },
+    {
+      "name": "regular",
+      "bytes": 5242880,
+      "sha256": "b4c9664fe68c8894c66aa7c4e72f035edfba12da323a80c991b4cca66b36b572",
+      "runs": [
+        {
+          "import_us": 164373,
+          "open_us": 8025,
+          "switch_us": 749,
+          "chapter_count": 80,
+          "rss_start_bytes": 13565952,
+          "rss_peak_bytes": 44765184,
+          "rss_delta_bytes": 31199232,
+          "fingerprint": "sha256:b4c9664fe68c8894c66aa7c4e72f035edfba12da323a80c991b4cca66b36b572:5242880"
+        },
+        {
+          "import_us": 164940,
+          "open_us": 8056,
+          "switch_us": 852,
+          "chapter_count": 80,
+          "rss_start_bytes": 13590528,
+          "rss_peak_bytes": 43917312,
+          "rss_delta_bytes": 30326784,
+          "fingerprint": "sha256:b4c9664fe68c8894c66aa7c4e72f035edfba12da323a80c991b4cca66b36b572:5242880"
+        },
+        {
+          "import_us": 164462,
+          "open_us": 7855,
+          "switch_us": 791,
+          "chapter_count": 80,
+          "rss_start_bytes": 13590528,
+          "rss_peak_bytes": 39473152,
+          "rss_delta_bytes": 25882624,
+          "fingerprint": "sha256:b4c9664fe68c8894c66aa7c4e72f035edfba12da323a80c991b4cca66b36b572:5242880"
+        }
+      ],
+      "median": {
+        "import_us": 164462,
+        "open_us": 8025,
+        "switch_us": 791,
+        "chapter_count": 80,
+        "rss_start_bytes": 13590528,
+        "rss_peak_bytes": 43917312,
+        "rss_delta_bytes": 30326784
+      }
+    },
+    {
+      "name": "large",
+      "bytes": 52428800,
+      "sha256": "3caf4f63b326550f723493d12cbdfd86a011fb59259774b35959ff194da3e159",
+      "runs": [
+        {
+          "import_us": 1564031,
+          "open_us": 68469,
+          "switch_us": 2734,
+          "chapter_count": 800,
+          "rss_start_bytes": 13602816,
+          "rss_peak_bytes": 229629952,
+          "rss_delta_bytes": 216027136,
+          "fingerprint": "sha256:3caf4f63b326550f723493d12cbdfd86a011fb59259774b35959ff194da3e159:52428800"
+        },
+        {
+          "import_us": 1565328,
+          "open_us": 64906,
+          "switch_us": 852,
+          "chapter_count": 800,
+          "rss_start_bytes": 13631488,
+          "rss_peak_bytes": 230416384,
+          "rss_delta_bytes": 216784896,
+          "fingerprint": "sha256:3caf4f63b326550f723493d12cbdfd86a011fb59259774b35959ff194da3e159:52428800"
+        },
+        {
+          "import_us": 1570464,
+          "open_us": 69522,
+          "switch_us": 2687,
+          "chapter_count": 800,
+          "rss_start_bytes": 13627392,
+          "rss_peak_bytes": 230637568,
+          "rss_delta_bytes": 217010176,
+          "fingerprint": "sha256:3caf4f63b326550f723493d12cbdfd86a011fb59259774b35959ff194da3e159:52428800"
+        }
+      ],
+      "median": {
+        "import_us": 1565328,
+        "open_us": 68469,
+        "switch_us": 2687,
+        "chapter_count": 800,
+        "rss_start_bytes": 13627392,
+        "rss_peak_bytes": 230416384,
+        "rss_delta_bytes": 216784896
+      }
+    }
+  ]
+}
