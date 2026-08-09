@@ -137,14 +137,30 @@ class _DetailsBody extends StatelessWidget {
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          const Expanded(child: Text('源文件已移动或不可用，请重新定位。')),
-                          TextButton(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          const message = Text('源文件已移动或不可用，请重新定位。');
+                          final action = TextButton(
                             onPressed: onRelocateSource,
                             child: const Text('重新定位源文件'),
-                          ),
-                        ],
+                          );
+                          if (constraints.maxWidth < 520) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                message,
+                                const SizedBox(height: 8),
+                                action,
+                              ],
+                            );
+                          }
+                          return Row(
+                            children: [
+                              Expanded(child: message),
+                              action,
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -159,14 +175,22 @@ class _DetailsBody extends StatelessWidget {
           itemCount: details.chapters.length,
           itemBuilder: (context, index) {
             final chapter = details.chapters[index];
-            return ListTile(
-              leading: Text('${index + 1}'),
-              title: Text(
-                chapter.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+            return Semantics(
+              button: true,
+              label: '第 ${index + 1} 章，${chapter.title}',
               onTap: () => onStartReading(chapter.id),
+              child: ExcludeSemantics(
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  leading: Text('${index + 1}'),
+                  title: Text(
+                    chapter.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () => onStartReading(chapter.id),
+                ),
+              ),
             );
           },
         ),

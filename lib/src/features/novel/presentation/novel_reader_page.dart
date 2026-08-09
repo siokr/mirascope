@@ -156,6 +156,7 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
             const SingleActivator(LogicalKeyboardKey.arrowDown): () =>
                 _scrollBy(80),
             const SingleActivator(LogicalKeyboardKey.pageDown): controller.next,
+            const SingleActivator(LogicalKeyboardKey.escape): _exitReader,
           },
           child: Focus(
             autofocus: true,
@@ -201,36 +202,7 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
               body: _body(controller),
               bottomNavigationBar: controller.chapter == null
                   ? null
-                  : SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed: controller.canGoPrevious
-                                  ? controller.previous
-                                  : null,
-                              icon: const Icon(Icons.chevron_left),
-                              label: const Text('上一章'),
-                            ),
-                            const SizedBox(width: 16),
-                            Text(
-                              '${controller.currentIndex + 1} / '
-                              '${controller.book!.chapters.length}',
-                            ),
-                            const SizedBox(width: 16),
-                            OutlinedButton.icon(
-                              onPressed: controller.canGoNext
-                                  ? controller.next
-                                  : null,
-                              icon: const Icon(Icons.chevron_right),
-                              label: const Text('下一章'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  : _ChapterNavigation(controller: controller),
             ),
           ),
         );
@@ -474,6 +446,47 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
       context: context,
       isScrollControlled: true,
       builder: (context) => _ReaderSettingsSheet(controller: widget.settings),
+    );
+  }
+}
+
+class _ChapterNavigation extends StatelessWidget {
+  const _ChapterNavigation({required this.controller});
+
+  final NovelReaderController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final current = controller.currentIndex + 1;
+    final total = controller.book!.chapters.length;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              onPressed: controller.canGoPrevious ? controller.previous : null,
+              icon: const Icon(Icons.chevron_left),
+              label: const Text('上一章'),
+            ),
+            Semantics(
+              label: '第 $current 章，共 $total 章',
+              liveRegion: true,
+              child: ExcludeSemantics(child: Text('$current / $total')),
+            ),
+            OutlinedButton.icon(
+              onPressed: controller.canGoNext ? controller.next : null,
+              icon: const Icon(Icons.chevron_right),
+              label: const Text('下一章'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

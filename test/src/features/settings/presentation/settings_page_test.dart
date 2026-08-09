@@ -8,6 +8,33 @@ import 'package:mirascope/src/features/settings/domain/reader_preference_reposit
 import 'package:mirascope/src/features/settings/presentation/settings_page.dart';
 
 void main() {
+  testWidgets('settings remain usable on a narrow screen with large text', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          readerPreferenceRepositoryProvider.overrideWithValue(_Repository()),
+        ],
+        child: MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(1.5)),
+            child: child!,
+          ),
+          home: const SettingsPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('跟随系统'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('global theme saves and survives provider reconstruction', (
     tester,
   ) async {

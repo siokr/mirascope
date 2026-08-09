@@ -52,6 +52,8 @@ void main() {
   testWidgets('missing source preserves directory and offers relocation', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     var relocated = false;
     var opened = false;
     await tester.pumpWidget(
@@ -62,6 +64,12 @@ void main() {
           ),
         ],
         child: MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(1.5)),
+            child: child!,
+          ),
           home: NovelDetailsPage(
             mediaItemId: 'media-1',
             onStartReading: (_) => opened = true,

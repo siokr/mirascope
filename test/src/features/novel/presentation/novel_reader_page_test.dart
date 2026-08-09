@@ -22,6 +22,9 @@ void main() {
   testWidgets('shows vertical content and respects first and last boundaries', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    var exited = false;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -37,7 +40,16 @@ void main() {
           bookmarkRepositoryProvider.overrideWithValue(_BookmarkRepository()),
         ],
         child: MaterialApp(
-          home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(1.4)),
+            child: child!,
+          ),
+          home: NovelReaderPage(
+            mediaItemId: 'media-1',
+            onExit: () => exited = true,
+          ),
         ),
       ),
     );
@@ -50,6 +62,9 @@ void main() {
           .onPressed,
       isNull,
     );
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump();
+    expect(exited, isTrue);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
     await tester.pumpAndSettle();
     expect(find.text('Body 2'), findsOneWidget);
