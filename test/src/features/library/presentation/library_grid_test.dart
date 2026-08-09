@@ -42,6 +42,44 @@ void main() {
     );
   }
 
+  testWidgets('portrait phone cards keep all metadata without overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(432, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: LibraryGrid(
+            items: List.generate(
+              4,
+              (index) => _item(
+                '一本标题特别长的竖屏测试小说-$index',
+                lastOpenedAt: DateTime.utc(2026, 8, 9),
+              ),
+            ),
+            archived: false,
+            busyMediaIds: const {},
+            onOpen: (_) {},
+            onArchive: (_) {},
+            onRestore: (_) {},
+            onDelete: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    final grid = tester.widget<GridView>(find.byType(GridView));
+    final delegate =
+        grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+    expect(delegate.childAspectRatio, 0.46);
+    expect(find.textContaining('最近阅读'), findsNWidgets(4));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('loading grid mirrors responsive columns with skeletons', (
     tester,
   ) async {
@@ -113,7 +151,7 @@ void main() {
   });
 }
 
-LibraryItem _item(String id) {
+LibraryItem _item(String id, {DateTime? lastOpenedAt}) {
   final now = DateTime.utc(2026, 7, 29);
   return LibraryItem(
     mediaItem: MediaItem(
@@ -128,6 +166,7 @@ LibraryItem _item(String id) {
       mediaItemId: id,
       favorite: false,
       addedAt: now,
+      lastOpenedAt: lastOpenedAt,
     ),
   );
 }

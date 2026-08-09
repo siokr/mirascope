@@ -14,13 +14,16 @@ class LibraryLoadingGrid extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final columns = libraryGridColumnCount(constraints.maxWidth);
+            final childAspectRatio = libraryGridChildAspectRatio(
+              constraints.maxWidth,
+            );
             return GridView.builder(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columns,
                 crossAxisSpacing: 20,
                 mainAxisSpacing: 24,
-                childAspectRatio: 0.5,
+                childAspectRatio: childAspectRatio,
               ),
               itemCount: columns * 2,
               itemBuilder: (context, index) {
