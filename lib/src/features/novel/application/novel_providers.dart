@@ -11,6 +11,7 @@ import '../domain/novel_details.dart';
 import '../domain/novel_reader_repository.dart';
 import '../../settings/application/reader_settings_controller.dart';
 import 'novel_reader_controller.dart';
+import 'bookmark_controller.dart';
 
 final novelDetailsProvider = FutureProvider.autoDispose
     .family<NovelDetails?, String>((ref, mediaItemId) {
@@ -49,6 +50,19 @@ final novelReaderControllerProvider = FutureProvider.autoDispose
         unawaited(controller.close());
         controller.dispose();
       });
+      await controller.initialize();
+      return controller;
+    });
+
+final bookmarkControllerProvider = FutureProvider.autoDispose
+    .family<BookmarkController, String>((ref, mediaItemId) async {
+      final controller = BookmarkController(
+        mediaItemId: mediaItemId,
+        repository: ref.watch(bookmarkRepositoryProvider),
+        idGenerator: const UuidIdGenerator(),
+        clock: () => DateTime.now().toUtc(),
+      );
+      ref.onDispose(controller.dispose);
       await controller.initialize();
       return controller;
     });

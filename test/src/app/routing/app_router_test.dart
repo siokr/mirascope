@@ -8,6 +8,8 @@ import 'package:mirascope/src/app/routing/app_routes.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
+import 'package:mirascope/src/features/novel/domain/bookmark.dart';
+import 'package:mirascope/src/features/novel/domain/bookmark_repository.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details.dart';
 import 'package:mirascope/src/features/importing/domain/import_record.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
@@ -184,6 +186,9 @@ Future<void> _pumpApp(
         readingProgressRepositoryProvider.overrideWithValue(
           const _RouteReadingProgressRepository(),
         ),
+        bookmarkRepositoryProvider.overrideWithValue(
+          const _RouteBookmarkRepository(),
+        ),
       ],
       child: MirascopeApp(router: router),
     ),
@@ -297,6 +302,19 @@ final class _RouteReadingProgressRepository
   @override
   Future<ProgressWriteResult> save(ReadingProgress progress) async =>
       ProgressWriteResult.inserted;
+}
+
+final class _RouteBookmarkRepository implements BookmarkRepository {
+  const _RouteBookmarkRepository();
+
+  @override
+  Future<void> delete(String bookmarkId, DateTime deletedAt) async {}
+
+  @override
+  Future<List<Bookmark>> findForMedia(String mediaItemId) async => const [];
+
+  @override
+  Future<void> save(Bookmark bookmark) async {}
 }
 
 Future<void> _pumpRoute(WidgetTester tester) async {

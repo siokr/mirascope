@@ -571,442 +571,6 @@ class MediaItemsCompanion extends UpdateCompanion<MediaItem> {
   }
 }
 
-class $LibraryEntriesTable extends LibraryEntries
-    with TableInfo<$LibraryEntriesTable, LibraryEntry> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $LibraryEntriesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _mediaItemIdMeta = const VerificationMeta(
-    'mediaItemId',
-  );
-  @override
-  late final GeneratedColumn<String> mediaItemId = GeneratedColumn<String>(
-    'media_item_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES media_items (id) ON DELETE CASCADE',
-    ),
-  );
-  static const VerificationMeta _favoriteMeta = const VerificationMeta(
-    'favorite',
-  );
-  @override
-  late final GeneratedColumn<bool> favorite = GeneratedColumn<bool>(
-    'favorite',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("favorite" IN (0, 1))',
-    ),
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<DateTime, int> addedAt =
-      GeneratedColumn<int>(
-        'added_at',
-        aliasedName,
-        false,
-        type: DriftSqlType.int,
-        requiredDuringInsert: true,
-      ).withConverter<DateTime>($LibraryEntriesTable.$converteraddedAt);
-  @override
-  late final GeneratedColumnWithTypeConverter<DateTime?, int> lastOpenedAt =
-      GeneratedColumn<int>(
-        'last_opened_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.int,
-        requiredDuringInsert: false,
-      ).withConverter<DateTime?>($LibraryEntriesTable.$converterlastOpenedAtn);
-  @override
-  late final GeneratedColumnWithTypeConverter<DateTime?, int> archivedAt =
-      GeneratedColumn<int>(
-        'archived_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.int,
-        requiredDuringInsert: false,
-      ).withConverter<DateTime?>($LibraryEntriesTable.$converterarchivedAtn);
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    mediaItemId,
-    favorite,
-    addedAt,
-    lastOpenedAt,
-    archivedAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'library_entries';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<LibraryEntry> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('media_item_id')) {
-      context.handle(
-        _mediaItemIdMeta,
-        mediaItemId.isAcceptableOrUnknown(
-          data['media_item_id']!,
-          _mediaItemIdMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_mediaItemIdMeta);
-    }
-    if (data.containsKey('favorite')) {
-      context.handle(
-        _favoriteMeta,
-        favorite.isAcceptableOrUnknown(data['favorite']!, _favoriteMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_favoriteMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {mediaItemId},
-  ];
-  @override
-  LibraryEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return LibraryEntry(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      mediaItemId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}media_item_id'],
-      )!,
-      favorite: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}favorite'],
-      )!,
-      addedAt: $LibraryEntriesTable.$converteraddedAt.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}added_at'],
-        )!,
-      ),
-      lastOpenedAt: $LibraryEntriesTable.$converterlastOpenedAtn.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}last_opened_at'],
-        ),
-      ),
-      archivedAt: $LibraryEntriesTable.$converterarchivedAtn.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}archived_at'],
-        ),
-      ),
-    );
-  }
-
-  @override
-  $LibraryEntriesTable createAlias(String alias) {
-    return $LibraryEntriesTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<DateTime, int> $converteraddedAt =
-      const DateTimeMillisConverter();
-  static TypeConverter<DateTime, int> $converterlastOpenedAt =
-      const DateTimeMillisConverter();
-  static TypeConverter<DateTime?, int?> $converterlastOpenedAtn =
-      NullAwareTypeConverter.wrap($converterlastOpenedAt);
-  static TypeConverter<DateTime, int> $converterarchivedAt =
-      const DateTimeMillisConverter();
-  static TypeConverter<DateTime?, int?> $converterarchivedAtn =
-      NullAwareTypeConverter.wrap($converterarchivedAt);
-}
-
-class LibraryEntry extends DataClass implements Insertable<LibraryEntry> {
-  final String id;
-  final String mediaItemId;
-  final bool favorite;
-  final DateTime addedAt;
-  final DateTime? lastOpenedAt;
-  final DateTime? archivedAt;
-  const LibraryEntry({
-    required this.id,
-    required this.mediaItemId,
-    required this.favorite,
-    required this.addedAt,
-    this.lastOpenedAt,
-    this.archivedAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['media_item_id'] = Variable<String>(mediaItemId);
-    map['favorite'] = Variable<bool>(favorite);
-    {
-      map['added_at'] = Variable<int>(
-        $LibraryEntriesTable.$converteraddedAt.toSql(addedAt),
-      );
-    }
-    if (!nullToAbsent || lastOpenedAt != null) {
-      map['last_opened_at'] = Variable<int>(
-        $LibraryEntriesTable.$converterlastOpenedAtn.toSql(lastOpenedAt),
-      );
-    }
-    if (!nullToAbsent || archivedAt != null) {
-      map['archived_at'] = Variable<int>(
-        $LibraryEntriesTable.$converterarchivedAtn.toSql(archivedAt),
-      );
-    }
-    return map;
-  }
-
-  LibraryEntriesCompanion toCompanion(bool nullToAbsent) {
-    return LibraryEntriesCompanion(
-      id: Value(id),
-      mediaItemId: Value(mediaItemId),
-      favorite: Value(favorite),
-      addedAt: Value(addedAt),
-      lastOpenedAt: lastOpenedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastOpenedAt),
-      archivedAt: archivedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(archivedAt),
-    );
-  }
-
-  factory LibraryEntry.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return LibraryEntry(
-      id: serializer.fromJson<String>(json['id']),
-      mediaItemId: serializer.fromJson<String>(json['mediaItemId']),
-      favorite: serializer.fromJson<bool>(json['favorite']),
-      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
-      lastOpenedAt: serializer.fromJson<DateTime?>(json['lastOpenedAt']),
-      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'mediaItemId': serializer.toJson<String>(mediaItemId),
-      'favorite': serializer.toJson<bool>(favorite),
-      'addedAt': serializer.toJson<DateTime>(addedAt),
-      'lastOpenedAt': serializer.toJson<DateTime?>(lastOpenedAt),
-      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
-    };
-  }
-
-  LibraryEntry copyWith({
-    String? id,
-    String? mediaItemId,
-    bool? favorite,
-    DateTime? addedAt,
-    Value<DateTime?> lastOpenedAt = const Value.absent(),
-    Value<DateTime?> archivedAt = const Value.absent(),
-  }) => LibraryEntry(
-    id: id ?? this.id,
-    mediaItemId: mediaItemId ?? this.mediaItemId,
-    favorite: favorite ?? this.favorite,
-    addedAt: addedAt ?? this.addedAt,
-    lastOpenedAt: lastOpenedAt.present ? lastOpenedAt.value : this.lastOpenedAt,
-    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
-  );
-  LibraryEntry copyWithCompanion(LibraryEntriesCompanion data) {
-    return LibraryEntry(
-      id: data.id.present ? data.id.value : this.id,
-      mediaItemId: data.mediaItemId.present
-          ? data.mediaItemId.value
-          : this.mediaItemId,
-      favorite: data.favorite.present ? data.favorite.value : this.favorite,
-      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
-      lastOpenedAt: data.lastOpenedAt.present
-          ? data.lastOpenedAt.value
-          : this.lastOpenedAt,
-      archivedAt: data.archivedAt.present
-          ? data.archivedAt.value
-          : this.archivedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('LibraryEntry(')
-          ..write('id: $id, ')
-          ..write('mediaItemId: $mediaItemId, ')
-          ..write('favorite: $favorite, ')
-          ..write('addedAt: $addedAt, ')
-          ..write('lastOpenedAt: $lastOpenedAt, ')
-          ..write('archivedAt: $archivedAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, mediaItemId, favorite, addedAt, lastOpenedAt, archivedAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is LibraryEntry &&
-          other.id == this.id &&
-          other.mediaItemId == this.mediaItemId &&
-          other.favorite == this.favorite &&
-          other.addedAt == this.addedAt &&
-          other.lastOpenedAt == this.lastOpenedAt &&
-          other.archivedAt == this.archivedAt);
-}
-
-class LibraryEntriesCompanion extends UpdateCompanion<LibraryEntry> {
-  final Value<String> id;
-  final Value<String> mediaItemId;
-  final Value<bool> favorite;
-  final Value<DateTime> addedAt;
-  final Value<DateTime?> lastOpenedAt;
-  final Value<DateTime?> archivedAt;
-  final Value<int> rowid;
-  const LibraryEntriesCompanion({
-    this.id = const Value.absent(),
-    this.mediaItemId = const Value.absent(),
-    this.favorite = const Value.absent(),
-    this.addedAt = const Value.absent(),
-    this.lastOpenedAt = const Value.absent(),
-    this.archivedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  LibraryEntriesCompanion.insert({
-    required String id,
-    required String mediaItemId,
-    required bool favorite,
-    required DateTime addedAt,
-    this.lastOpenedAt = const Value.absent(),
-    this.archivedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       mediaItemId = Value(mediaItemId),
-       favorite = Value(favorite),
-       addedAt = Value(addedAt);
-  static Insertable<LibraryEntry> custom({
-    Expression<String>? id,
-    Expression<String>? mediaItemId,
-    Expression<bool>? favorite,
-    Expression<int>? addedAt,
-    Expression<int>? lastOpenedAt,
-    Expression<int>? archivedAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (mediaItemId != null) 'media_item_id': mediaItemId,
-      if (favorite != null) 'favorite': favorite,
-      if (addedAt != null) 'added_at': addedAt,
-      if (lastOpenedAt != null) 'last_opened_at': lastOpenedAt,
-      if (archivedAt != null) 'archived_at': archivedAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  LibraryEntriesCompanion copyWith({
-    Value<String>? id,
-    Value<String>? mediaItemId,
-    Value<bool>? favorite,
-    Value<DateTime>? addedAt,
-    Value<DateTime?>? lastOpenedAt,
-    Value<DateTime?>? archivedAt,
-    Value<int>? rowid,
-  }) {
-    return LibraryEntriesCompanion(
-      id: id ?? this.id,
-      mediaItemId: mediaItemId ?? this.mediaItemId,
-      favorite: favorite ?? this.favorite,
-      addedAt: addedAt ?? this.addedAt,
-      lastOpenedAt: lastOpenedAt ?? this.lastOpenedAt,
-      archivedAt: archivedAt ?? this.archivedAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (mediaItemId.present) {
-      map['media_item_id'] = Variable<String>(mediaItemId.value);
-    }
-    if (favorite.present) {
-      map['favorite'] = Variable<bool>(favorite.value);
-    }
-    if (addedAt.present) {
-      map['added_at'] = Variable<int>(
-        $LibraryEntriesTable.$converteraddedAt.toSql(addedAt.value),
-      );
-    }
-    if (lastOpenedAt.present) {
-      map['last_opened_at'] = Variable<int>(
-        $LibraryEntriesTable.$converterlastOpenedAtn.toSql(lastOpenedAt.value),
-      );
-    }
-    if (archivedAt.present) {
-      map['archived_at'] = Variable<int>(
-        $LibraryEntriesTable.$converterarchivedAtn.toSql(archivedAt.value),
-      );
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('LibraryEntriesCompanion(')
-          ..write('id: $id, ')
-          ..write('mediaItemId: $mediaItemId, ')
-          ..write('favorite: $favorite, ')
-          ..write('addedAt: $addedAt, ')
-          ..write('lastOpenedAt: $lastOpenedAt, ')
-          ..write('archivedAt: $archivedAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $ContentUnitsTable extends ContentUnits
     with TableInfo<$ContentUnitsTable, ContentUnit> {
   @override
@@ -1537,6 +1101,924 @@ class ContentUnitsCompanion extends UpdateCompanion<ContentUnit> {
           ..write('contentRef: $contentRef, ')
           ..write('sourceLocator: $sourceLocator, ')
           ..write('contentHash: $contentHash, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BookmarksTable extends Bookmarks
+    with TableInfo<$BookmarksTable, Bookmark> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BookmarksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mediaItemIdMeta = const VerificationMeta(
+    'mediaItemId',
+  );
+  @override
+  late final GeneratedColumn<String> mediaItemId = GeneratedColumn<String>(
+    'media_item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES media_items (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _contentUnitIdMeta = const VerificationMeta(
+    'contentUnitId',
+  );
+  @override
+  late final GeneratedColumn<String> contentUnitId = GeneratedColumn<String>(
+    'content_unit_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES content_units (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _locatorMeta = const VerificationMeta(
+    'locator',
+  );
+  @override
+  late final GeneratedColumn<String> locator = GeneratedColumn<String>(
+    'locator',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> createdAt =
+      GeneratedColumn<int>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($BookmarksTable.$convertercreatedAt);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime?, int> deletedAt =
+      GeneratedColumn<int>(
+        'deleted_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      ).withConverter<DateTime?>($BookmarksTable.$converterdeletedAtn);
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    mediaItemId,
+    contentUnitId,
+    locator,
+    label,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'bookmarks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Bookmark> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('media_item_id')) {
+      context.handle(
+        _mediaItemIdMeta,
+        mediaItemId.isAcceptableOrUnknown(
+          data['media_item_id']!,
+          _mediaItemIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mediaItemIdMeta);
+    }
+    if (data.containsKey('content_unit_id')) {
+      context.handle(
+        _contentUnitIdMeta,
+        contentUnitId.isAcceptableOrUnknown(
+          data['content_unit_id']!,
+          _contentUnitIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentUnitIdMeta);
+    }
+    if (data.containsKey('locator')) {
+      context.handle(
+        _locatorMeta,
+        locator.isAcceptableOrUnknown(data['locator']!, _locatorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_locatorMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Bookmark map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Bookmark(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      mediaItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_item_id'],
+      )!,
+      contentUnitId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_unit_id'],
+      )!,
+      locator: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}locator'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      createdAt: $BookmarksTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+      deletedAt: $BookmarksTable.$converterdeletedAtn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}deleted_at'],
+        ),
+      ),
+    );
+  }
+
+  @override
+  $BookmarksTable createAlias(String alias) {
+    return $BookmarksTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, int> $convertercreatedAt =
+      const DateTimeMillisConverter();
+  static TypeConverter<DateTime, int> $converterdeletedAt =
+      const DateTimeMillisConverter();
+  static TypeConverter<DateTime?, int?> $converterdeletedAtn =
+      NullAwareTypeConverter.wrap($converterdeletedAt);
+}
+
+class Bookmark extends DataClass implements Insertable<Bookmark> {
+  final String id;
+  final String mediaItemId;
+  final String contentUnitId;
+  final String locator;
+  final String label;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const Bookmark({
+    required this.id,
+    required this.mediaItemId,
+    required this.contentUnitId,
+    required this.locator,
+    required this.label,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['media_item_id'] = Variable<String>(mediaItemId);
+    map['content_unit_id'] = Variable<String>(contentUnitId);
+    map['locator'] = Variable<String>(locator);
+    map['label'] = Variable<String>(label);
+    {
+      map['created_at'] = Variable<int>(
+        $BookmarksTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<int>(
+        $BookmarksTable.$converterdeletedAtn.toSql(deletedAt),
+      );
+    }
+    return map;
+  }
+
+  BookmarksCompanion toCompanion(bool nullToAbsent) {
+    return BookmarksCompanion(
+      id: Value(id),
+      mediaItemId: Value(mediaItemId),
+      contentUnitId: Value(contentUnitId),
+      locator: Value(locator),
+      label: Value(label),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory Bookmark.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Bookmark(
+      id: serializer.fromJson<String>(json['id']),
+      mediaItemId: serializer.fromJson<String>(json['mediaItemId']),
+      contentUnitId: serializer.fromJson<String>(json['contentUnitId']),
+      locator: serializer.fromJson<String>(json['locator']),
+      label: serializer.fromJson<String>(json['label']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'mediaItemId': serializer.toJson<String>(mediaItemId),
+      'contentUnitId': serializer.toJson<String>(contentUnitId),
+      'locator': serializer.toJson<String>(locator),
+      'label': serializer.toJson<String>(label),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  Bookmark copyWith({
+    String? id,
+    String? mediaItemId,
+    String? contentUnitId,
+    String? locator,
+    String? label,
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => Bookmark(
+    id: id ?? this.id,
+    mediaItemId: mediaItemId ?? this.mediaItemId,
+    contentUnitId: contentUnitId ?? this.contentUnitId,
+    locator: locator ?? this.locator,
+    label: label ?? this.label,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  Bookmark copyWithCompanion(BookmarksCompanion data) {
+    return Bookmark(
+      id: data.id.present ? data.id.value : this.id,
+      mediaItemId: data.mediaItemId.present
+          ? data.mediaItemId.value
+          : this.mediaItemId,
+      contentUnitId: data.contentUnitId.present
+          ? data.contentUnitId.value
+          : this.contentUnitId,
+      locator: data.locator.present ? data.locator.value : this.locator,
+      label: data.label.present ? data.label.value : this.label,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Bookmark(')
+          ..write('id: $id, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('contentUnitId: $contentUnitId, ')
+          ..write('locator: $locator, ')
+          ..write('label: $label, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    mediaItemId,
+    contentUnitId,
+    locator,
+    label,
+    createdAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Bookmark &&
+          other.id == this.id &&
+          other.mediaItemId == this.mediaItemId &&
+          other.contentUnitId == this.contentUnitId &&
+          other.locator == this.locator &&
+          other.label == this.label &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class BookmarksCompanion extends UpdateCompanion<Bookmark> {
+  final Value<String> id;
+  final Value<String> mediaItemId;
+  final Value<String> contentUnitId;
+  final Value<String> locator;
+  final Value<String> label;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const BookmarksCompanion({
+    this.id = const Value.absent(),
+    this.mediaItemId = const Value.absent(),
+    this.contentUnitId = const Value.absent(),
+    this.locator = const Value.absent(),
+    this.label = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BookmarksCompanion.insert({
+    required String id,
+    required String mediaItemId,
+    required String contentUnitId,
+    required String locator,
+    required String label,
+    required DateTime createdAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       mediaItemId = Value(mediaItemId),
+       contentUnitId = Value(contentUnitId),
+       locator = Value(locator),
+       label = Value(label),
+       createdAt = Value(createdAt);
+  static Insertable<Bookmark> custom({
+    Expression<String>? id,
+    Expression<String>? mediaItemId,
+    Expression<String>? contentUnitId,
+    Expression<String>? locator,
+    Expression<String>? label,
+    Expression<int>? createdAt,
+    Expression<int>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (mediaItemId != null) 'media_item_id': mediaItemId,
+      if (contentUnitId != null) 'content_unit_id': contentUnitId,
+      if (locator != null) 'locator': locator,
+      if (label != null) 'label': label,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BookmarksCompanion copyWith({
+    Value<String>? id,
+    Value<String>? mediaItemId,
+    Value<String>? contentUnitId,
+    Value<String>? locator,
+    Value<String>? label,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return BookmarksCompanion(
+      id: id ?? this.id,
+      mediaItemId: mediaItemId ?? this.mediaItemId,
+      contentUnitId: contentUnitId ?? this.contentUnitId,
+      locator: locator ?? this.locator,
+      label: label ?? this.label,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (mediaItemId.present) {
+      map['media_item_id'] = Variable<String>(mediaItemId.value);
+    }
+    if (contentUnitId.present) {
+      map['content_unit_id'] = Variable<String>(contentUnitId.value);
+    }
+    if (locator.present) {
+      map['locator'] = Variable<String>(locator.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(
+        $BookmarksTable.$convertercreatedAt.toSql(createdAt.value),
+      );
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<int>(
+        $BookmarksTable.$converterdeletedAtn.toSql(deletedAt.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BookmarksCompanion(')
+          ..write('id: $id, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('contentUnitId: $contentUnitId, ')
+          ..write('locator: $locator, ')
+          ..write('label: $label, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LibraryEntriesTable extends LibraryEntries
+    with TableInfo<$LibraryEntriesTable, LibraryEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LibraryEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mediaItemIdMeta = const VerificationMeta(
+    'mediaItemId',
+  );
+  @override
+  late final GeneratedColumn<String> mediaItemId = GeneratedColumn<String>(
+    'media_item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES media_items (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _favoriteMeta = const VerificationMeta(
+    'favorite',
+  );
+  @override
+  late final GeneratedColumn<bool> favorite = GeneratedColumn<bool>(
+    'favorite',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("favorite" IN (0, 1))',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> addedAt =
+      GeneratedColumn<int>(
+        'added_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($LibraryEntriesTable.$converteraddedAt);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime?, int> lastOpenedAt =
+      GeneratedColumn<int>(
+        'last_opened_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      ).withConverter<DateTime?>($LibraryEntriesTable.$converterlastOpenedAtn);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime?, int> archivedAt =
+      GeneratedColumn<int>(
+        'archived_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      ).withConverter<DateTime?>($LibraryEntriesTable.$converterarchivedAtn);
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    mediaItemId,
+    favorite,
+    addedAt,
+    lastOpenedAt,
+    archivedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'library_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LibraryEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('media_item_id')) {
+      context.handle(
+        _mediaItemIdMeta,
+        mediaItemId.isAcceptableOrUnknown(
+          data['media_item_id']!,
+          _mediaItemIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mediaItemIdMeta);
+    }
+    if (data.containsKey('favorite')) {
+      context.handle(
+        _favoriteMeta,
+        favorite.isAcceptableOrUnknown(data['favorite']!, _favoriteMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_favoriteMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {mediaItemId},
+  ];
+  @override
+  LibraryEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LibraryEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      mediaItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_item_id'],
+      )!,
+      favorite: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}favorite'],
+      )!,
+      addedAt: $LibraryEntriesTable.$converteraddedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}added_at'],
+        )!,
+      ),
+      lastOpenedAt: $LibraryEntriesTable.$converterlastOpenedAtn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}last_opened_at'],
+        ),
+      ),
+      archivedAt: $LibraryEntriesTable.$converterarchivedAtn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}archived_at'],
+        ),
+      ),
+    );
+  }
+
+  @override
+  $LibraryEntriesTable createAlias(String alias) {
+    return $LibraryEntriesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, int> $converteraddedAt =
+      const DateTimeMillisConverter();
+  static TypeConverter<DateTime, int> $converterlastOpenedAt =
+      const DateTimeMillisConverter();
+  static TypeConverter<DateTime?, int?> $converterlastOpenedAtn =
+      NullAwareTypeConverter.wrap($converterlastOpenedAt);
+  static TypeConverter<DateTime, int> $converterarchivedAt =
+      const DateTimeMillisConverter();
+  static TypeConverter<DateTime?, int?> $converterarchivedAtn =
+      NullAwareTypeConverter.wrap($converterarchivedAt);
+}
+
+class LibraryEntry extends DataClass implements Insertable<LibraryEntry> {
+  final String id;
+  final String mediaItemId;
+  final bool favorite;
+  final DateTime addedAt;
+  final DateTime? lastOpenedAt;
+  final DateTime? archivedAt;
+  const LibraryEntry({
+    required this.id,
+    required this.mediaItemId,
+    required this.favorite,
+    required this.addedAt,
+    this.lastOpenedAt,
+    this.archivedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['media_item_id'] = Variable<String>(mediaItemId);
+    map['favorite'] = Variable<bool>(favorite);
+    {
+      map['added_at'] = Variable<int>(
+        $LibraryEntriesTable.$converteraddedAt.toSql(addedAt),
+      );
+    }
+    if (!nullToAbsent || lastOpenedAt != null) {
+      map['last_opened_at'] = Variable<int>(
+        $LibraryEntriesTable.$converterlastOpenedAtn.toSql(lastOpenedAt),
+      );
+    }
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<int>(
+        $LibraryEntriesTable.$converterarchivedAtn.toSql(archivedAt),
+      );
+    }
+    return map;
+  }
+
+  LibraryEntriesCompanion toCompanion(bool nullToAbsent) {
+    return LibraryEntriesCompanion(
+      id: Value(id),
+      mediaItemId: Value(mediaItemId),
+      favorite: Value(favorite),
+      addedAt: Value(addedAt),
+      lastOpenedAt: lastOpenedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastOpenedAt),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+    );
+  }
+
+  factory LibraryEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LibraryEntry(
+      id: serializer.fromJson<String>(json['id']),
+      mediaItemId: serializer.fromJson<String>(json['mediaItemId']),
+      favorite: serializer.fromJson<bool>(json['favorite']),
+      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
+      lastOpenedAt: serializer.fromJson<DateTime?>(json['lastOpenedAt']),
+      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'mediaItemId': serializer.toJson<String>(mediaItemId),
+      'favorite': serializer.toJson<bool>(favorite),
+      'addedAt': serializer.toJson<DateTime>(addedAt),
+      'lastOpenedAt': serializer.toJson<DateTime?>(lastOpenedAt),
+      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
+    };
+  }
+
+  LibraryEntry copyWith({
+    String? id,
+    String? mediaItemId,
+    bool? favorite,
+    DateTime? addedAt,
+    Value<DateTime?> lastOpenedAt = const Value.absent(),
+    Value<DateTime?> archivedAt = const Value.absent(),
+  }) => LibraryEntry(
+    id: id ?? this.id,
+    mediaItemId: mediaItemId ?? this.mediaItemId,
+    favorite: favorite ?? this.favorite,
+    addedAt: addedAt ?? this.addedAt,
+    lastOpenedAt: lastOpenedAt.present ? lastOpenedAt.value : this.lastOpenedAt,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+  );
+  LibraryEntry copyWithCompanion(LibraryEntriesCompanion data) {
+    return LibraryEntry(
+      id: data.id.present ? data.id.value : this.id,
+      mediaItemId: data.mediaItemId.present
+          ? data.mediaItemId.value
+          : this.mediaItemId,
+      favorite: data.favorite.present ? data.favorite.value : this.favorite,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
+      lastOpenedAt: data.lastOpenedAt.present
+          ? data.lastOpenedAt.value
+          : this.lastOpenedAt,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LibraryEntry(')
+          ..write('id: $id, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('favorite: $favorite, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('lastOpenedAt: $lastOpenedAt, ')
+          ..write('archivedAt: $archivedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, mediaItemId, favorite, addedAt, lastOpenedAt, archivedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LibraryEntry &&
+          other.id == this.id &&
+          other.mediaItemId == this.mediaItemId &&
+          other.favorite == this.favorite &&
+          other.addedAt == this.addedAt &&
+          other.lastOpenedAt == this.lastOpenedAt &&
+          other.archivedAt == this.archivedAt);
+}
+
+class LibraryEntriesCompanion extends UpdateCompanion<LibraryEntry> {
+  final Value<String> id;
+  final Value<String> mediaItemId;
+  final Value<bool> favorite;
+  final Value<DateTime> addedAt;
+  final Value<DateTime?> lastOpenedAt;
+  final Value<DateTime?> archivedAt;
+  final Value<int> rowid;
+  const LibraryEntriesCompanion({
+    this.id = const Value.absent(),
+    this.mediaItemId = const Value.absent(),
+    this.favorite = const Value.absent(),
+    this.addedAt = const Value.absent(),
+    this.lastOpenedAt = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LibraryEntriesCompanion.insert({
+    required String id,
+    required String mediaItemId,
+    required bool favorite,
+    required DateTime addedAt,
+    this.lastOpenedAt = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       mediaItemId = Value(mediaItemId),
+       favorite = Value(favorite),
+       addedAt = Value(addedAt);
+  static Insertable<LibraryEntry> custom({
+    Expression<String>? id,
+    Expression<String>? mediaItemId,
+    Expression<bool>? favorite,
+    Expression<int>? addedAt,
+    Expression<int>? lastOpenedAt,
+    Expression<int>? archivedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (mediaItemId != null) 'media_item_id': mediaItemId,
+      if (favorite != null) 'favorite': favorite,
+      if (addedAt != null) 'added_at': addedAt,
+      if (lastOpenedAt != null) 'last_opened_at': lastOpenedAt,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LibraryEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? mediaItemId,
+    Value<bool>? favorite,
+    Value<DateTime>? addedAt,
+    Value<DateTime?>? lastOpenedAt,
+    Value<DateTime?>? archivedAt,
+    Value<int>? rowid,
+  }) {
+    return LibraryEntriesCompanion(
+      id: id ?? this.id,
+      mediaItemId: mediaItemId ?? this.mediaItemId,
+      favorite: favorite ?? this.favorite,
+      addedAt: addedAt ?? this.addedAt,
+      lastOpenedAt: lastOpenedAt ?? this.lastOpenedAt,
+      archivedAt: archivedAt ?? this.archivedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (mediaItemId.present) {
+      map['media_item_id'] = Variable<String>(mediaItemId.value);
+    }
+    if (favorite.present) {
+      map['favorite'] = Variable<bool>(favorite.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<int>(
+        $LibraryEntriesTable.$converteraddedAt.toSql(addedAt.value),
+      );
+    }
+    if (lastOpenedAt.present) {
+      map['last_opened_at'] = Variable<int>(
+        $LibraryEntriesTable.$converterlastOpenedAtn.toSql(lastOpenedAt.value),
+      );
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<int>(
+        $LibraryEntriesTable.$converterarchivedAtn.toSql(archivedAt.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LibraryEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('favorite: $favorite, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('lastOpenedAt: $lastOpenedAt, ')
+          ..write('archivedAt: $archivedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3253,13 +3735,18 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $MediaItemsTable mediaItems = $MediaItemsTable(this);
-  late final $LibraryEntriesTable libraryEntries = $LibraryEntriesTable(this);
   late final $ContentUnitsTable contentUnits = $ContentUnitsTable(this);
+  late final $BookmarksTable bookmarks = $BookmarksTable(this);
+  late final $LibraryEntriesTable libraryEntries = $LibraryEntriesTable(this);
   late final $ReadingProgressEntriesTable readingProgressEntries =
       $ReadingProgressEntriesTable(this);
   late final $ReaderPreferencesTable readerPreferences =
       $ReaderPreferencesTable(this);
   late final $ImportRecordsTable importRecords = $ImportRecordsTable(this);
+  late final Index bookmarksMediaCreatedIdx = Index(
+    'bookmarks_media_created_idx',
+    'CREATE INDEX bookmarks_media_created_idx ON bookmarks (media_item_id, created_at)',
+  );
   late final Index mediaItemsTypeUpdatedIdx = Index(
     'media_items_type_updated_idx',
     'CREATE INDEX media_items_type_updated_idx ON media_items (media_type, updated_at)',
@@ -3282,11 +3769,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     mediaItems,
-    libraryEntries,
     contentUnits,
+    bookmarks,
+    libraryEntries,
     readingProgressEntries,
     readerPreferences,
     importRecords,
+    bookmarksMediaCreatedIdx,
     mediaItemsTypeUpdatedIdx,
     readerPreferencesGlobalIdx,
     readerPreferencesMediaIdx,
@@ -3299,14 +3788,28 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'media_items',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('library_entries', kind: UpdateKind.delete)],
+      result: [TableUpdate('content_units', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'media_items',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('content_units', kind: UpdateKind.delete)],
+      result: [TableUpdate('bookmarks', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'content_units',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('bookmarks', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'media_items',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('library_entries', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -3370,24 +3873,6 @@ final class $$MediaItemsTableReferences
     extends BaseReferences<_$AppDatabase, $MediaItemsTable, MediaItem> {
   $$MediaItemsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<$LibraryEntriesTable, List<LibraryEntry>>
-  _libraryEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.libraryEntries,
-    aliasName: 'media_items__id__library_entries__media_item_id',
-  );
-
-  $$LibraryEntriesTableProcessedTableManager get libraryEntriesRefs {
-    final manager = $$LibraryEntriesTableTableManager(
-      $_db,
-      $_db.libraryEntries,
-    ).filter((f) => f.mediaItemId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_libraryEntriesRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
   static MultiTypedResultKey<$ContentUnitsTable, List<ContentUnit>>
   _contentUnitsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.contentUnits,
@@ -3401,6 +3886,42 @@ final class $$MediaItemsTableReferences
     ).filter((f) => f.mediaItemId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_contentUnitsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$BookmarksTable, List<Bookmark>>
+  _bookmarksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.bookmarks,
+    aliasName: 'media_items__id__bookmarks__media_item_id',
+  );
+
+  $$BookmarksTableProcessedTableManager get bookmarksRefs {
+    final manager = $$BookmarksTableTableManager(
+      $_db,
+      $_db.bookmarks,
+    ).filter((f) => f.mediaItemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_bookmarksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$LibraryEntriesTable, List<LibraryEntry>>
+  _libraryEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.libraryEntries,
+    aliasName: 'media_items__id__library_entries__media_item_id',
+  );
+
+  $$LibraryEntriesTableProcessedTableManager get libraryEntriesRefs {
+    final manager = $$LibraryEntriesTableTableManager(
+      $_db,
+      $_db.libraryEntries,
+    ).filter((f) => f.mediaItemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_libraryEntriesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3527,31 +4048,6 @@ class $$MediaItemsTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
-  Expression<bool> libraryEntriesRefs(
-    Expression<bool> Function($$LibraryEntriesTableFilterComposer f) f,
-  ) {
-    final $$LibraryEntriesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.libraryEntries,
-      getReferencedColumn: (t) => t.mediaItemId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LibraryEntriesTableFilterComposer(
-            $db: $db,
-            $table: $db.libraryEntries,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<bool> contentUnitsRefs(
     Expression<bool> Function($$ContentUnitsTableFilterComposer f) f,
   ) {
@@ -3568,6 +4064,56 @@ class $$MediaItemsTableFilterComposer
           }) => $$ContentUnitsTableFilterComposer(
             $db: $db,
             $table: $db.contentUnits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> bookmarksRefs(
+    Expression<bool> Function($$BookmarksTableFilterComposer f) f,
+  ) {
+    final $$BookmarksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.bookmarks,
+      getReferencedColumn: (t) => t.mediaItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BookmarksTableFilterComposer(
+            $db: $db,
+            $table: $db.bookmarks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> libraryEntriesRefs(
+    Expression<bool> Function($$LibraryEntriesTableFilterComposer f) f,
+  ) {
+    final $$LibraryEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.libraryEntries,
+      getReferencedColumn: (t) => t.mediaItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.libraryEntries,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3747,31 +4293,6 @@ class $$MediaItemsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<DateTime, int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  Expression<T> libraryEntriesRefs<T extends Object>(
-    Expression<T> Function($$LibraryEntriesTableAnnotationComposer a) f,
-  ) {
-    final $$LibraryEntriesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.libraryEntries,
-      getReferencedColumn: (t) => t.mediaItemId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LibraryEntriesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.libraryEntries,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<T> contentUnitsRefs<T extends Object>(
     Expression<T> Function($$ContentUnitsTableAnnotationComposer a) f,
   ) {
@@ -3788,6 +4309,56 @@ class $$MediaItemsTableAnnotationComposer
           }) => $$ContentUnitsTableAnnotationComposer(
             $db: $db,
             $table: $db.contentUnits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> bookmarksRefs<T extends Object>(
+    Expression<T> Function($$BookmarksTableAnnotationComposer a) f,
+  ) {
+    final $$BookmarksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.bookmarks,
+      getReferencedColumn: (t) => t.mediaItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BookmarksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bookmarks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> libraryEntriesRefs<T extends Object>(
+    Expression<T> Function($$LibraryEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$LibraryEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.libraryEntries,
+      getReferencedColumn: (t) => t.mediaItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.libraryEntries,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3889,8 +4460,9 @@ class $$MediaItemsTableTableManager
           (MediaItem, $$MediaItemsTableReferences),
           MediaItem,
           PrefetchHooks Function({
-            bool libraryEntriesRefs,
             bool contentUnitsRefs,
+            bool bookmarksRefs,
+            bool libraryEntriesRefs,
             bool readingProgressEntriesRefs,
             bool readerPreferencesRefs,
             bool importRecordsRefs,
@@ -3965,8 +4537,9 @@ class $$MediaItemsTableTableManager
               .toList(),
           prefetchHooksCallback:
               ({
-                libraryEntriesRefs = false,
                 contentUnitsRefs = false,
+                bookmarksRefs = false,
+                libraryEntriesRefs = false,
                 readingProgressEntriesRefs = false,
                 readerPreferencesRefs = false,
                 importRecordsRefs = false,
@@ -3974,8 +4547,9 @@ class $$MediaItemsTableTableManager
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
-                    if (libraryEntriesRefs) db.libraryEntries,
                     if (contentUnitsRefs) db.contentUnits,
+                    if (bookmarksRefs) db.bookmarks,
+                    if (libraryEntriesRefs) db.libraryEntries,
                     if (readingProgressEntriesRefs) db.readingProgressEntries,
                     if (readerPreferencesRefs) db.readerPreferences,
                     if (importRecordsRefs) db.importRecords,
@@ -3983,27 +4557,6 @@ class $$MediaItemsTableTableManager
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
-                      if (libraryEntriesRefs)
-                        await $_getPrefetchedData<
-                          MediaItem,
-                          $MediaItemsTable,
-                          LibraryEntry
-                        >(
-                          currentTable: table,
-                          referencedTable: $$MediaItemsTableReferences
-                              ._libraryEntriesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$MediaItemsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).libraryEntriesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.mediaItemId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                       if (contentUnitsRefs)
                         await $_getPrefetchedData<
                           MediaItem,
@@ -4019,6 +4572,48 @@ class $$MediaItemsTableTableManager
                                 table,
                                 p0,
                               ).contentUnitsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.mediaItemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (bookmarksRefs)
+                        await $_getPrefetchedData<
+                          MediaItem,
+                          $MediaItemsTable,
+                          Bookmark
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MediaItemsTableReferences
+                              ._bookmarksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MediaItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).bookmarksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.mediaItemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (libraryEntriesRefs)
+                        await $_getPrefetchedData<
+                          MediaItem,
+                          $MediaItemsTable,
+                          LibraryEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MediaItemsTableReferences
+                              ._libraryEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MediaItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).libraryEntriesRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.mediaItemId == item.id,
@@ -4109,12 +4704,1046 @@ typedef $$MediaItemsTableProcessedTableManager =
       (MediaItem, $$MediaItemsTableReferences),
       MediaItem,
       PrefetchHooks Function({
-        bool libraryEntriesRefs,
         bool contentUnitsRefs,
+        bool bookmarksRefs,
+        bool libraryEntriesRefs,
         bool readingProgressEntriesRefs,
         bool readerPreferencesRefs,
         bool importRecordsRefs,
       })
+    >;
+typedef $$ContentUnitsTableCreateCompanionBuilder =
+    ContentUnitsCompanion Function({
+      required String id,
+      required String mediaItemId,
+      required String unitType,
+      required String title,
+      required int orderIndex,
+      required String contentRef,
+      required String sourceLocator,
+      required String contentHash,
+      Value<int> rowid,
+    });
+typedef $$ContentUnitsTableUpdateCompanionBuilder =
+    ContentUnitsCompanion Function({
+      Value<String> id,
+      Value<String> mediaItemId,
+      Value<String> unitType,
+      Value<String> title,
+      Value<int> orderIndex,
+      Value<String> contentRef,
+      Value<String> sourceLocator,
+      Value<String> contentHash,
+      Value<int> rowid,
+    });
+
+final class $$ContentUnitsTableReferences
+    extends BaseReferences<_$AppDatabase, $ContentUnitsTable, ContentUnit> {
+  $$ContentUnitsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $MediaItemsTable _mediaItemIdTable(_$AppDatabase db) => db.mediaItems
+      .createAlias('content_units__media_item_id__media_items__id');
+
+  $$MediaItemsTableProcessedTableManager get mediaItemId {
+    final $_column = $_itemColumn<String>('media_item_id')!;
+
+    final manager = $$MediaItemsTableTableManager(
+      $_db,
+      $_db.mediaItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_mediaItemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$BookmarksTable, List<Bookmark>>
+  _bookmarksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.bookmarks,
+    aliasName: 'content_units__id__bookmarks__content_unit_id',
+  );
+
+  $$BookmarksTableProcessedTableManager get bookmarksRefs {
+    final manager = $$BookmarksTableTableManager(
+      $_db,
+      $_db.bookmarks,
+    ).filter((f) => f.contentUnitId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_bookmarksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $ReadingProgressEntriesTable,
+    List<ReadingProgressEntry>
+  >
+  _readingProgressEntriesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.readingProgressEntries,
+        aliasName: 'content_units__id__reading_progress__content_unit_id',
+      );
+
+  $$ReadingProgressEntriesTableProcessedTableManager
+  get readingProgressEntriesRefs {
+    final manager = $$ReadingProgressEntriesTableTableManager(
+      $_db,
+      $_db.readingProgressEntries,
+    ).filter((f) => f.contentUnitId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _readingProgressEntriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ContentUnitsTableFilterComposer
+    extends Composer<_$AppDatabase, $ContentUnitsTable> {
+  $$ContentUnitsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unitType => $composableBuilder(
+    column: $table.unitType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentRef => $composableBuilder(
+    column: $table.contentRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceLocator => $composableBuilder(
+    column: $table.sourceLocator,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MediaItemsTableFilterComposer get mediaItemId {
+    final $$MediaItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> bookmarksRefs(
+    Expression<bool> Function($$BookmarksTableFilterComposer f) f,
+  ) {
+    final $$BookmarksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.bookmarks,
+      getReferencedColumn: (t) => t.contentUnitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BookmarksTableFilterComposer(
+            $db: $db,
+            $table: $db.bookmarks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> readingProgressEntriesRefs(
+    Expression<bool> Function($$ReadingProgressEntriesTableFilterComposer f) f,
+  ) {
+    final $$ReadingProgressEntriesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.readingProgressEntries,
+          getReferencedColumn: (t) => t.contentUnitId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ReadingProgressEntriesTableFilterComposer(
+                $db: $db,
+                $table: $db.readingProgressEntries,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$ContentUnitsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ContentUnitsTable> {
+  $$ContentUnitsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unitType => $composableBuilder(
+    column: $table.unitType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentRef => $composableBuilder(
+    column: $table.contentRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceLocator => $composableBuilder(
+    column: $table.sourceLocator,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MediaItemsTableOrderingComposer get mediaItemId {
+    final $$MediaItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ContentUnitsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ContentUnitsTable> {
+  $$ContentUnitsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get unitType =>
+      $composableBuilder(column: $table.unitType, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentRef => $composableBuilder(
+    column: $table.contentRef,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceLocator => $composableBuilder(
+    column: $table.sourceLocator,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => column,
+  );
+
+  $$MediaItemsTableAnnotationComposer get mediaItemId {
+    final $$MediaItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> bookmarksRefs<T extends Object>(
+    Expression<T> Function($$BookmarksTableAnnotationComposer a) f,
+  ) {
+    final $$BookmarksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.bookmarks,
+      getReferencedColumn: (t) => t.contentUnitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BookmarksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bookmarks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> readingProgressEntriesRefs<T extends Object>(
+    Expression<T> Function($$ReadingProgressEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$ReadingProgressEntriesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.readingProgressEntries,
+          getReferencedColumn: (t) => t.contentUnitId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ReadingProgressEntriesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.readingProgressEntries,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$ContentUnitsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ContentUnitsTable,
+          ContentUnit,
+          $$ContentUnitsTableFilterComposer,
+          $$ContentUnitsTableOrderingComposer,
+          $$ContentUnitsTableAnnotationComposer,
+          $$ContentUnitsTableCreateCompanionBuilder,
+          $$ContentUnitsTableUpdateCompanionBuilder,
+          (ContentUnit, $$ContentUnitsTableReferences),
+          ContentUnit,
+          PrefetchHooks Function({
+            bool mediaItemId,
+            bool bookmarksRefs,
+            bool readingProgressEntriesRefs,
+          })
+        > {
+  $$ContentUnitsTableTableManager(_$AppDatabase db, $ContentUnitsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ContentUnitsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ContentUnitsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ContentUnitsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> mediaItemId = const Value.absent(),
+                Value<String> unitType = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<int> orderIndex = const Value.absent(),
+                Value<String> contentRef = const Value.absent(),
+                Value<String> sourceLocator = const Value.absent(),
+                Value<String> contentHash = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ContentUnitsCompanion(
+                id: id,
+                mediaItemId: mediaItemId,
+                unitType: unitType,
+                title: title,
+                orderIndex: orderIndex,
+                contentRef: contentRef,
+                sourceLocator: sourceLocator,
+                contentHash: contentHash,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String mediaItemId,
+                required String unitType,
+                required String title,
+                required int orderIndex,
+                required String contentRef,
+                required String sourceLocator,
+                required String contentHash,
+                Value<int> rowid = const Value.absent(),
+              }) => ContentUnitsCompanion.insert(
+                id: id,
+                mediaItemId: mediaItemId,
+                unitType: unitType,
+                title: title,
+                orderIndex: orderIndex,
+                contentRef: contentRef,
+                sourceLocator: sourceLocator,
+                contentHash: contentHash,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ContentUnitsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                mediaItemId = false,
+                bookmarksRefs = false,
+                readingProgressEntriesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (bookmarksRefs) db.bookmarks,
+                    if (readingProgressEntriesRefs) db.readingProgressEntries,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (mediaItemId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.mediaItemId,
+                                    referencedTable:
+                                        $$ContentUnitsTableReferences
+                                            ._mediaItemIdTable(db),
+                                    referencedColumn:
+                                        $$ContentUnitsTableReferences
+                                            ._mediaItemIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (bookmarksRefs)
+                        await $_getPrefetchedData<
+                          ContentUnit,
+                          $ContentUnitsTable,
+                          Bookmark
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ContentUnitsTableReferences
+                              ._bookmarksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ContentUnitsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).bookmarksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.contentUnitId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (readingProgressEntriesRefs)
+                        await $_getPrefetchedData<
+                          ContentUnit,
+                          $ContentUnitsTable,
+                          ReadingProgressEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ContentUnitsTableReferences
+                              ._readingProgressEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ContentUnitsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).readingProgressEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.contentUnitId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$ContentUnitsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ContentUnitsTable,
+      ContentUnit,
+      $$ContentUnitsTableFilterComposer,
+      $$ContentUnitsTableOrderingComposer,
+      $$ContentUnitsTableAnnotationComposer,
+      $$ContentUnitsTableCreateCompanionBuilder,
+      $$ContentUnitsTableUpdateCompanionBuilder,
+      (ContentUnit, $$ContentUnitsTableReferences),
+      ContentUnit,
+      PrefetchHooks Function({
+        bool mediaItemId,
+        bool bookmarksRefs,
+        bool readingProgressEntriesRefs,
+      })
+    >;
+typedef $$BookmarksTableCreateCompanionBuilder =
+    BookmarksCompanion Function({
+      required String id,
+      required String mediaItemId,
+      required String contentUnitId,
+      required String locator,
+      required String label,
+      required DateTime createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$BookmarksTableUpdateCompanionBuilder =
+    BookmarksCompanion Function({
+      Value<String> id,
+      Value<String> mediaItemId,
+      Value<String> contentUnitId,
+      Value<String> locator,
+      Value<String> label,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$BookmarksTableReferences
+    extends BaseReferences<_$AppDatabase, $BookmarksTable, Bookmark> {
+  $$BookmarksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $MediaItemsTable _mediaItemIdTable(_$AppDatabase db) =>
+      db.mediaItems.createAlias('bookmarks__media_item_id__media_items__id');
+
+  $$MediaItemsTableProcessedTableManager get mediaItemId {
+    final $_column = $_itemColumn<String>('media_item_id')!;
+
+    final manager = $$MediaItemsTableTableManager(
+      $_db,
+      $_db.mediaItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_mediaItemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ContentUnitsTable _contentUnitIdTable(_$AppDatabase db) => db
+      .contentUnits
+      .createAlias('bookmarks__content_unit_id__content_units__id');
+
+  $$ContentUnitsTableProcessedTableManager get contentUnitId {
+    final $_column = $_itemColumn<String>('content_unit_id')!;
+
+    final manager = $$ContentUnitsTableTableManager(
+      $_db,
+      $_db.contentUnits,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_contentUnitIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$BookmarksTableFilterComposer
+    extends Composer<_$AppDatabase, $BookmarksTable> {
+  $$BookmarksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locator => $composableBuilder(
+    column: $table.locator,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, int> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<DateTime?, DateTime, int> get deletedAt =>
+      $composableBuilder(
+        column: $table.deletedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$MediaItemsTableFilterComposer get mediaItemId {
+    final $$MediaItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ContentUnitsTableFilterComposer get contentUnitId {
+    final $$ContentUnitsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contentUnitId,
+      referencedTable: $db.contentUnits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContentUnitsTableFilterComposer(
+            $db: $db,
+            $table: $db.contentUnits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BookmarksTableOrderingComposer
+    extends Composer<_$AppDatabase, $BookmarksTable> {
+  $$BookmarksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locator => $composableBuilder(
+    column: $table.locator,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MediaItemsTableOrderingComposer get mediaItemId {
+    final $$MediaItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ContentUnitsTableOrderingComposer get contentUnitId {
+    final $$ContentUnitsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contentUnitId,
+      referencedTable: $db.contentUnits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContentUnitsTableOrderingComposer(
+            $db: $db,
+            $table: $db.contentUnits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BookmarksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BookmarksTable> {
+  $$BookmarksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get locator =>
+      $composableBuilder(column: $table.locator, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime?, int> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$MediaItemsTableAnnotationComposer get mediaItemId {
+    final $$MediaItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ContentUnitsTableAnnotationComposer get contentUnitId {
+    final $$ContentUnitsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contentUnitId,
+      referencedTable: $db.contentUnits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContentUnitsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.contentUnits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BookmarksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BookmarksTable,
+          Bookmark,
+          $$BookmarksTableFilterComposer,
+          $$BookmarksTableOrderingComposer,
+          $$BookmarksTableAnnotationComposer,
+          $$BookmarksTableCreateCompanionBuilder,
+          $$BookmarksTableUpdateCompanionBuilder,
+          (Bookmark, $$BookmarksTableReferences),
+          Bookmark,
+          PrefetchHooks Function({bool mediaItemId, bool contentUnitId})
+        > {
+  $$BookmarksTableTableManager(_$AppDatabase db, $BookmarksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BookmarksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BookmarksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BookmarksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> mediaItemId = const Value.absent(),
+                Value<String> contentUnitId = const Value.absent(),
+                Value<String> locator = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BookmarksCompanion(
+                id: id,
+                mediaItemId: mediaItemId,
+                contentUnitId: contentUnitId,
+                locator: locator,
+                label: label,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String mediaItemId,
+                required String contentUnitId,
+                required String locator,
+                required String label,
+                required DateTime createdAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BookmarksCompanion.insert(
+                id: id,
+                mediaItemId: mediaItemId,
+                contentUnitId: contentUnitId,
+                locator: locator,
+                label: label,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$BookmarksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({mediaItemId = false, contentUnitId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (mediaItemId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.mediaItemId,
+                                    referencedTable: $$BookmarksTableReferences
+                                        ._mediaItemIdTable(db),
+                                    referencedColumn: $$BookmarksTableReferences
+                                        ._mediaItemIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (contentUnitId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.contentUnitId,
+                                    referencedTable: $$BookmarksTableReferences
+                                        ._contentUnitIdTable(db),
+                                    referencedColumn: $$BookmarksTableReferences
+                                        ._contentUnitIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$BookmarksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BookmarksTable,
+      Bookmark,
+      $$BookmarksTableFilterComposer,
+      $$BookmarksTableOrderingComposer,
+      $$BookmarksTableAnnotationComposer,
+      $$BookmarksTableCreateCompanionBuilder,
+      $$BookmarksTableUpdateCompanionBuilder,
+      (Bookmark, $$BookmarksTableReferences),
+      Bookmark,
+      PrefetchHooks Function({bool mediaItemId, bool contentUnitId})
     >;
 typedef $$LibraryEntriesTableCreateCompanionBuilder =
     LibraryEntriesCompanion Function({
@@ -4467,498 +6096,6 @@ typedef $$LibraryEntriesTableProcessedTableManager =
       (LibraryEntry, $$LibraryEntriesTableReferences),
       LibraryEntry,
       PrefetchHooks Function({bool mediaItemId})
-    >;
-typedef $$ContentUnitsTableCreateCompanionBuilder =
-    ContentUnitsCompanion Function({
-      required String id,
-      required String mediaItemId,
-      required String unitType,
-      required String title,
-      required int orderIndex,
-      required String contentRef,
-      required String sourceLocator,
-      required String contentHash,
-      Value<int> rowid,
-    });
-typedef $$ContentUnitsTableUpdateCompanionBuilder =
-    ContentUnitsCompanion Function({
-      Value<String> id,
-      Value<String> mediaItemId,
-      Value<String> unitType,
-      Value<String> title,
-      Value<int> orderIndex,
-      Value<String> contentRef,
-      Value<String> sourceLocator,
-      Value<String> contentHash,
-      Value<int> rowid,
-    });
-
-final class $$ContentUnitsTableReferences
-    extends BaseReferences<_$AppDatabase, $ContentUnitsTable, ContentUnit> {
-  $$ContentUnitsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $MediaItemsTable _mediaItemIdTable(_$AppDatabase db) => db.mediaItems
-      .createAlias('content_units__media_item_id__media_items__id');
-
-  $$MediaItemsTableProcessedTableManager get mediaItemId {
-    final $_column = $_itemColumn<String>('media_item_id')!;
-
-    final manager = $$MediaItemsTableTableManager(
-      $_db,
-      $_db.mediaItems,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_mediaItemIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<
-    $ReadingProgressEntriesTable,
-    List<ReadingProgressEntry>
-  >
-  _readingProgressEntriesRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.readingProgressEntries,
-        aliasName: 'content_units__id__reading_progress__content_unit_id',
-      );
-
-  $$ReadingProgressEntriesTableProcessedTableManager
-  get readingProgressEntriesRefs {
-    final manager = $$ReadingProgressEntriesTableTableManager(
-      $_db,
-      $_db.readingProgressEntries,
-    ).filter((f) => f.contentUnitId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _readingProgressEntriesRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$ContentUnitsTableFilterComposer
-    extends Composer<_$AppDatabase, $ContentUnitsTable> {
-  $$ContentUnitsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get unitType => $composableBuilder(
-    column: $table.unitType,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get orderIndex => $composableBuilder(
-    column: $table.orderIndex,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get contentRef => $composableBuilder(
-    column: $table.contentRef,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get sourceLocator => $composableBuilder(
-    column: $table.sourceLocator,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get contentHash => $composableBuilder(
-    column: $table.contentHash,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$MediaItemsTableFilterComposer get mediaItemId {
-    final $$MediaItemsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaItemId,
-      referencedTable: $db.mediaItems,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediaItemsTableFilterComposer(
-            $db: $db,
-            $table: $db.mediaItems,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> readingProgressEntriesRefs(
-    Expression<bool> Function($$ReadingProgressEntriesTableFilterComposer f) f,
-  ) {
-    final $$ReadingProgressEntriesTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.readingProgressEntries,
-          getReferencedColumn: (t) => t.contentUnitId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$ReadingProgressEntriesTableFilterComposer(
-                $db: $db,
-                $table: $db.readingProgressEntries,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-}
-
-class $$ContentUnitsTableOrderingComposer
-    extends Composer<_$AppDatabase, $ContentUnitsTable> {
-  $$ContentUnitsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get unitType => $composableBuilder(
-    column: $table.unitType,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get orderIndex => $composableBuilder(
-    column: $table.orderIndex,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get contentRef => $composableBuilder(
-    column: $table.contentRef,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get sourceLocator => $composableBuilder(
-    column: $table.sourceLocator,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get contentHash => $composableBuilder(
-    column: $table.contentHash,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$MediaItemsTableOrderingComposer get mediaItemId {
-    final $$MediaItemsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaItemId,
-      referencedTable: $db.mediaItems,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediaItemsTableOrderingComposer(
-            $db: $db,
-            $table: $db.mediaItems,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$ContentUnitsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ContentUnitsTable> {
-  $$ContentUnitsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get unitType =>
-      $composableBuilder(column: $table.unitType, builder: (column) => column);
-
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
-
-  GeneratedColumn<int> get orderIndex => $composableBuilder(
-    column: $table.orderIndex,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get contentRef => $composableBuilder(
-    column: $table.contentRef,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get sourceLocator => $composableBuilder(
-    column: $table.sourceLocator,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get contentHash => $composableBuilder(
-    column: $table.contentHash,
-    builder: (column) => column,
-  );
-
-  $$MediaItemsTableAnnotationComposer get mediaItemId {
-    final $$MediaItemsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaItemId,
-      referencedTable: $db.mediaItems,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediaItemsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.mediaItems,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> readingProgressEntriesRefs<T extends Object>(
-    Expression<T> Function($$ReadingProgressEntriesTableAnnotationComposer a) f,
-  ) {
-    final $$ReadingProgressEntriesTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.readingProgressEntries,
-          getReferencedColumn: (t) => t.contentUnitId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$ReadingProgressEntriesTableAnnotationComposer(
-                $db: $db,
-                $table: $db.readingProgressEntries,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-}
-
-class $$ContentUnitsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $ContentUnitsTable,
-          ContentUnit,
-          $$ContentUnitsTableFilterComposer,
-          $$ContentUnitsTableOrderingComposer,
-          $$ContentUnitsTableAnnotationComposer,
-          $$ContentUnitsTableCreateCompanionBuilder,
-          $$ContentUnitsTableUpdateCompanionBuilder,
-          (ContentUnit, $$ContentUnitsTableReferences),
-          ContentUnit,
-          PrefetchHooks Function({
-            bool mediaItemId,
-            bool readingProgressEntriesRefs,
-          })
-        > {
-  $$ContentUnitsTableTableManager(_$AppDatabase db, $ContentUnitsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ContentUnitsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ContentUnitsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ContentUnitsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> mediaItemId = const Value.absent(),
-                Value<String> unitType = const Value.absent(),
-                Value<String> title = const Value.absent(),
-                Value<int> orderIndex = const Value.absent(),
-                Value<String> contentRef = const Value.absent(),
-                Value<String> sourceLocator = const Value.absent(),
-                Value<String> contentHash = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => ContentUnitsCompanion(
-                id: id,
-                mediaItemId: mediaItemId,
-                unitType: unitType,
-                title: title,
-                orderIndex: orderIndex,
-                contentRef: contentRef,
-                sourceLocator: sourceLocator,
-                contentHash: contentHash,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String mediaItemId,
-                required String unitType,
-                required String title,
-                required int orderIndex,
-                required String contentRef,
-                required String sourceLocator,
-                required String contentHash,
-                Value<int> rowid = const Value.absent(),
-              }) => ContentUnitsCompanion.insert(
-                id: id,
-                mediaItemId: mediaItemId,
-                unitType: unitType,
-                title: title,
-                orderIndex: orderIndex,
-                contentRef: contentRef,
-                sourceLocator: sourceLocator,
-                contentHash: contentHash,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$ContentUnitsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback:
-              ({mediaItemId = false, readingProgressEntriesRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (readingProgressEntriesRefs) db.readingProgressEntries,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (mediaItemId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.mediaItemId,
-                                    referencedTable:
-                                        $$ContentUnitsTableReferences
-                                            ._mediaItemIdTable(db),
-                                    referencedColumn:
-                                        $$ContentUnitsTableReferences
-                                            ._mediaItemIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (readingProgressEntriesRefs)
-                        await $_getPrefetchedData<
-                          ContentUnit,
-                          $ContentUnitsTable,
-                          ReadingProgressEntry
-                        >(
-                          currentTable: table,
-                          referencedTable: $$ContentUnitsTableReferences
-                              ._readingProgressEntriesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$ContentUnitsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).readingProgressEntriesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.contentUnitId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
-        ),
-      );
-}
-
-typedef $$ContentUnitsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $ContentUnitsTable,
-      ContentUnit,
-      $$ContentUnitsTableFilterComposer,
-      $$ContentUnitsTableOrderingComposer,
-      $$ContentUnitsTableAnnotationComposer,
-      $$ContentUnitsTableCreateCompanionBuilder,
-      $$ContentUnitsTableUpdateCompanionBuilder,
-      (ContentUnit, $$ContentUnitsTableReferences),
-      ContentUnit,
-      PrefetchHooks Function({
-        bool mediaItemId,
-        bool readingProgressEntriesRefs,
-      })
     >;
 typedef $$ReadingProgressEntriesTableCreateCompanionBuilder =
     ReadingProgressEntriesCompanion Function({
@@ -6277,10 +7414,12 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$MediaItemsTableTableManager get mediaItems =>
       $$MediaItemsTableTableManager(_db, _db.mediaItems);
-  $$LibraryEntriesTableTableManager get libraryEntries =>
-      $$LibraryEntriesTableTableManager(_db, _db.libraryEntries);
   $$ContentUnitsTableTableManager get contentUnits =>
       $$ContentUnitsTableTableManager(_db, _db.contentUnits);
+  $$BookmarksTableTableManager get bookmarks =>
+      $$BookmarksTableTableManager(_db, _db.bookmarks);
+  $$LibraryEntriesTableTableManager get libraryEntries =>
+      $$LibraryEntriesTableTableManager(_db, _db.libraryEntries);
   $$ReadingProgressEntriesTableTableManager get readingProgressEntries =>
       $$ReadingProgressEntriesTableTableManager(
         _db,

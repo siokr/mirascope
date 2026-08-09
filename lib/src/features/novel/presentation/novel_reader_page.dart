@@ -8,7 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../settings/application/reader_settings_controller.dart';
 import '../application/novel_providers.dart';
 import '../application/novel_reader_controller.dart';
+import '../application/bookmark_controller.dart';
 import '../domain/reader_book.dart';
+import '../domain/bookmark.dart';
 
 class NovelReaderPage extends ConsumerWidget {
   const NovelReaderPage({
@@ -30,10 +32,11 @@ class NovelReaderPage extends ConsumerWidget {
     );
     final controller = ref.watch(novelReaderControllerProvider(request));
     final settings = ref.watch(readerSettingsControllerProvider(mediaItemId));
-    if (controller.isLoading || settings.isLoading) {
+    final bookmarks = ref.watch(bookmarkControllerProvider(mediaItemId));
+    if (controller.isLoading || settings.isLoading || bookmarks.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    if (controller.hasError || settings.hasError) {
+    if (controller.hasError || settings.hasError || bookmarks.hasError) {
       return Scaffold(
         appBar: AppBar(title: const Text('阅读器')),
         body: Center(
@@ -41,7 +44,8 @@ class NovelReaderPage extends ConsumerWidget {
             onPressed: () {
               ref
                 ..invalidate(novelReaderControllerProvider(request))
-                ..invalidate(readerSettingsControllerProvider(mediaItemId));
+                ..invalidate(readerSettingsControllerProvider(mediaItemId))
+                ..invalidate(bookmarkControllerProvider(mediaItemId));
             },
             child: const Text('重试'),
           ),
@@ -51,6 +55,7 @@ class NovelReaderPage extends ConsumerWidget {
     return _ReaderScaffold(
       controller: controller.requireValue,
       settings: settings.requireValue,
+      bookmarks: bookmarks.requireValue,
       onExit: onExit,
     );
   }
@@ -60,10 +65,12 @@ class _ReaderScaffold extends StatefulWidget {
   const _ReaderScaffold({
     required this.controller,
     required this.settings,
+    required this.bookmarks,
     required this.onExit,
   });
   final NovelReaderController controller;
   final ReaderSettingsController settings;
+  final BookmarkController bookmarks;
   final VoidCallback onExit;
 
   @override
@@ -75,6 +82,8 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
   final ScrollController _scrollController = ScrollController();
   var _lastChapterIndex = -1;
   var _initialPositionRestored = false;
+  var _characterOffset = 0;
+  var _scrollFraction = 0.0;
 
   @override
   void initState() {
@@ -105,7 +114,11 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([widget.controller, widget.settings]),
+      animation: Listenable.merge([
+        widget.controller,
+        widget.settings,
+        widget.bookmarks,
+      ]),
       builder: (context, _) {
         final controller = widget.controller;
         if (controller.chapter != null &&
@@ -156,6 +169,18 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
                 ),
                 title: Text(controller.chapter?.unit.title ?? '阅读器'),
                 actions: [
+                  IconButton(
+                    key: const Key('reader-add-bookmark'),
+                    tooltip: '添加书签',
+                    onPressed: controller.chapter == null ? null : _addBookmark,
+                    icon: const Icon(Icons.bookmark_add_outlined),
+                  ),
+                  IconButton(
+                    key: const Key('reader-bookmarks'),
+                    tooltip: '书签',
+                    onPressed: () => _showBookmarks(context),
+                    icon: const Icon(Icons.bookmarks_outlined),
+                  ),
                   Builder(
                     builder: (context) => IconButton(
                       key: const Key('reader-directory'),
@@ -241,10 +266,126 @@ class _ReaderScaffoldState extends State<_ReaderScaffold>
         : (_scrollController.offset / maximum).clamp(0.0, 1.0);
     final characterOffset = (widget.controller.chapter!.text.length * fraction)
         .round();
+    _characterOffset = characterOffset;
+    _scrollFraction = fraction;
     widget.controller.updatePosition(
       characterOffset: characterOffset,
       fraction: fraction,
     );
+  }
+
+  Future<void> _addBookmark() async {
+    final chapter = widget.controller.chapter;
+    if (chapter == null) return;
+    final locator = chapter.progressLocator(
+      characterOffset: _characterOffset,
+      fraction: _scrollFraction,
+    );
+    await widget.bookmarks.add(
+      contentUnitId: chapter.unit.id,
+      locator: locator,
+      label: '${chapter.unit.title} · ${(_scrollFraction * 100).round()}%',
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.bookmarks.errorMessage ?? '已添加书签')),
+      );
+    }
+  }
+
+  Future<void> _showBookmarks(BuildContext context) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => AnimatedBuilder(
+        animation: widget.bookmarks,
+        builder: (context, _) => SafeArea(
+          child: SizedBox(
+            height: MediaQuery.sizeOf(context).height * .65,
+            child: Column(
+              children: [
+                const ListTile(title: Text('书签')),
+                Expanded(
+                  child: widget.bookmarks.bookmarks.isEmpty
+                      ? const Center(child: Text('还没有书签'))
+                      : ListView.builder(
+                          itemCount: widget.bookmarks.bookmarks.length,
+                          itemBuilder: (context, index) {
+                            final bookmark = widget.bookmarks.bookmarks[index];
+                            return ListTile(
+                              key: ValueKey('bookmark-${bookmark.id}'),
+                              leading: const Icon(Icons.bookmark),
+                              title: Text(bookmark.label),
+                              subtitle: Text(_bookmarkTime(bookmark.createdAt)),
+                              onTap: () {
+                                Navigator.pop(context);
+                                _openBookmark(bookmark);
+                              },
+                              trailing: IconButton(
+                                tooltip: '删除书签',
+                                onPressed: () =>
+                                    widget.bookmarks.delete(bookmark.id),
+                                icon: const Icon(Icons.delete_outline),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openBookmark(Bookmark bookmark) async {
+    final index = widget.controller.book!.chapters.indexWhere(
+      (chapter) => chapter.id == bookmark.contentUnitId,
+    );
+    if (index < 0) return;
+    await widget.controller.select(index);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients || widget.controller.chapter == null) {
+        return;
+      }
+      final fraction = _bookmarkFraction(bookmark, widget.controller.chapter!);
+      _scrollController.jumpTo(
+        _scrollController.position.maxScrollExtent * fraction,
+      );
+    });
+  }
+
+  double _bookmarkFraction(Bookmark bookmark, ReaderChapter chapter) {
+    final character = RegExp(r'^char-v1:(\d+)$').firstMatch(bookmark.locator);
+    if (character != null && chapter.text.isNotEmpty) {
+      return (int.parse(character.group(1)!) / chapter.text.length).clamp(
+        0.0,
+        1.0,
+      );
+    }
+    final block = RegExp(
+      r'^epub-block-v1:(\d+):(\d+)$',
+    ).firstMatch(bookmark.locator);
+    if (block != null && chapter.blocks.isNotEmpty) {
+      final index = int.parse(
+        block.group(1)!,
+      ).clamp(0, chapter.blocks.length - 1);
+      final selected = chapter.blocks[index];
+      final within = selected.text == null || selected.text!.isEmpty
+          ? 0.0
+          : int.parse(block.group(2)!).clamp(0, selected.text!.length) /
+                selected.text!.length;
+      return ((index + within) / chapter.blocks.length).clamp(0.0, 1.0);
+    }
+    return 0;
+  }
+
+  String _bookmarkTime(DateTime value) {
+    final local = value.toLocal();
+    String two(int number) => number.toString().padLeft(2, '0');
+    return '${local.year}-${two(local.month)}-${two(local.day)} '
+        '${two(local.hour)}:${two(local.minute)}';
   }
 
   Widget _body(NovelReaderController controller) {

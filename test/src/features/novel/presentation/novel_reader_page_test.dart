@@ -6,6 +6,8 @@ import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/novel/application/novel_providers.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
+import 'package:mirascope/src/features/novel/domain/bookmark.dart';
+import 'package:mirascope/src/features/novel/domain/bookmark_repository.dart';
 import 'package:mirascope/src/features/novel/domain/novel_reader_repository.dart';
 import 'package:mirascope/src/features/novel/domain/reader_book.dart';
 import 'package:mirascope/src/features/novel/domain/progress_write_result.dart';
@@ -32,6 +34,7 @@ void main() {
           readingProgressRepositoryProvider.overrideWithValue(
             _ProgressRepository(),
           ),
+          bookmarkRepositoryProvider.overrideWithValue(_BookmarkRepository()),
         ],
         child: MaterialApp(
           home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
@@ -71,6 +74,7 @@ void main() {
           readingProgressRepositoryProvider.overrideWithValue(
             _ProgressRepository(),
           ),
+          bookmarkRepositoryProvider.overrideWithValue(_BookmarkRepository()),
         ],
         child: MaterialApp(
           home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
@@ -101,6 +105,7 @@ void main() {
           readingProgressRepositoryProvider.overrideWithValue(
             _ProgressRepository(),
           ),
+          bookmarkRepositoryProvider.overrideWithValue(_BookmarkRepository()),
         ],
         child: MaterialApp(
           home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
@@ -147,6 +152,7 @@ void main() {
               ),
             ),
           ),
+          bookmarkRepositoryProvider.overrideWithValue(_BookmarkRepository()),
         ],
         child: MaterialApp(
           home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
@@ -177,6 +183,7 @@ void main() {
           readingProgressRepositoryProvider.overrideWithValue(
             _ProgressRepository(),
           ),
+          bookmarkRepositoryProvider.overrideWithValue(_BookmarkRepository()),
         ],
         child: MaterialApp(
           home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
@@ -212,6 +219,7 @@ void main() {
             readingProgressRepositoryProvider.overrideWithValue(
               _ProgressRepository(),
             ),
+            bookmarkRepositoryProvider.overrideWithValue(_BookmarkRepository()),
           ],
           child: MaterialApp(
             home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
@@ -227,6 +235,59 @@ void main() {
       expect(find.byKey(const ValueKey('epub-block-0')), findsOneWidget);
     },
   );
+
+  testWidgets('adds, lists, and deletes a bookmark', (tester) async {
+    final bookmarks = _BookmarkRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          novelReaderRepositoryProvider.overrideWith(
+            (ref) async => _Repository(),
+          ),
+          readerPreferenceRepositoryProvider.overrideWithValue(
+            _PreferenceRepository(),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _ProgressRepository(),
+          ),
+          bookmarkRepositoryProvider.overrideWithValue(bookmarks),
+        ],
+        child: MaterialApp(
+          home: NovelReaderPage(mediaItemId: 'media-1', onExit: () {}),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('reader-add-bookmark')));
+    await tester.pumpAndSettle();
+    expect(bookmarks.items, hasLength(1));
+    expect(bookmarks.items.single.contentUnitId, 'unit-0');
+
+    await tester.tap(find.byKey(const Key('reader-bookmarks')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Chapter 1 ·'), findsOneWidget);
+    await tester.tap(find.byTooltip('删除书签'));
+    await tester.pumpAndSettle();
+    expect(bookmarks.items, isEmpty);
+    expect(find.text('还没有书签'), findsOneWidget);
+  });
+}
+
+final class _BookmarkRepository implements BookmarkRepository {
+  final items = <Bookmark>[];
+
+  @override
+  Future<void> delete(String bookmarkId, DateTime deletedAt) async {
+    items.removeWhere((item) => item.id == bookmarkId);
+  }
+
+  @override
+  Future<List<Bookmark>> findForMedia(String mediaItemId) async =>
+      List.unmodifiable(items.where((item) => item.mediaItemId == mediaItemId));
+
+  @override
+  Future<void> save(Bookmark bookmark) async => items.add(bookmark);
 }
 
 final class _Repository implements NovelReaderRepository {

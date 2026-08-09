@@ -35,7 +35,7 @@ void main() {
   });
 
   test(
-    'current AppDatabase onCreate matches the generated v2 schema',
+    'current AppDatabase onCreate matches the generated v3 schema',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -44,14 +44,14 @@ void main() {
 
       await verifier.migrateAndValidate(
         database,
-        2,
+        3,
         options: const ValidationOptions(validateDropped: true),
       );
     },
   );
 
   test(
-    'v2 enables foreign keys and contains every declared relation and index',
+    'v3 enables foreign keys and contains every declared relation and index',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -71,6 +71,7 @@ void main() {
         'reading_progress',
         'reader_preferences',
         'import_records',
+        'bookmarks',
       ]) {
         final rows = await database
             .customSelect('PRAGMA foreign_key_list($table)')
@@ -90,6 +91,8 @@ void main() {
         'reading_progress.content_unit_id -> content_units.id CASCADE',
         'reader_preferences.media_item_id -> media_items.id CASCADE',
         'import_records.media_item_id -> media_items.id CASCADE',
+        'bookmarks.media_item_id -> media_items.id CASCADE',
+        'bookmarks.content_unit_id -> content_units.id CASCADE',
       });
 
       final namedIndexes = await database
@@ -101,6 +104,7 @@ void main() {
           .map((row) => row.read<String>('name'))
           .get();
       expect(namedIndexes, [
+        'bookmarks_media_created_idx',
         'import_records_fingerprint_idx',
         'media_items_type_updated_idx',
         'reader_preferences_global_idx',
@@ -108,6 +112,26 @@ void main() {
       ]);
     },
   );
+
+  test('v2 upgrades to v3 and preserves existing reading data', () async {
+    final schema = await verifier.schemaAt(2);
+    schema.rawDatabase.execute(
+      'INSERT INTO media_items '
+      '(id, media_type, title, created_at, updated_at) '
+      "VALUES ('existing-media', 'novel', 'Existing', 1, 1)",
+    );
+    final database = AppDatabase(schema.newConnection());
+    addTearDown(database.close);
+
+    await verifier.migrateAndValidate(
+      database,
+      3,
+      options: const ValidationOptions(validateDropped: true),
+    );
+
+    expect(await database.select(database.mediaItems).getSingle(), isNotNull);
+    expect(await database.select(database.bookmarks).get(), isEmpty);
+  });
 
   test('v1 upgrades to v2 without guessing legacy TXT encoding', () async {
     final schema = await verifier.schemaAt(1);

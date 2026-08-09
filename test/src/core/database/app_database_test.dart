@@ -8,7 +8,7 @@ final _now = DateTime.utc(2026, 7, 28);
 final _constraintViolation = throwsA(isA<Exception>());
 
 void main() {
-  test('schema version is 2 and creates exactly the six v2 tables', () async {
+  test('schema version is 3 and creates exactly the seven v3 tables', () async {
     final database = createTestDatabase();
     addTearDown(database.close);
 
@@ -20,8 +20,9 @@ void main() {
         )
         .get();
 
-    expect(database.schemaVersion, 2);
+    expect(database.schemaVersion, 3);
     expect(tableRows.map((row) => row.read<String>('name')).toList(), [
+      'bookmarks',
       'content_units',
       'import_records',
       'library_entries',
@@ -38,17 +39,19 @@ void main() {
     final indexRows = await database
         .customSelect(
           "SELECT name FROM sqlite_master WHERE type = 'index' "
-          "AND name IN (?, ?, ?, ?) ORDER BY name",
+          "AND name IN (?, ?, ?, ?, ?) ORDER BY name",
           variables: [
             const Variable('media_items_type_updated_idx'),
             const Variable('reader_preferences_global_idx'),
             const Variable('reader_preferences_media_idx'),
             const Variable('import_records_fingerprint_idx'),
+            const Variable('bookmarks_media_created_idx'),
           ],
         )
         .get();
 
     expect(indexRows.map((row) => row.read<String>('name')).toList(), [
+      'bookmarks_media_created_idx',
       'import_records_fingerprint_idx',
       'media_items_type_updated_idx',
       'reader_preferences_global_idx',
