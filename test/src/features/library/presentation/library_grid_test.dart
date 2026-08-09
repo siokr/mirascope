@@ -8,7 +8,7 @@ import 'package:mirascope/src/features/library/presentation/widgets/library_grid
 import 'package:mirascope/src/features/library/presentation/widgets/library_loading_grid.dart';
 
 void main() {
-  for (final testCase in [(600.0, 2), (900.0, 3), (1440.0, 5)]) {
+  for (final testCase in [(432.0, 2), (600.0, 3), (900.0, 4), (1440.0, 6)]) {
     testWidgets(
       'grid uses ${testCase.$2} columns at ${testCase.$1.toInt()} pixels',
       (tester) async {
@@ -95,8 +95,8 @@ void main() {
     final grid = tester.widget<GridView>(find.byType(GridView));
     final delegate =
         grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
-    expect(delegate.crossAxisCount, 3);
-    expect(find.byKey(const Key('library-loading-card')), findsNWidgets(6));
+    expect(delegate.crossAxisCount, 4);
+    expect(find.byKey(const Key('library-loading-card')), findsNWidgets(8));
   });
 
   testWidgets('dark theme grid keeps its layout and contrast tokens', (
@@ -131,7 +131,7 @@ void main() {
     final grid = tester.widget<GridView>(find.byType(GridView));
     final delegate =
         grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
-    expect(delegate.crossAxisCount, 3);
+    expect(delegate.crossAxisCount, 4);
     expect(tester.takeException(), isNull);
   });
 

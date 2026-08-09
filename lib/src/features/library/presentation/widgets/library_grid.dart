@@ -65,19 +65,19 @@ class LibraryGrid extends StatelessWidget {
 }
 
 int libraryGridColumnCount(double width) {
-  if (width < 700) {
+  if (width < 520) {
     return 2;
   }
-  if (width < 1000) {
+  if (width < 760) {
     return 3;
   }
-  if (width < 1280) {
+  if (width < 1000) {
     return 4;
   }
-  if (width < 1500) {
+  if (width < 1240) {
     return 5;
   }
   return 6;
 }
 
-double libraryGridChildAspectRatio(double width) => width < 700 ? 0.46 : 0.5;
+double libraryGridChildAspectRatio(double width) => width < 760 ? 0.46 : 0.5;
