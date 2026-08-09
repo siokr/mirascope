@@ -21,7 +21,7 @@
 
 ## 3. Android 正式签名尚未配置
 
-- 状态：签名文件已在仓库外生成，GitHub Secrets 尚待配置；
+- 状态：签名文件已在仓库外生成，四项 GitHub Actions Secrets 已配置，待候选标签构建验证；
 - 当前行为：CI 仅生成明确标记为 debug 的 Android APK；
 - 影响：debug APK 可用于测试，但不作为正式公开 Android 发布物；
 - 处理：通过 GitHub Actions Secrets 注入签名材料，不提交私钥或密码；标签构建缺少签名材料时必须失败，不回退到调试签名。
