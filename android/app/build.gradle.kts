@@ -4,6 +4,28 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val releaseKeystorePath = System.getenv("MIRASCOPE_KEYSTORE_PATH")
+val releaseKeystorePassword = System.getenv("MIRASCOPE_KEYSTORE_PASSWORD")
+val releaseKeyAlias = System.getenv("MIRASCOPE_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("MIRASCOPE_KEY_PASSWORD")
+val releaseSigningReady = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() }
+val releaseRequested = gradle.startParameter.taskNames.any {
+    it.contains("release", ignoreCase = true)
+}
+
+if (releaseRequested && !releaseSigningReady) {
+    throw GradleException(
+        "Android release signing is not configured. " +
+            "Set MIRASCOPE_KEYSTORE_PATH, MIRASCOPE_KEYSTORE_PASSWORD, " +
+            "MIRASCOPE_KEY_ALIAS, and MIRASCOPE_KEY_PASSWORD.",
+    )
+}
+
 android {
     namespace = "io.github.siokr.mirascope"
     compileSdk = flutter.compileSdkVersion
@@ -24,11 +46,22 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (releaseSigningReady) {
+            create("release") {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            if (releaseSigningReady) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }
