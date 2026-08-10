@@ -1,83 +1,93 @@
 # mirascope 项目交接说明
 
-> 更新时间：2026-08-05
-> 已发布版本：`v0.1.0`（提交 `5bec7ee`）
-> 发布后记录：`0613f1a`
+> 更新时间：2026-08-10
+> 已发布版本：`v0.2.0`（提交 `276472b`）
+> 发布后记录：`e15c966`
 
 ## 1. 当前状态
 
-MVP 0.1 已正式发布，GitHub Release 提供经过 Windows Sandbox 验证的便携 ZIP。TXT 导入、编码识别、章节解析、详情目录、纵向阅读、设置、进度恢复、归档、来源重新定位、数据库迁移和整目录备份恢复均已取得自动化或人工证据。
+MVP 0.2 已正式发布。Windows 与 Android 的 TXT/EPUB 导入、章节目录、阅读、设置、进度、书签、归档、重定位和删除闭环均已取得自动化或人工证据；50 MiB TXT 性能复测完成；Android 正式签名密钥已在仓库外生成并异地备份。
 
-正式标签构建运行 `30912830753`：格式、静态分析和 211 项测试通过，Windows release 构建通过。正式 ZIP SHA-256：
+正式标签构建运行 `31310474175`：格式、静态分析、290 项测试、Windows release、Android debug 和 Android signed release 全部通过。GitHub Release：
+
+`https://github.com/siokr/mirascope/releases/tag/v0.2.0`
+
+正式发布物 SHA-256：
 
 ```text
-474f71136d823f113d94835e74f1342183a911d379e040c12577eb3d38b7cae0
+Windows ZIP  14FE31FA42D8FB57006B8553B2B9AB6F892D1C27C87850231F656FAFFBEB4E02
+Android APK  A08325AF32C125BE303C493C8A36F47EC4D9FD554AF3CA1966624800281A500B
 ```
 
 ## 2. 下一阶段
 
-下一阶段是 MVP 0.2，第一条产品增量为无 DRM EPUB 导入与基础阅读：
+下一阶段是 Version 0.3 本地漫画阅读：
 
 ```text
-同步已发布代码到 main
-→ 建立 codex/m02-planning
-→ 冻结 EPUB 支持边界和失败行为
-→ 拆分可独立验证的任务
-→ 先完成 Windows EPUB 闭环
-→ Android 主流程、书签和阅读体验完善
+复核输入、图片解码和许可证
+→ 漫画领域模型与 schema v4
+→ 目录、ZIP/CBZ 安全扫描
+→ 自然排序、章节/页清单和原子导入
+→ 媒体库、详情和两种阅读模式
+→ 页级进度、预加载、缓存和清理
+→ Windows/Android 性能与人工验收
+→ v0.3.0 Release
 ```
 
-不得在 EPUB、Android 和书签之外提前引入漫画、在线内容源、账号或同步。
+当前从 `M03-001` 开始。在线漫画源、站点规则、下载、番剧、账号和同步不属于 0.3。
 
-## 3. 当前限制
+## 3. 关键风险
 
-### 本机 Windows release 工具链
+### Android 目录持久权限
 
-本机 CMake/MSVC 原生 release 编译仍可能无输出挂起，但 debug 构建和真实窗口可运行。该问题只影响当前机器从源码生成 release，不再阻塞产品验收；GitHub Actions 标签构建和干净 Windows Sandbox 验证均已通过。
+Android 文档树不能直接等同于普通文件路径。必须先验证目录选择、重启后访问和权限撤销；现有选择器无法安全支持时，ZIP/CBZ 可先形成闭环，目录支持保持显式阻塞。
 
-### 内容变化后的原位重解析
+### 漫画资源预算
 
-同指纹来源重新定位已完成；不同指纹会拒绝写入并保留旧派生内容。用户确认后的“生成新版本、映射章节和进度、原子替换”仍未实现。
+压缩包需要同时限制条目数、单文件、总展开量和实际读取量；图片解码与预加载需要取消机制和内存/磁盘分层预算。具体数值在基准后冻结。
 
-### 大 TXT 内存
+### 既有数据与功能回归
 
-50 MiB TXT 的既有基线显示 RSS 增量中位数约 209.52 MiB。先观察真实使用，再依据可重复基准决定是否分块，不提前引入 FFI。
+schema v4 必须覆盖 v1/v2/v3 迁移并保留小说、书签和进度。漫画接入媒体库后，小说导航、归档、重定位、删除和发布流程不得回归。
+
+### 仍存在的小说限制
+
+不同指纹来源的安全原位重解析仍未实现；超大 TXT 仍缓存完整规范化文本；Windows 本机 release 工具链可能挂起，但 GitHub Actions 正式构建稳定通过。
 
 ## 4. 数据与安全约束
 
-- 不修改、移动或删除用户原文件；
-- 来源丢失不删除媒体、章节、进度或设置；
-- 指纹不同不静默替换；
-- 重新解析失败必须保留旧的可读版本；
-- 不用文件名或路径判断文件身份；
-- 页面不直接访问文件系统或 Drift；
-- 日志不记录完整路径、标题、正文、原始异常或堆栈；
-- EPUB 必须防止 ZIP 路径穿越、资源炸弹、外部资源静默加载和脚本执行；
-- DRM EPUB 明确拒绝，不尝试绕过。
+- 不修改、移动或删除用户原文件和目录；
+- 来源丢失不删除媒体、章节、进度、设置或书签；
+- 页序在导入时固化，不依赖运行时文件系统枚举顺序；
+- 不安全压缩包整体拒绝，不做部分解压；
+- 导入失败回滚数据库并清理临时派生文件；
+- 原始来源、派生缩略图和可删除缓存严格分区；
+- 清缓存不能删除媒体、进度或用户原文件；
+- 日志不记录完整路径、标题、图片内容、原始异常或堆栈；
+- 在线源进入项目前必须另行评审内容来源、站点条款、凭据、缓存权限和失效策略。
 
 ## 5. Git 与验证
 
-- MVP 0.2 开发基于最新 `main`；
-- 合并优先使用 `--ff-only`；
-- 不改写或移动已发布标签 `v0.1.0`；
-- 不把旧测试数字复制为新阶段证据；
-- 生成文件只有真实内容变化时才提交；
+- 当前分支：`codex/m02-planning`；开始实现前建立 0.3 分支或将已发布代码同步到目标主线；
+- 不移动或改写 `v0.1.0`、`v0.2.0-rc.1`、`v0.2.0` 标签；
+- 不把 0.2 的 290 项测试数字复制为 0.3 证据；
+- 生成文件只有真实 schema 或代码变化时才提交；
 - 保留用户未跟踪的 `.vs/`；
-- Drift 与 `drift_dev` 保持兼容版本。
+- 签名密钥、密码和临时发布资产永不提交。
 
 ## 6. 建议阅读顺序
 
 1. `plan.md`
-2. `docs/m02-task-list.md`
-3. `docs/superpowers/specs/2026-08-05-m02-epub-import-design.md`
-4. `docs/superpowers/plans/2026-08-05-m02-epub-import.md`
-5. `docs/novel-reader-spec.md`
-6. `docs/data-model.md`
+2. `docs/m03-task-list.md`
+3. `docs/manga-reader-spec.md`
+4. `docs/superpowers/specs/2026-08-10-m03-local-manga-design.md`
+5. `docs/data-model.md`
+6. `docs/tech-architecture.md`
 7. `docs/quality-strategy.md`
-8. `lib/src/features/importing/`
-9. `lib/src/features/novel/`
-10. 对应的 `test/src/features/` 测试
+8. `lib/src/features/domain/`
+9. `lib/src/features/importing/`
+10. `lib/src/features/library/`
 
 ## 7. 一句话状态
 
-MVP 0.1 已作为 `v0.1.0` 发布；下一步从 EPUB 支持边界和任务拆分开始 MVP 0.2。
+`v0.2.0` 已正式发布；Version 0.3 规划已启动，下一步执行 `M03-001` 的依赖、许可证、平台能力和可再分发漫画样例审计。

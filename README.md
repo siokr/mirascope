@@ -158,8 +158,8 @@ flutter build windows --release
 | 版本 | 目标 | 平台 |
 |---|---|---|
 | MVP 0.1 | 本地 TXT 小说闭环 | Windows |
-| MVP 0.2 | EPUB、Android、书签和公开 Release（候选收口中） | Windows、Android |
-| Version 0.3 | 本地漫画导入与阅读 | 已支持平台 |
+| MVP 0.2 | EPUB、Android、书签和公开 Release（已发布） | Windows、Android |
+| Version 0.3 | 本地漫画导入与阅读（规划启动） | Windows、Android |
 | Version 0.4 | 账号、设备和同步 | 客户端 + Go/PostgreSQL |
 
 在线内容源、下载、番剧和 Rust 模块是候选方向，没有被包装成当前能力。

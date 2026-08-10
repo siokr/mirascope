@@ -260,7 +260,7 @@ Rust 是可选性能层，不是固定交付物。只有同时满足以下条件
 
 ## 11. 文档与执行入口
 
-- 当前任务：`docs/mvp-task-list.md`
+- 当前任务：`docs/m03-task-list.md`
 - 技术架构：`docs/tech-architecture.md`
 - 本地数据：`docs/data-model.md`
 - 小说规格：`docs/novel-reader-spec.md`

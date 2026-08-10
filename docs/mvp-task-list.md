@@ -285,6 +285,7 @@
 - 进入：小说阅读器稳定，统一媒体模型经实际实现验证
 - 退出：本地漫画导入、两种阅读模式、缓存和进度恢复完成
 - 规格：`plan.md`、`docs/manga-reader-spec.md`
+- 当前执行清单：`docs/m03-task-list.md`
 
 ### Version 0.4
 
