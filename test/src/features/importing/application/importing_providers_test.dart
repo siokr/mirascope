@@ -5,9 +5,11 @@ import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/importing/application/importing_providers.dart';
 import 'package:mirascope/src/features/importing/data/charset_converter_gb18030_decoder.dart';
 import 'package:mirascope/src/features/importing/data/dart_io_epub_source_inspector.dart';
+import 'package:mirascope/src/features/importing/data/dart_io_manga_source_inspector.dart';
 import 'package:mirascope/src/features/importing/data/dart_io_txt_source_inspector.dart';
 import 'package:mirascope/src/features/importing/data/dart_io_txt_source_reader.dart';
 import 'package:mirascope/src/features/importing/data/file_selector_epub_file_picker.dart';
+import 'package:mirascope/src/features/importing/data/file_selector_manga_source_picker.dart';
 import 'package:mirascope/src/features/importing/data/file_selector_txt_file_picker.dart';
 import 'package:mirascope/src/features/importing/data/drift_import_repository.dart';
 
@@ -41,6 +43,10 @@ void main() {
       expect(epubUseCase.filePicker, isA<FileSelectorEpubFilePicker>());
       expect(epubUseCase.sourceInspector, isA<DartIoEpubSourceInspector>());
       expect(epubUseCase.importRepository, same(useCase.importRepository));
+      final mangaUseCase = container.read(prepareMangaSourceProvider);
+      expect(mangaUseCase.sourcePicker, isA<FileSelectorMangaSourcePicker>());
+      expect(mangaUseCase.sourceInspector, isA<DartIoMangaSourceInspector>());
+      expect(mangaUseCase.importRepository, same(useCase.importRepository));
     },
   );
 }

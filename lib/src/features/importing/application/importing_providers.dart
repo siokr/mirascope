@@ -14,7 +14,10 @@ import '../data/dart_io_txt_source_inspector.dart';
 import '../data/dart_io_txt_source_reader.dart';
 import '../data/file_selector_txt_file_picker.dart';
 import '../data/file_selector_epub_file_picker.dart';
+import '../data/file_selector_manga_source_picker.dart';
+import '../data/dart_io_manga_source_inspector.dart';
 import '../domain/epub_file_picker.dart';
+import '../domain/manga_source.dart';
 import '../domain/derived_epub_store.dart';
 import '../domain/epub_source_candidate.dart';
 import '../domain/txt_encoding.dart';
@@ -28,6 +31,7 @@ import 'import_txt.dart';
 import 'normalize_epub_content.dart';
 import 'parse_epub_package.dart';
 import 'prepare_epub_source.dart';
+import 'prepare_manga_source.dart';
 import 'prepare_txt_source.dart';
 import 'relocate_txt_source.dart';
 import 'relocate_epub_source.dart';
@@ -48,6 +52,14 @@ final epubFilePickerProvider = Provider<EpubFilePicker>((ref) {
 
 final epubSourceInspectorProvider = Provider<EpubSourceInspector>((ref) {
   return DartIoEpubSourceInspector();
+});
+
+final mangaSourcePickerProvider = Provider<MangaSourcePicker>((ref) {
+  return const FileSelectorMangaSourcePicker();
+});
+
+final mangaSourceInspectorProvider = Provider<MangaSourceInspector>((ref) {
+  return const DartIoMangaSourceInspector();
 });
 
 final txtSourceReaderProvider = Provider<TxtSourceReader>((ref) {
@@ -142,6 +154,14 @@ final prepareEpubSourceProvider = Provider<PrepareEpubSource>((ref) {
   return PrepareEpubSource(
     filePicker: ref.watch(epubFilePickerProvider),
     sourceInspector: ref.watch(epubSourceInspectorProvider),
+    importRepository: ref.watch(importRepositoryProvider),
+  );
+});
+
+final prepareMangaSourceProvider = Provider<PrepareMangaSource>((ref) {
+  return PrepareMangaSource(
+    sourcePicker: ref.watch(mangaSourcePickerProvider),
+    sourceInspector: ref.watch(mangaSourceInspectorProvider),
     importRepository: ref.watch(importRepositoryProvider),
   );
 });

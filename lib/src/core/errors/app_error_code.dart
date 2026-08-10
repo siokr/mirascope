@@ -50,6 +50,16 @@ enum AppErrorCode {
     'EPUB 正文格式暂不支持',
     '请选择使用常规流式 XHTML 正文的 EPUB 文件。',
   ),
+  mangaInvalidSource(
+    'manga_invalid_source',
+    '所选内容不是有效的漫画来源',
+    '请选择漫画目录或 ZIP/CBZ 压缩包。',
+  ),
+  mangaNoImages(
+    'manga_no_images',
+    '漫画来源中没有支持的图片',
+    '请选择包含 JPEG、PNG 或 WebP 图片的目录。',
+  ),
   parseFailed('parse_failed', '无法解析文件内容', '请检查文件后重试。'),
   storageFailed('storage_failed', '无法保存导入结果', '请稍后重试。'),
   sourceChanged('source_changed', '原文件内容已经变化', '确认重新解析或取消。');
