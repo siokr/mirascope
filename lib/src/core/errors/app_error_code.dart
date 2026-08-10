@@ -60,6 +60,23 @@ enum AppErrorCode {
     '漫画来源中没有支持的图片',
     '请选择包含 JPEG、PNG 或 WebP 图片的目录。',
   ),
+  mangaInvalidContainer(
+    'manga_invalid_container',
+    '漫画压缩包已损坏或格式无效',
+    '请选择完整的 ZIP/CBZ 文件。',
+  ),
+  mangaEncryptedArchive(
+    'manga_encrypted_archive',
+    '暂不支持加密漫画压缩包',
+    '请先使用你有权访问的未加密副本。',
+  ),
+  mangaUnsafePath(
+    'manga_unsafe_path',
+    '漫画压缩包包含不安全路径',
+    '请选择来源可信且未损坏的 ZIP/CBZ 文件。',
+  ),
+  mangaResourceLimit('manga_resource_limit', '漫画压缩包超出安全限制', '请减少文件数量或图片大小后重试。'),
+  mangaResourceMissing('manga_resource_missing', '漫画压缩包中的图片不存在', '请检查压缩包是否完整。'),
   parseFailed('parse_failed', '无法解析文件内容', '请检查文件后重试。'),
   storageFailed('storage_failed', '无法保存导入结果', '请稍后重试。'),
   sourceChanged('source_changed', '原文件内容已经变化', '确认重新解析或取消。');
