@@ -60,6 +60,18 @@
 
 成功记录必须关联 `MediaItem`；失败记录在媒体事务已回滚时允许 `mediaItemId` 为空。TXT 成功记录必须保存实际使用的 `textEncoding`；旧 schema 迁移时不得猜测历史编码。
 
+### 3.8 `MangaPage`
+
+表示漫画章节内固化顺序的一页。字段包括 `id`、`contentUnitId`、`orderIndex`、`contentRef`、`sourceLocator`、`contentHash`、`mimeType`、`byteLength`、`pixelWidth` 和 `pixelHeight`。
+
+`(contentUnitId, orderIndex)` 唯一。图片尺寸在尚未解码时允许为空，成功解码后必须为正数。页面来源变化时通过 `contentHash` 使旧缓存失效。
+
+### 3.9 `MangaReaderPreference`
+
+表示漫画作品专属阅读偏好。字段包括 `id`、`mediaItemId`、`readingMode`、`pageTurnDirection` 和 `updatedAt`。每部漫画最多一条；`readingMode` 为 `vertical` 或 `horizontal`，翻页方向为 `leftToRight` 或 `rightToLeft`。
+
+漫画进度继续使用共享 `ReadingProgress`，locator 格式为 `page:<页索引>:<页内比例>`。页内比例限制在 `0..1`，恢复不依赖窗口像素。
+
 ## 4. 关系
 
 ```text
@@ -69,6 +81,8 @@ MediaItem 1 --- 0..1 ReadingProgress
 MediaItem 1 --- 0..n Bookmark
 MediaItem 1 --- 0..1 ReaderPreference(mediaItem scope)
 MediaItem 1 --- 0..n ImportRecord
+MediaItem 1 --- 0..1 MangaReaderPreference
+ContentUnit 1 --- 0..n MangaPage
 ```
 
 应用层不得绕过 Repository 分别删除相关表。

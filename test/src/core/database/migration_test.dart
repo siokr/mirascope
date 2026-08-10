@@ -35,7 +35,7 @@ void main() {
   });
 
   test(
-    'current AppDatabase onCreate matches the generated v3 schema',
+    'current AppDatabase onCreate matches the generated v4 schema',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -44,14 +44,14 @@ void main() {
 
       await verifier.migrateAndValidate(
         database,
-        3,
+        4,
         options: const ValidationOptions(validateDropped: true),
       );
     },
   );
 
   test(
-    'v3 enables foreign keys and contains every declared relation and index',
+    'v4 enables foreign keys and contains every declared relation and index',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -72,6 +72,8 @@ void main() {
         'reader_preferences',
         'import_records',
         'bookmarks',
+        'manga_pages',
+        'manga_reader_preferences',
       ]) {
         final rows = await database
             .customSelect('PRAGMA foreign_key_list($table)')
@@ -93,6 +95,8 @@ void main() {
         'import_records.media_item_id -> media_items.id CASCADE',
         'bookmarks.media_item_id -> media_items.id CASCADE',
         'bookmarks.content_unit_id -> content_units.id CASCADE',
+        'manga_pages.content_unit_id -> content_units.id CASCADE',
+        'manga_reader_preferences.media_item_id -> media_items.id CASCADE',
       });
 
       final namedIndexes = await database
@@ -131,6 +135,97 @@ void main() {
 
     expect(await database.select(database.mediaItems).getSingle(), isNotNull);
     expect(await database.select(database.bookmarks).get(), isEmpty);
+  });
+
+  for (final legacyVersion in [1, 2]) {
+    test('v$legacyVersion upgrades directly to v4', () async {
+      final schema = await verifier.schemaAt(legacyVersion);
+      schema.rawDatabase.execute(
+        'INSERT INTO media_items '
+        '(id, media_type, title, created_at, updated_at) '
+        "VALUES ('legacy-media', 'novel', 'Legacy', 1, 1)",
+      );
+      final database = AppDatabase(schema.newConnection());
+      addTearDown(database.close);
+
+      await verifier.migrateAndValidate(
+        database,
+        4,
+        options: const ValidationOptions(validateDropped: true),
+      );
+
+      expect(
+        (await database.select(database.mediaItems).getSingle()).title,
+        'Legacy',
+      );
+      expect(await database.select(database.mangaPages).get(), isEmpty);
+    });
+  }
+
+  test('v3 upgrades to v4 and preserves existing novel data', () async {
+    final schema = await verifier.schemaAt(3);
+    schema.rawDatabase.execute(
+      'INSERT INTO media_items '
+      '(id, media_type, title, created_at, updated_at) '
+      "VALUES ('existing-novel', 'novel', 'Existing novel', 1, 1)",
+    );
+    schema.rawDatabase.execute(
+      'INSERT INTO content_units '
+      '(id, media_item_id, unit_type, title, order_index, content_ref, '
+      'source_locator, content_hash) '
+      "VALUES ('existing-chapter', 'existing-novel', 'chapter', 'Chapter', "
+      "0, 'content', 'source', 'hash')",
+    );
+    schema.rawDatabase.execute(
+      'INSERT INTO reading_progress '
+      '(id, media_item_id, content_unit_id, locator, fraction, updated_at, '
+      'revision) '
+      "VALUES ('existing-progress', 'existing-novel', 'existing-chapter', "
+      "'paragraph:1', 0.5, 1, 2)",
+    );
+    schema.rawDatabase.execute(
+      'INSERT INTO reader_preferences '
+      '(id, scope, media_item_id, font_size, reading_mode, updated_at) '
+      "VALUES ('existing-preference', 'mediaItem', 'existing-novel', 20, "
+      "'vertical', 1)",
+    );
+    schema.rawDatabase.execute(
+      'INSERT INTO bookmarks '
+      '(id, media_item_id, content_unit_id, locator, label, created_at) '
+      "VALUES ('existing-bookmark', 'existing-novel', 'existing-chapter', "
+      "'paragraph:1', 'Saved', 1)",
+    );
+    final database = AppDatabase(schema.newConnection());
+    addTearDown(database.close);
+
+    await verifier.migrateAndValidate(
+      database,
+      4,
+      options: const ValidationOptions(validateDropped: true),
+    );
+
+    expect(
+      (await database.select(database.mediaItems).getSingle()).id,
+      'existing-novel',
+    );
+    expect(
+      (await database.select(database.readingProgressEntries).getSingle())
+          .locator,
+      'paragraph:1',
+    );
+    expect(
+      (await database.select(database.readerPreferences).getSingle()).fontSize,
+      20,
+    );
+    expect(
+      (await database.select(database.bookmarks).getSingle()).label,
+      'Saved',
+    );
+    expect(await database.select(database.mangaPages).get(), isEmpty);
+    expect(
+      await database.select(database.mangaReaderPreferences).get(),
+      isEmpty,
+    );
   });
 
   test('v1 upgrades to v2 without guessing legacy TXT encoding', () async {

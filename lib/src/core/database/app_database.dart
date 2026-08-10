@@ -6,6 +6,8 @@ import 'tables/bookmarks.dart';
 import 'tables/content_units.dart';
 import 'tables/import_records.dart';
 import 'tables/library_entries.dart';
+import 'tables/manga_pages.dart';
+import 'tables/manga_reader_preferences.dart';
 import 'tables/media_items.dart';
 import 'tables/reader_preferences.dart';
 import 'tables/reading_progress_entries.dart';
@@ -18,8 +20,10 @@ part 'app_database.g.dart';
     MediaItems,
     LibraryEntries,
     ContentUnits,
+    MangaPages,
     ReadingProgressEntries,
     ReaderPreferences,
+    MangaReaderPreferences,
     ImportRecords,
   ],
 )
@@ -29,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -52,6 +56,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 3 && to >= 3) {
         await migrator.createTable(bookmarks);
         await migrator.createIndex(bookmarksMediaCreatedIdx);
+      }
+      if (from < 4 && to >= 4) {
+        await migrator.createTable(mangaPages);
+        await migrator.createTable(mangaReaderPreferences);
       }
     },
     beforeOpen: (details) async {

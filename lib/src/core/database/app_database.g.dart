@@ -2025,6 +2025,651 @@ class LibraryEntriesCompanion extends UpdateCompanion<LibraryEntry> {
   }
 }
 
+class $MangaPagesTable extends MangaPages
+    with TableInfo<$MangaPagesTable, MangaPage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MangaPagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentUnitIdMeta = const VerificationMeta(
+    'contentUnitId',
+  );
+  @override
+  late final GeneratedColumn<String> contentUnitId = GeneratedColumn<String>(
+    'content_unit_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES content_units (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _orderIndexMeta = const VerificationMeta(
+    'orderIndex',
+  );
+  @override
+  late final GeneratedColumn<int> orderIndex = GeneratedColumn<int>(
+    'order_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentRefMeta = const VerificationMeta(
+    'contentRef',
+  );
+  @override
+  late final GeneratedColumn<String> contentRef = GeneratedColumn<String>(
+    'content_ref',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceLocatorMeta = const VerificationMeta(
+    'sourceLocator',
+  );
+  @override
+  late final GeneratedColumn<String> sourceLocator = GeneratedColumn<String>(
+    'source_locator',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentHashMeta = const VerificationMeta(
+    'contentHash',
+  );
+  @override
+  late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
+    'content_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _byteLengthMeta = const VerificationMeta(
+    'byteLength',
+  );
+  @override
+  late final GeneratedColumn<int> byteLength = GeneratedColumn<int>(
+    'byte_length',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pixelWidthMeta = const VerificationMeta(
+    'pixelWidth',
+  );
+  @override
+  late final GeneratedColumn<int> pixelWidth = GeneratedColumn<int>(
+    'pixel_width',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pixelHeightMeta = const VerificationMeta(
+    'pixelHeight',
+  );
+  @override
+  late final GeneratedColumn<int> pixelHeight = GeneratedColumn<int>(
+    'pixel_height',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    contentUnitId,
+    orderIndex,
+    contentRef,
+    sourceLocator,
+    contentHash,
+    mimeType,
+    byteLength,
+    pixelWidth,
+    pixelHeight,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'manga_pages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MangaPage> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('content_unit_id')) {
+      context.handle(
+        _contentUnitIdMeta,
+        contentUnitId.isAcceptableOrUnknown(
+          data['content_unit_id']!,
+          _contentUnitIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentUnitIdMeta);
+    }
+    if (data.containsKey('order_index')) {
+      context.handle(
+        _orderIndexMeta,
+        orderIndex.isAcceptableOrUnknown(data['order_index']!, _orderIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_orderIndexMeta);
+    }
+    if (data.containsKey('content_ref')) {
+      context.handle(
+        _contentRefMeta,
+        contentRef.isAcceptableOrUnknown(data['content_ref']!, _contentRefMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentRefMeta);
+    }
+    if (data.containsKey('source_locator')) {
+      context.handle(
+        _sourceLocatorMeta,
+        sourceLocator.isAcceptableOrUnknown(
+          data['source_locator']!,
+          _sourceLocatorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceLocatorMeta);
+    }
+    if (data.containsKey('content_hash')) {
+      context.handle(
+        _contentHashMeta,
+        contentHash.isAcceptableOrUnknown(
+          data['content_hash']!,
+          _contentHashMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentHashMeta);
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mimeTypeMeta);
+    }
+    if (data.containsKey('byte_length')) {
+      context.handle(
+        _byteLengthMeta,
+        byteLength.isAcceptableOrUnknown(data['byte_length']!, _byteLengthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_byteLengthMeta);
+    }
+    if (data.containsKey('pixel_width')) {
+      context.handle(
+        _pixelWidthMeta,
+        pixelWidth.isAcceptableOrUnknown(data['pixel_width']!, _pixelWidthMeta),
+      );
+    }
+    if (data.containsKey('pixel_height')) {
+      context.handle(
+        _pixelHeightMeta,
+        pixelHeight.isAcceptableOrUnknown(
+          data['pixel_height']!,
+          _pixelHeightMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {contentUnitId, orderIndex},
+  ];
+  @override
+  MangaPage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MangaPage(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      contentUnitId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_unit_id'],
+      )!,
+      orderIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}order_index'],
+      )!,
+      contentRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_ref'],
+      )!,
+      sourceLocator: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_locator'],
+      )!,
+      contentHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_hash'],
+      )!,
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      )!,
+      byteLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}byte_length'],
+      )!,
+      pixelWidth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}pixel_width'],
+      ),
+      pixelHeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}pixel_height'],
+      ),
+    );
+  }
+
+  @override
+  $MangaPagesTable createAlias(String alias) {
+    return $MangaPagesTable(attachedDatabase, alias);
+  }
+}
+
+class MangaPage extends DataClass implements Insertable<MangaPage> {
+  final String id;
+  final String contentUnitId;
+  final int orderIndex;
+  final String contentRef;
+  final String sourceLocator;
+  final String contentHash;
+  final String mimeType;
+  final int byteLength;
+  final int? pixelWidth;
+  final int? pixelHeight;
+  const MangaPage({
+    required this.id,
+    required this.contentUnitId,
+    required this.orderIndex,
+    required this.contentRef,
+    required this.sourceLocator,
+    required this.contentHash,
+    required this.mimeType,
+    required this.byteLength,
+    this.pixelWidth,
+    this.pixelHeight,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['content_unit_id'] = Variable<String>(contentUnitId);
+    map['order_index'] = Variable<int>(orderIndex);
+    map['content_ref'] = Variable<String>(contentRef);
+    map['source_locator'] = Variable<String>(sourceLocator);
+    map['content_hash'] = Variable<String>(contentHash);
+    map['mime_type'] = Variable<String>(mimeType);
+    map['byte_length'] = Variable<int>(byteLength);
+    if (!nullToAbsent || pixelWidth != null) {
+      map['pixel_width'] = Variable<int>(pixelWidth);
+    }
+    if (!nullToAbsent || pixelHeight != null) {
+      map['pixel_height'] = Variable<int>(pixelHeight);
+    }
+    return map;
+  }
+
+  MangaPagesCompanion toCompanion(bool nullToAbsent) {
+    return MangaPagesCompanion(
+      id: Value(id),
+      contentUnitId: Value(contentUnitId),
+      orderIndex: Value(orderIndex),
+      contentRef: Value(contentRef),
+      sourceLocator: Value(sourceLocator),
+      contentHash: Value(contentHash),
+      mimeType: Value(mimeType),
+      byteLength: Value(byteLength),
+      pixelWidth: pixelWidth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pixelWidth),
+      pixelHeight: pixelHeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pixelHeight),
+    );
+  }
+
+  factory MangaPage.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MangaPage(
+      id: serializer.fromJson<String>(json['id']),
+      contentUnitId: serializer.fromJson<String>(json['contentUnitId']),
+      orderIndex: serializer.fromJson<int>(json['orderIndex']),
+      contentRef: serializer.fromJson<String>(json['contentRef']),
+      sourceLocator: serializer.fromJson<String>(json['sourceLocator']),
+      contentHash: serializer.fromJson<String>(json['contentHash']),
+      mimeType: serializer.fromJson<String>(json['mimeType']),
+      byteLength: serializer.fromJson<int>(json['byteLength']),
+      pixelWidth: serializer.fromJson<int?>(json['pixelWidth']),
+      pixelHeight: serializer.fromJson<int?>(json['pixelHeight']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'contentUnitId': serializer.toJson<String>(contentUnitId),
+      'orderIndex': serializer.toJson<int>(orderIndex),
+      'contentRef': serializer.toJson<String>(contentRef),
+      'sourceLocator': serializer.toJson<String>(sourceLocator),
+      'contentHash': serializer.toJson<String>(contentHash),
+      'mimeType': serializer.toJson<String>(mimeType),
+      'byteLength': serializer.toJson<int>(byteLength),
+      'pixelWidth': serializer.toJson<int?>(pixelWidth),
+      'pixelHeight': serializer.toJson<int?>(pixelHeight),
+    };
+  }
+
+  MangaPage copyWith({
+    String? id,
+    String? contentUnitId,
+    int? orderIndex,
+    String? contentRef,
+    String? sourceLocator,
+    String? contentHash,
+    String? mimeType,
+    int? byteLength,
+    Value<int?> pixelWidth = const Value.absent(),
+    Value<int?> pixelHeight = const Value.absent(),
+  }) => MangaPage(
+    id: id ?? this.id,
+    contentUnitId: contentUnitId ?? this.contentUnitId,
+    orderIndex: orderIndex ?? this.orderIndex,
+    contentRef: contentRef ?? this.contentRef,
+    sourceLocator: sourceLocator ?? this.sourceLocator,
+    contentHash: contentHash ?? this.contentHash,
+    mimeType: mimeType ?? this.mimeType,
+    byteLength: byteLength ?? this.byteLength,
+    pixelWidth: pixelWidth.present ? pixelWidth.value : this.pixelWidth,
+    pixelHeight: pixelHeight.present ? pixelHeight.value : this.pixelHeight,
+  );
+  MangaPage copyWithCompanion(MangaPagesCompanion data) {
+    return MangaPage(
+      id: data.id.present ? data.id.value : this.id,
+      contentUnitId: data.contentUnitId.present
+          ? data.contentUnitId.value
+          : this.contentUnitId,
+      orderIndex: data.orderIndex.present
+          ? data.orderIndex.value
+          : this.orderIndex,
+      contentRef: data.contentRef.present
+          ? data.contentRef.value
+          : this.contentRef,
+      sourceLocator: data.sourceLocator.present
+          ? data.sourceLocator.value
+          : this.sourceLocator,
+      contentHash: data.contentHash.present
+          ? data.contentHash.value
+          : this.contentHash,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      byteLength: data.byteLength.present
+          ? data.byteLength.value
+          : this.byteLength,
+      pixelWidth: data.pixelWidth.present
+          ? data.pixelWidth.value
+          : this.pixelWidth,
+      pixelHeight: data.pixelHeight.present
+          ? data.pixelHeight.value
+          : this.pixelHeight,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MangaPage(')
+          ..write('id: $id, ')
+          ..write('contentUnitId: $contentUnitId, ')
+          ..write('orderIndex: $orderIndex, ')
+          ..write('contentRef: $contentRef, ')
+          ..write('sourceLocator: $sourceLocator, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('pixelWidth: $pixelWidth, ')
+          ..write('pixelHeight: $pixelHeight')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    contentUnitId,
+    orderIndex,
+    contentRef,
+    sourceLocator,
+    contentHash,
+    mimeType,
+    byteLength,
+    pixelWidth,
+    pixelHeight,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MangaPage &&
+          other.id == this.id &&
+          other.contentUnitId == this.contentUnitId &&
+          other.orderIndex == this.orderIndex &&
+          other.contentRef == this.contentRef &&
+          other.sourceLocator == this.sourceLocator &&
+          other.contentHash == this.contentHash &&
+          other.mimeType == this.mimeType &&
+          other.byteLength == this.byteLength &&
+          other.pixelWidth == this.pixelWidth &&
+          other.pixelHeight == this.pixelHeight);
+}
+
+class MangaPagesCompanion extends UpdateCompanion<MangaPage> {
+  final Value<String> id;
+  final Value<String> contentUnitId;
+  final Value<int> orderIndex;
+  final Value<String> contentRef;
+  final Value<String> sourceLocator;
+  final Value<String> contentHash;
+  final Value<String> mimeType;
+  final Value<int> byteLength;
+  final Value<int?> pixelWidth;
+  final Value<int?> pixelHeight;
+  final Value<int> rowid;
+  const MangaPagesCompanion({
+    this.id = const Value.absent(),
+    this.contentUnitId = const Value.absent(),
+    this.orderIndex = const Value.absent(),
+    this.contentRef = const Value.absent(),
+    this.sourceLocator = const Value.absent(),
+    this.contentHash = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.byteLength = const Value.absent(),
+    this.pixelWidth = const Value.absent(),
+    this.pixelHeight = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MangaPagesCompanion.insert({
+    required String id,
+    required String contentUnitId,
+    required int orderIndex,
+    required String contentRef,
+    required String sourceLocator,
+    required String contentHash,
+    required String mimeType,
+    required int byteLength,
+    this.pixelWidth = const Value.absent(),
+    this.pixelHeight = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       contentUnitId = Value(contentUnitId),
+       orderIndex = Value(orderIndex),
+       contentRef = Value(contentRef),
+       sourceLocator = Value(sourceLocator),
+       contentHash = Value(contentHash),
+       mimeType = Value(mimeType),
+       byteLength = Value(byteLength);
+  static Insertable<MangaPage> custom({
+    Expression<String>? id,
+    Expression<String>? contentUnitId,
+    Expression<int>? orderIndex,
+    Expression<String>? contentRef,
+    Expression<String>? sourceLocator,
+    Expression<String>? contentHash,
+    Expression<String>? mimeType,
+    Expression<int>? byteLength,
+    Expression<int>? pixelWidth,
+    Expression<int>? pixelHeight,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (contentUnitId != null) 'content_unit_id': contentUnitId,
+      if (orderIndex != null) 'order_index': orderIndex,
+      if (contentRef != null) 'content_ref': contentRef,
+      if (sourceLocator != null) 'source_locator': sourceLocator,
+      if (contentHash != null) 'content_hash': contentHash,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (byteLength != null) 'byte_length': byteLength,
+      if (pixelWidth != null) 'pixel_width': pixelWidth,
+      if (pixelHeight != null) 'pixel_height': pixelHeight,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MangaPagesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? contentUnitId,
+    Value<int>? orderIndex,
+    Value<String>? contentRef,
+    Value<String>? sourceLocator,
+    Value<String>? contentHash,
+    Value<String>? mimeType,
+    Value<int>? byteLength,
+    Value<int?>? pixelWidth,
+    Value<int?>? pixelHeight,
+    Value<int>? rowid,
+  }) {
+    return MangaPagesCompanion(
+      id: id ?? this.id,
+      contentUnitId: contentUnitId ?? this.contentUnitId,
+      orderIndex: orderIndex ?? this.orderIndex,
+      contentRef: contentRef ?? this.contentRef,
+      sourceLocator: sourceLocator ?? this.sourceLocator,
+      contentHash: contentHash ?? this.contentHash,
+      mimeType: mimeType ?? this.mimeType,
+      byteLength: byteLength ?? this.byteLength,
+      pixelWidth: pixelWidth ?? this.pixelWidth,
+      pixelHeight: pixelHeight ?? this.pixelHeight,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (contentUnitId.present) {
+      map['content_unit_id'] = Variable<String>(contentUnitId.value);
+    }
+    if (orderIndex.present) {
+      map['order_index'] = Variable<int>(orderIndex.value);
+    }
+    if (contentRef.present) {
+      map['content_ref'] = Variable<String>(contentRef.value);
+    }
+    if (sourceLocator.present) {
+      map['source_locator'] = Variable<String>(sourceLocator.value);
+    }
+    if (contentHash.present) {
+      map['content_hash'] = Variable<String>(contentHash.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (byteLength.present) {
+      map['byte_length'] = Variable<int>(byteLength.value);
+    }
+    if (pixelWidth.present) {
+      map['pixel_width'] = Variable<int>(pixelWidth.value);
+    }
+    if (pixelHeight.present) {
+      map['pixel_height'] = Variable<int>(pixelHeight.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MangaPagesCompanion(')
+          ..write('id: $id, ')
+          ..write('contentUnitId: $contentUnitId, ')
+          ..write('orderIndex: $orderIndex, ')
+          ..write('contentRef: $contentRef, ')
+          ..write('sourceLocator: $sourceLocator, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('byteLength: $byteLength, ')
+          ..write('pixelWidth: $pixelWidth, ')
+          ..write('pixelHeight: $pixelHeight, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ReadingProgressEntriesTable extends ReadingProgressEntries
     with TableInfo<$ReadingProgressEntriesTable, ReadingProgressEntry> {
   @override
@@ -3046,6 +3691,395 @@ class ReaderPreferencesCompanion extends UpdateCompanion<ReaderPreference> {
   }
 }
 
+class $MangaReaderPreferencesTable extends MangaReaderPreferences
+    with TableInfo<$MangaReaderPreferencesTable, MangaReaderPreference> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MangaReaderPreferencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mediaItemIdMeta = const VerificationMeta(
+    'mediaItemId',
+  );
+  @override
+  late final GeneratedColumn<String> mediaItemId = GeneratedColumn<String>(
+    'media_item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'UNIQUE REFERENCES media_items (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _readingModeMeta = const VerificationMeta(
+    'readingMode',
+  );
+  @override
+  late final GeneratedColumn<String> readingMode = GeneratedColumn<String>(
+    'reading_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pageTurnDirectionMeta = const VerificationMeta(
+    'pageTurnDirection',
+  );
+  @override
+  late final GeneratedColumn<String> pageTurnDirection =
+      GeneratedColumn<String>(
+        'page_turn_direction',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> updatedAt =
+      GeneratedColumn<int>(
+        'updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>(
+        $MangaReaderPreferencesTable.$converterupdatedAt,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    mediaItemId,
+    readingMode,
+    pageTurnDirection,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'manga_reader_preferences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MangaReaderPreference> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('media_item_id')) {
+      context.handle(
+        _mediaItemIdMeta,
+        mediaItemId.isAcceptableOrUnknown(
+          data['media_item_id']!,
+          _mediaItemIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mediaItemIdMeta);
+    }
+    if (data.containsKey('reading_mode')) {
+      context.handle(
+        _readingModeMeta,
+        readingMode.isAcceptableOrUnknown(
+          data['reading_mode']!,
+          _readingModeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_readingModeMeta);
+    }
+    if (data.containsKey('page_turn_direction')) {
+      context.handle(
+        _pageTurnDirectionMeta,
+        pageTurnDirection.isAcceptableOrUnknown(
+          data['page_turn_direction']!,
+          _pageTurnDirectionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_pageTurnDirectionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MangaReaderPreference map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MangaReaderPreference(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      mediaItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_item_id'],
+      )!,
+      readingMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reading_mode'],
+      )!,
+      pageTurnDirection: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}page_turn_direction'],
+      )!,
+      updatedAt: $MangaReaderPreferencesTable.$converterupdatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}updated_at'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $MangaReaderPreferencesTable createAlias(String alias) {
+    return $MangaReaderPreferencesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, int> $converterupdatedAt =
+      const DateTimeMillisConverter();
+}
+
+class MangaReaderPreference extends DataClass
+    implements Insertable<MangaReaderPreference> {
+  final String id;
+  final String mediaItemId;
+  final String readingMode;
+  final String pageTurnDirection;
+  final DateTime updatedAt;
+  const MangaReaderPreference({
+    required this.id,
+    required this.mediaItemId,
+    required this.readingMode,
+    required this.pageTurnDirection,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['media_item_id'] = Variable<String>(mediaItemId);
+    map['reading_mode'] = Variable<String>(readingMode);
+    map['page_turn_direction'] = Variable<String>(pageTurnDirection);
+    {
+      map['updated_at'] = Variable<int>(
+        $MangaReaderPreferencesTable.$converterupdatedAt.toSql(updatedAt),
+      );
+    }
+    return map;
+  }
+
+  MangaReaderPreferencesCompanion toCompanion(bool nullToAbsent) {
+    return MangaReaderPreferencesCompanion(
+      id: Value(id),
+      mediaItemId: Value(mediaItemId),
+      readingMode: Value(readingMode),
+      pageTurnDirection: Value(pageTurnDirection),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MangaReaderPreference.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MangaReaderPreference(
+      id: serializer.fromJson<String>(json['id']),
+      mediaItemId: serializer.fromJson<String>(json['mediaItemId']),
+      readingMode: serializer.fromJson<String>(json['readingMode']),
+      pageTurnDirection: serializer.fromJson<String>(json['pageTurnDirection']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'mediaItemId': serializer.toJson<String>(mediaItemId),
+      'readingMode': serializer.toJson<String>(readingMode),
+      'pageTurnDirection': serializer.toJson<String>(pageTurnDirection),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MangaReaderPreference copyWith({
+    String? id,
+    String? mediaItemId,
+    String? readingMode,
+    String? pageTurnDirection,
+    DateTime? updatedAt,
+  }) => MangaReaderPreference(
+    id: id ?? this.id,
+    mediaItemId: mediaItemId ?? this.mediaItemId,
+    readingMode: readingMode ?? this.readingMode,
+    pageTurnDirection: pageTurnDirection ?? this.pageTurnDirection,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MangaReaderPreference copyWithCompanion(
+    MangaReaderPreferencesCompanion data,
+  ) {
+    return MangaReaderPreference(
+      id: data.id.present ? data.id.value : this.id,
+      mediaItemId: data.mediaItemId.present
+          ? data.mediaItemId.value
+          : this.mediaItemId,
+      readingMode: data.readingMode.present
+          ? data.readingMode.value
+          : this.readingMode,
+      pageTurnDirection: data.pageTurnDirection.present
+          ? data.pageTurnDirection.value
+          : this.pageTurnDirection,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MangaReaderPreference(')
+          ..write('id: $id, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('readingMode: $readingMode, ')
+          ..write('pageTurnDirection: $pageTurnDirection, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, mediaItemId, readingMode, pageTurnDirection, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MangaReaderPreference &&
+          other.id == this.id &&
+          other.mediaItemId == this.mediaItemId &&
+          other.readingMode == this.readingMode &&
+          other.pageTurnDirection == this.pageTurnDirection &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MangaReaderPreferencesCompanion
+    extends UpdateCompanion<MangaReaderPreference> {
+  final Value<String> id;
+  final Value<String> mediaItemId;
+  final Value<String> readingMode;
+  final Value<String> pageTurnDirection;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MangaReaderPreferencesCompanion({
+    this.id = const Value.absent(),
+    this.mediaItemId = const Value.absent(),
+    this.readingMode = const Value.absent(),
+    this.pageTurnDirection = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MangaReaderPreferencesCompanion.insert({
+    required String id,
+    required String mediaItemId,
+    required String readingMode,
+    required String pageTurnDirection,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       mediaItemId = Value(mediaItemId),
+       readingMode = Value(readingMode),
+       pageTurnDirection = Value(pageTurnDirection),
+       updatedAt = Value(updatedAt);
+  static Insertable<MangaReaderPreference> custom({
+    Expression<String>? id,
+    Expression<String>? mediaItemId,
+    Expression<String>? readingMode,
+    Expression<String>? pageTurnDirection,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (mediaItemId != null) 'media_item_id': mediaItemId,
+      if (readingMode != null) 'reading_mode': readingMode,
+      if (pageTurnDirection != null) 'page_turn_direction': pageTurnDirection,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MangaReaderPreferencesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? mediaItemId,
+    Value<String>? readingMode,
+    Value<String>? pageTurnDirection,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return MangaReaderPreferencesCompanion(
+      id: id ?? this.id,
+      mediaItemId: mediaItemId ?? this.mediaItemId,
+      readingMode: readingMode ?? this.readingMode,
+      pageTurnDirection: pageTurnDirection ?? this.pageTurnDirection,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (mediaItemId.present) {
+      map['media_item_id'] = Variable<String>(mediaItemId.value);
+    }
+    if (readingMode.present) {
+      map['reading_mode'] = Variable<String>(readingMode.value);
+    }
+    if (pageTurnDirection.present) {
+      map['page_turn_direction'] = Variable<String>(pageTurnDirection.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(
+        $MangaReaderPreferencesTable.$converterupdatedAt.toSql(updatedAt.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MangaReaderPreferencesCompanion(')
+          ..write('id: $id, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('readingMode: $readingMode, ')
+          ..write('pageTurnDirection: $pageTurnDirection, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ImportRecordsTable extends ImportRecords
     with TableInfo<$ImportRecordsTable, ImportRecord> {
   @override
@@ -3738,10 +4772,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ContentUnitsTable contentUnits = $ContentUnitsTable(this);
   late final $BookmarksTable bookmarks = $BookmarksTable(this);
   late final $LibraryEntriesTable libraryEntries = $LibraryEntriesTable(this);
+  late final $MangaPagesTable mangaPages = $MangaPagesTable(this);
   late final $ReadingProgressEntriesTable readingProgressEntries =
       $ReadingProgressEntriesTable(this);
   late final $ReaderPreferencesTable readerPreferences =
       $ReaderPreferencesTable(this);
+  late final $MangaReaderPreferencesTable mangaReaderPreferences =
+      $MangaReaderPreferencesTable(this);
   late final $ImportRecordsTable importRecords = $ImportRecordsTable(this);
   late final Index bookmarksMediaCreatedIdx = Index(
     'bookmarks_media_created_idx',
@@ -3772,8 +4809,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     contentUnits,
     bookmarks,
     libraryEntries,
+    mangaPages,
     readingProgressEntries,
     readerPreferences,
+    mangaReaderPreferences,
     importRecords,
     bookmarksMediaCreatedIdx,
     mediaItemsTypeUpdatedIdx,
@@ -3813,6 +4852,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'content_units',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('manga_pages', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'media_items',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -3831,6 +4877,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('reader_preferences', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'media_items',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('manga_reader_preferences', kind: UpdateKind.delete),
+      ],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -3967,6 +5022,31 @@ final class $$MediaItemsTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _readerPreferencesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $MangaReaderPreferencesTable,
+    List<MangaReaderPreference>
+  >
+  _mangaReaderPreferencesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.mangaReaderPreferences,
+        aliasName: 'media_items__id__manga_reader_preferences__media_item_id',
+      );
+
+  $$MangaReaderPreferencesTableProcessedTableManager
+  get mangaReaderPreferencesRefs {
+    final manager = $$MangaReaderPreferencesTableTableManager(
+      $_db,
+      $_db.mangaReaderPreferences,
+    ).filter((f) => f.mediaItemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _mangaReaderPreferencesRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -4171,6 +5251,32 @@ class $$MediaItemsTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> mangaReaderPreferencesRefs(
+    Expression<bool> Function($$MangaReaderPreferencesTableFilterComposer f) f,
+  ) {
+    final $$MangaReaderPreferencesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.mangaReaderPreferences,
+          getReferencedColumn: (t) => t.mediaItemId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$MangaReaderPreferencesTableFilterComposer(
+                $db: $db,
+                $table: $db.mangaReaderPreferences,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 
@@ -4420,6 +5526,32 @@ class $$MediaItemsTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> mangaReaderPreferencesRefs<T extends Object>(
+    Expression<T> Function($$MangaReaderPreferencesTableAnnotationComposer a) f,
+  ) {
+    final $$MangaReaderPreferencesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.mangaReaderPreferences,
+          getReferencedColumn: (t) => t.mediaItemId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$MangaReaderPreferencesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.mangaReaderPreferences,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> importRecordsRefs<T extends Object>(
     Expression<T> Function($$ImportRecordsTableAnnotationComposer a) f,
   ) {
@@ -4465,6 +5597,7 @@ class $$MediaItemsTableTableManager
             bool libraryEntriesRefs,
             bool readingProgressEntriesRefs,
             bool readerPreferencesRefs,
+            bool mangaReaderPreferencesRefs,
             bool importRecordsRefs,
           })
         > {
@@ -4542,6 +5675,7 @@ class $$MediaItemsTableTableManager
                 libraryEntriesRefs = false,
                 readingProgressEntriesRefs = false,
                 readerPreferencesRefs = false,
+                mangaReaderPreferencesRefs = false,
                 importRecordsRefs = false,
               }) {
                 return PrefetchHooks(
@@ -4552,6 +5686,7 @@ class $$MediaItemsTableTableManager
                     if (libraryEntriesRefs) db.libraryEntries,
                     if (readingProgressEntriesRefs) db.readingProgressEntries,
                     if (readerPreferencesRefs) db.readerPreferences,
+                    if (mangaReaderPreferencesRefs) db.mangaReaderPreferences,
                     if (importRecordsRefs) db.importRecords,
                   ],
                   addJoins: null,
@@ -4662,6 +5797,27 @@ class $$MediaItemsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (mangaReaderPreferencesRefs)
+                        await $_getPrefetchedData<
+                          MediaItem,
+                          $MediaItemsTable,
+                          MangaReaderPreference
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MediaItemsTableReferences
+                              ._mangaReaderPreferencesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MediaItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).mangaReaderPreferencesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.mediaItemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (importRecordsRefs)
                         await $_getPrefetchedData<
                           MediaItem,
@@ -4709,6 +5865,7 @@ typedef $$MediaItemsTableProcessedTableManager =
         bool libraryEntriesRefs,
         bool readingProgressEntriesRefs,
         bool readerPreferencesRefs,
+        bool mangaReaderPreferencesRefs,
         bool importRecordsRefs,
       })
     >;
@@ -4771,6 +5928,24 @@ final class $$ContentUnitsTableReferences
     ).filter((f) => f.contentUnitId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_bookmarksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MangaPagesTable, List<MangaPage>>
+  _mangaPagesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.mangaPages,
+    aliasName: 'content_units__id__manga_pages__content_unit_id',
+  );
+
+  $$MangaPagesTableProcessedTableManager get mangaPagesRefs {
+    final manager = $$MangaPagesTableTableManager(
+      $_db,
+      $_db.mangaPages,
+    ).filter((f) => f.contentUnitId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_mangaPagesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4885,6 +6060,31 @@ class $$ContentUnitsTableFilterComposer
           }) => $$BookmarksTableFilterComposer(
             $db: $db,
             $table: $db.bookmarks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> mangaPagesRefs(
+    Expression<bool> Function($$MangaPagesTableFilterComposer f) f,
+  ) {
+    final $$MangaPagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.mangaPages,
+      getReferencedColumn: (t) => t.contentUnitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MangaPagesTableFilterComposer(
+            $db: $db,
+            $table: $db.mangaPages,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5075,6 +6275,31 @@ class $$ContentUnitsTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> mangaPagesRefs<T extends Object>(
+    Expression<T> Function($$MangaPagesTableAnnotationComposer a) f,
+  ) {
+    final $$MangaPagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.mangaPages,
+      getReferencedColumn: (t) => t.contentUnitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MangaPagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.mangaPages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> readingProgressEntriesRefs<T extends Object>(
     Expression<T> Function($$ReadingProgressEntriesTableAnnotationComposer a) f,
   ) {
@@ -5118,6 +6343,7 @@ class $$ContentUnitsTableTableManager
           PrefetchHooks Function({
             bool mediaItemId,
             bool bookmarksRefs,
+            bool mangaPagesRefs,
             bool readingProgressEntriesRefs,
           })
         > {
@@ -5188,12 +6414,14 @@ class $$ContentUnitsTableTableManager
               ({
                 mediaItemId = false,
                 bookmarksRefs = false,
+                mangaPagesRefs = false,
                 readingProgressEntriesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (bookmarksRefs) db.bookmarks,
+                    if (mangaPagesRefs) db.mangaPages,
                     if (readingProgressEntriesRefs) db.readingProgressEntries,
                   ],
                   addJoins:
@@ -5253,6 +6481,27 @@ class $$ContentUnitsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (mangaPagesRefs)
+                        await $_getPrefetchedData<
+                          ContentUnit,
+                          $ContentUnitsTable,
+                          MangaPage
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ContentUnitsTableReferences
+                              ._mangaPagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ContentUnitsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).mangaPagesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.contentUnitId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (readingProgressEntriesRefs)
                         await $_getPrefetchedData<
                           ContentUnit,
@@ -5297,6 +6546,7 @@ typedef $$ContentUnitsTableProcessedTableManager =
       PrefetchHooks Function({
         bool mediaItemId,
         bool bookmarksRefs,
+        bool mangaPagesRefs,
         bool readingProgressEntriesRefs,
       })
     >;
@@ -6096,6 +7346,433 @@ typedef $$LibraryEntriesTableProcessedTableManager =
       (LibraryEntry, $$LibraryEntriesTableReferences),
       LibraryEntry,
       PrefetchHooks Function({bool mediaItemId})
+    >;
+typedef $$MangaPagesTableCreateCompanionBuilder =
+    MangaPagesCompanion Function({
+      required String id,
+      required String contentUnitId,
+      required int orderIndex,
+      required String contentRef,
+      required String sourceLocator,
+      required String contentHash,
+      required String mimeType,
+      required int byteLength,
+      Value<int?> pixelWidth,
+      Value<int?> pixelHeight,
+      Value<int> rowid,
+    });
+typedef $$MangaPagesTableUpdateCompanionBuilder =
+    MangaPagesCompanion Function({
+      Value<String> id,
+      Value<String> contentUnitId,
+      Value<int> orderIndex,
+      Value<String> contentRef,
+      Value<String> sourceLocator,
+      Value<String> contentHash,
+      Value<String> mimeType,
+      Value<int> byteLength,
+      Value<int?> pixelWidth,
+      Value<int?> pixelHeight,
+      Value<int> rowid,
+    });
+
+final class $$MangaPagesTableReferences
+    extends BaseReferences<_$AppDatabase, $MangaPagesTable, MangaPage> {
+  $$MangaPagesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ContentUnitsTable _contentUnitIdTable(_$AppDatabase db) => db
+      .contentUnits
+      .createAlias('manga_pages__content_unit_id__content_units__id');
+
+  $$ContentUnitsTableProcessedTableManager get contentUnitId {
+    final $_column = $_itemColumn<String>('content_unit_id')!;
+
+    final manager = $$ContentUnitsTableTableManager(
+      $_db,
+      $_db.contentUnits,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_contentUnitIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MangaPagesTableFilterComposer
+    extends Composer<_$AppDatabase, $MangaPagesTable> {
+  $$MangaPagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentRef => $composableBuilder(
+    column: $table.contentRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceLocator => $composableBuilder(
+    column: $table.sourceLocator,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pixelWidth => $composableBuilder(
+    column: $table.pixelWidth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pixelHeight => $composableBuilder(
+    column: $table.pixelHeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ContentUnitsTableFilterComposer get contentUnitId {
+    final $$ContentUnitsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contentUnitId,
+      referencedTable: $db.contentUnits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContentUnitsTableFilterComposer(
+            $db: $db,
+            $table: $db.contentUnits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MangaPagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MangaPagesTable> {
+  $$MangaPagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentRef => $composableBuilder(
+    column: $table.contentRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceLocator => $composableBuilder(
+    column: $table.sourceLocator,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pixelWidth => $composableBuilder(
+    column: $table.pixelWidth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pixelHeight => $composableBuilder(
+    column: $table.pixelHeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ContentUnitsTableOrderingComposer get contentUnitId {
+    final $$ContentUnitsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contentUnitId,
+      referencedTable: $db.contentUnits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContentUnitsTableOrderingComposer(
+            $db: $db,
+            $table: $db.contentUnits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MangaPagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MangaPagesTable> {
+  $$MangaPagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentRef => $composableBuilder(
+    column: $table.contentRef,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceLocator => $composableBuilder(
+    column: $table.sourceLocator,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<int> get byteLength => $composableBuilder(
+    column: $table.byteLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get pixelWidth => $composableBuilder(
+    column: $table.pixelWidth,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get pixelHeight => $composableBuilder(
+    column: $table.pixelHeight,
+    builder: (column) => column,
+  );
+
+  $$ContentUnitsTableAnnotationComposer get contentUnitId {
+    final $$ContentUnitsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contentUnitId,
+      referencedTable: $db.contentUnits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContentUnitsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.contentUnits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MangaPagesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MangaPagesTable,
+          MangaPage,
+          $$MangaPagesTableFilterComposer,
+          $$MangaPagesTableOrderingComposer,
+          $$MangaPagesTableAnnotationComposer,
+          $$MangaPagesTableCreateCompanionBuilder,
+          $$MangaPagesTableUpdateCompanionBuilder,
+          (MangaPage, $$MangaPagesTableReferences),
+          MangaPage,
+          PrefetchHooks Function({bool contentUnitId})
+        > {
+  $$MangaPagesTableTableManager(_$AppDatabase db, $MangaPagesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MangaPagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MangaPagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MangaPagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> contentUnitId = const Value.absent(),
+                Value<int> orderIndex = const Value.absent(),
+                Value<String> contentRef = const Value.absent(),
+                Value<String> sourceLocator = const Value.absent(),
+                Value<String> contentHash = const Value.absent(),
+                Value<String> mimeType = const Value.absent(),
+                Value<int> byteLength = const Value.absent(),
+                Value<int?> pixelWidth = const Value.absent(),
+                Value<int?> pixelHeight = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MangaPagesCompanion(
+                id: id,
+                contentUnitId: contentUnitId,
+                orderIndex: orderIndex,
+                contentRef: contentRef,
+                sourceLocator: sourceLocator,
+                contentHash: contentHash,
+                mimeType: mimeType,
+                byteLength: byteLength,
+                pixelWidth: pixelWidth,
+                pixelHeight: pixelHeight,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String contentUnitId,
+                required int orderIndex,
+                required String contentRef,
+                required String sourceLocator,
+                required String contentHash,
+                required String mimeType,
+                required int byteLength,
+                Value<int?> pixelWidth = const Value.absent(),
+                Value<int?> pixelHeight = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MangaPagesCompanion.insert(
+                id: id,
+                contentUnitId: contentUnitId,
+                orderIndex: orderIndex,
+                contentRef: contentRef,
+                sourceLocator: sourceLocator,
+                contentHash: contentHash,
+                mimeType: mimeType,
+                byteLength: byteLength,
+                pixelWidth: pixelWidth,
+                pixelHeight: pixelHeight,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MangaPagesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({contentUnitId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (contentUnitId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.contentUnitId,
+                                referencedTable: $$MangaPagesTableReferences
+                                    ._contentUnitIdTable(db),
+                                referencedColumn: $$MangaPagesTableReferences
+                                    ._contentUnitIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MangaPagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MangaPagesTable,
+      MangaPage,
+      $$MangaPagesTableFilterComposer,
+      $$MangaPagesTableOrderingComposer,
+      $$MangaPagesTableAnnotationComposer,
+      $$MangaPagesTableCreateCompanionBuilder,
+      $$MangaPagesTableUpdateCompanionBuilder,
+      (MangaPage, $$MangaPagesTableReferences),
+      MangaPage,
+      PrefetchHooks Function({bool contentUnitId})
     >;
 typedef $$ReadingProgressEntriesTableCreateCompanionBuilder =
     ReadingProgressEntriesCompanion Function({
@@ -6960,6 +8637,350 @@ typedef $$ReaderPreferencesTableProcessedTableManager =
       ReaderPreference,
       PrefetchHooks Function({bool mediaItemId})
     >;
+typedef $$MangaReaderPreferencesTableCreateCompanionBuilder =
+    MangaReaderPreferencesCompanion Function({
+      required String id,
+      required String mediaItemId,
+      required String readingMode,
+      required String pageTurnDirection,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$MangaReaderPreferencesTableUpdateCompanionBuilder =
+    MangaReaderPreferencesCompanion Function({
+      Value<String> id,
+      Value<String> mediaItemId,
+      Value<String> readingMode,
+      Value<String> pageTurnDirection,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$MangaReaderPreferencesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $MangaReaderPreferencesTable,
+          MangaReaderPreference
+        > {
+  $$MangaReaderPreferencesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MediaItemsTable _mediaItemIdTable(_$AppDatabase db) => db.mediaItems
+      .createAlias('manga_reader_preferences__media_item_id__media_items__id');
+
+  $$MediaItemsTableProcessedTableManager get mediaItemId {
+    final $_column = $_itemColumn<String>('media_item_id')!;
+
+    final manager = $$MediaItemsTableTableManager(
+      $_db,
+      $_db.mediaItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_mediaItemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MangaReaderPreferencesTableFilterComposer
+    extends Composer<_$AppDatabase, $MangaReaderPreferencesTable> {
+  $$MangaReaderPreferencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get readingMode => $composableBuilder(
+    column: $table.readingMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pageTurnDirection => $composableBuilder(
+    column: $table.pageTurnDirection,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, int> get updatedAt =>
+      $composableBuilder(
+        column: $table.updatedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$MediaItemsTableFilterComposer get mediaItemId {
+    final $$MediaItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MangaReaderPreferencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MangaReaderPreferencesTable> {
+  $$MangaReaderPreferencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get readingMode => $composableBuilder(
+    column: $table.readingMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pageTurnDirection => $composableBuilder(
+    column: $table.pageTurnDirection,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MediaItemsTableOrderingComposer get mediaItemId {
+    final $$MediaItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MangaReaderPreferencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MangaReaderPreferencesTable> {
+  $$MangaReaderPreferencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get readingMode => $composableBuilder(
+    column: $table.readingMode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get pageTurnDirection => $composableBuilder(
+    column: $table.pageTurnDirection,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<DateTime, int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$MediaItemsTableAnnotationComposer get mediaItemId {
+    final $$MediaItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MangaReaderPreferencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MangaReaderPreferencesTable,
+          MangaReaderPreference,
+          $$MangaReaderPreferencesTableFilterComposer,
+          $$MangaReaderPreferencesTableOrderingComposer,
+          $$MangaReaderPreferencesTableAnnotationComposer,
+          $$MangaReaderPreferencesTableCreateCompanionBuilder,
+          $$MangaReaderPreferencesTableUpdateCompanionBuilder,
+          (MangaReaderPreference, $$MangaReaderPreferencesTableReferences),
+          MangaReaderPreference,
+          PrefetchHooks Function({bool mediaItemId})
+        > {
+  $$MangaReaderPreferencesTableTableManager(
+    _$AppDatabase db,
+    $MangaReaderPreferencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MangaReaderPreferencesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$MangaReaderPreferencesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MangaReaderPreferencesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> mediaItemId = const Value.absent(),
+                Value<String> readingMode = const Value.absent(),
+                Value<String> pageTurnDirection = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MangaReaderPreferencesCompanion(
+                id: id,
+                mediaItemId: mediaItemId,
+                readingMode: readingMode,
+                pageTurnDirection: pageTurnDirection,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String mediaItemId,
+                required String readingMode,
+                required String pageTurnDirection,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => MangaReaderPreferencesCompanion.insert(
+                id: id,
+                mediaItemId: mediaItemId,
+                readingMode: readingMode,
+                pageTurnDirection: pageTurnDirection,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MangaReaderPreferencesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({mediaItemId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (mediaItemId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.mediaItemId,
+                                referencedTable:
+                                    $$MangaReaderPreferencesTableReferences
+                                        ._mediaItemIdTable(db),
+                                referencedColumn:
+                                    $$MangaReaderPreferencesTableReferences
+                                        ._mediaItemIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MangaReaderPreferencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MangaReaderPreferencesTable,
+      MangaReaderPreference,
+      $$MangaReaderPreferencesTableFilterComposer,
+      $$MangaReaderPreferencesTableOrderingComposer,
+      $$MangaReaderPreferencesTableAnnotationComposer,
+      $$MangaReaderPreferencesTableCreateCompanionBuilder,
+      $$MangaReaderPreferencesTableUpdateCompanionBuilder,
+      (MangaReaderPreference, $$MangaReaderPreferencesTableReferences),
+      MangaReaderPreference,
+      PrefetchHooks Function({bool mediaItemId})
+    >;
 typedef $$ImportRecordsTableCreateCompanionBuilder =
     ImportRecordsCompanion Function({
       required String id,
@@ -7420,6 +9441,8 @@ class $AppDatabaseManager {
       $$BookmarksTableTableManager(_db, _db.bookmarks);
   $$LibraryEntriesTableTableManager get libraryEntries =>
       $$LibraryEntriesTableTableManager(_db, _db.libraryEntries);
+  $$MangaPagesTableTableManager get mangaPages =>
+      $$MangaPagesTableTableManager(_db, _db.mangaPages);
   $$ReadingProgressEntriesTableTableManager get readingProgressEntries =>
       $$ReadingProgressEntriesTableTableManager(
         _db,
@@ -7427,6 +9450,11 @@ class $AppDatabaseManager {
       );
   $$ReaderPreferencesTableTableManager get readerPreferences =>
       $$ReaderPreferencesTableTableManager(_db, _db.readerPreferences);
+  $$MangaReaderPreferencesTableTableManager get mangaReaderPreferences =>
+      $$MangaReaderPreferencesTableTableManager(
+        _db,
+        _db.mangaReaderPreferences,
+      );
   $$ImportRecordsTableTableManager get importRecords =>
       $$ImportRecordsTableTableManager(_db, _db.importRecords);
 }

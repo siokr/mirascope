@@ -8,7 +8,7 @@ final _now = DateTime.utc(2026, 7, 28);
 final _constraintViolation = throwsA(isA<Exception>());
 
 void main() {
-  test('schema version is 3 and creates exactly the seven v3 tables', () async {
+  test('schema version is 4 and creates exactly the nine v4 tables', () async {
     final database = createTestDatabase();
     addTearDown(database.close);
 
@@ -20,12 +20,14 @@ void main() {
         )
         .get();
 
-    expect(database.schemaVersion, 3);
+    expect(database.schemaVersion, 4);
     expect(tableRows.map((row) => row.read<String>('name')).toList(), [
       'bookmarks',
       'content_units',
       'import_records',
       'library_entries',
+      'manga_pages',
+      'manga_reader_preferences',
       'media_items',
       'reader_preferences',
       'reading_progress',
@@ -84,6 +86,7 @@ void main() {
     await _insertMediaItem(database);
     await _insertLibraryEntry(database);
     await _insertContentUnit(database);
+    await _insertMangaPage(database);
     await _insertReadingProgress(database);
     await _insertReaderPreference(
       database,
@@ -92,6 +95,7 @@ void main() {
       mediaItemId: 'media-1',
     );
     await _insertImportRecord(database);
+    await _insertMangaReaderPreference(database);
 
     await (database.delete(
       database.mediaItems,
@@ -99,12 +103,17 @@ void main() {
 
     expect(await database.select(database.libraryEntries).get(), isEmpty);
     expect(await database.select(database.contentUnits).get(), isEmpty);
+    expect(await database.select(database.mangaPages).get(), isEmpty);
     expect(
       await database.select(database.readingProgressEntries).get(),
       isEmpty,
     );
     expect(await database.select(database.readerPreferences).get(), isEmpty);
     expect(await database.select(database.importRecords).get(), isEmpty);
+    expect(
+      await database.select(database.mangaReaderPreferences).get(),
+      isEmpty,
+    );
   });
 
   test('timestamps are stored as UTC epoch milliseconds', () async {
@@ -160,6 +169,47 @@ void main() {
 
     await expectLater(
       _insertContentUnit(database, orderIndex: -1),
+      _constraintViolation,
+    );
+  });
+
+  test('duplicate manga page order within a chapter is rejected', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    await _insertMediaItem(database, mediaType: 'manga');
+    await _insertContentUnit(database);
+    await _insertMangaPage(database, id: 'page-1', orderIndex: 0);
+
+    await expectLater(
+      _insertMangaPage(database, id: 'page-2', orderIndex: 0),
+      _constraintViolation,
+    );
+  });
+
+  test('manga page dimensions and type are constrained', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    await _insertMediaItem(database, mediaType: 'manga');
+    await _insertContentUnit(database);
+
+    await expectLater(
+      _insertMangaPage(database, mimeType: 'image/gif'),
+      _constraintViolation,
+    );
+    await expectLater(
+      _insertMangaPage(database, pixelWidth: 0),
+      _constraintViolation,
+    );
+  });
+
+  test('one manga preference per media item is enforced', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    await _insertMediaItem(database, mediaType: 'manga');
+    await _insertMangaReaderPreference(database, id: 'manga-pref-1');
+
+    await expectLater(
+      _insertMangaReaderPreference(database, id: 'manga-pref-2'),
       _constraintViolation,
     );
   });
@@ -394,6 +444,48 @@ Future<void> _insertReadingProgress(
           fraction: fraction,
           updatedAt: _now,
           revision: revision,
+        ),
+      );
+}
+
+Future<void> _insertMangaPage(
+  AppDatabase database, {
+  String id = 'page-1',
+  int orderIndex = 0,
+  String mimeType = 'image/png',
+  int? pixelWidth = 1,
+}) {
+  return database
+      .into(database.mangaPages)
+      .insert(
+        MangaPagesCompanion.insert(
+          id: id,
+          contentUnitId: 'unit-1',
+          orderIndex: orderIndex,
+          contentRef: 'manga/unit-1/$id',
+          sourceLocator: 'chapter/$id.png',
+          contentHash: 'hash-$id',
+          mimeType: mimeType,
+          byteLength: 100,
+          pixelWidth: Value(pixelWidth),
+          pixelHeight: const Value(1),
+        ),
+      );
+}
+
+Future<void> _insertMangaReaderPreference(
+  AppDatabase database, {
+  String id = 'manga-pref-1',
+}) {
+  return database
+      .into(database.mangaReaderPreferences)
+      .insert(
+        MangaReaderPreferencesCompanion.insert(
+          id: id,
+          mediaItemId: 'media-1',
+          readingMode: 'vertical',
+          pageTurnDirection: 'rightToLeft',
+          updatedAt: _now,
         ),
       );
 }
