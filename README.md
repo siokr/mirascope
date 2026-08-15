@@ -2,7 +2,7 @@
 
 `mirascope` 是一个使用 Flutter 开发的本地优先个人阅读与媒体管理应用。文件留在用户设备上，应用负责可靠导入、章节组织、阅读设置、书签和进度恢复。
 
-> 当前状态：`v0.2.0` 已正式发布。Windows 与 Android 的 TXT/EPUB 阅读闭环、书签、双平台人工验收、50 MiB TXT 性能复测及 Android 正式签名包复验均已完成。
+> 当前状态：`v0.2.0` 已正式发布；`v0.3.0-rc.1` 已完成 Windows/Android 本地漫画闭环、性能基线、双平台人工验收及 Android 正式签名包复验，正在进行正式发布收口。
 
 ## 当前能力
 
@@ -10,6 +10,9 @@
 
 - 单个 TXT 文件选择、元数据校验和流式 SHA-256 指纹；
 - 未加密 EPUB 2/3 的结构解析、章节、语义正文和本地图片；
+- 本地漫画图片目录与 ZIP/CBZ 的安全扫描、自然排序、章节和封面；
+- 漫画纵向连续、横向单页和封面单独成屏的横向双页阅读；
+- 漫画页级进度、阅读方向、预加载、有界缓存、缓存清理和来源恢复；
 - UTF-8、UTF-16 LE/BE 和 GB18030 严格解码；
 - 中英文常见章节识别与无章节回退；
 - 媒体、媒体库、章节和导入记录的原子事务；
@@ -28,18 +31,19 @@
 
 - 不同内容文件经用户确认后的安全原位重解析；
 - Windows 与 Android 应用商店安装包；
-- 漫画、在线内容源、账号和同步。
+- 在线内容源、下载、账号和同步；
+- Android 普通图片目录的跨重启持久授权。
 
 完整限制见 [已知问题](docs/known-issues.md)。
 
 ## 核心路径
 
 ```text
-导入 TXT
-→ 确认书名或选择编码
+导入 TXT、EPUB 或本地漫画
+→ 验证文本、书籍结构或图片容器
 → 加入媒体库
 → 查看目录并开始阅读
-→ 切换章节、滚动和调整显示
+→ 切换章节、滚动、翻页和调整显示
 → 关闭应用
 → 再次启动并恢复语义位置
 ```
@@ -63,7 +67,7 @@ Data          Drift、文件系统和平台插件实现
 关键工程约束：
 
 - 页面不直接执行 SQL 或解析文件；
-- 用户原 TXT 不由应用修改或删除；
+- 用户原 TXT、EPUB、漫画目录或压缩包不由应用修改或删除；
 - 数据库与派生文本采用暂存、提升、事务和失败补偿；
 - 日志不记录正文、标题、完整路径、原始异常或堆栈；
 - 远期 Go、PostgreSQL 和 Rust 能力只有满足进入条件后才引入。
@@ -77,15 +81,15 @@ Data          Drift、文件系统和平台插件实现
 ```text
 格式检查：通过
 静态分析：0 问题
-自动化测试：290/290 通过
+自动化测试：381/381 通过
 ```
 
 最近一次远程质量门禁：
 
 - Flutter `3.44.8` / Dart `3.12.2`；
 - 通用质量检查通过；
-- GitHub Windows release 与 Android debug APK 构建通过；
-- [查看 MVP 0.2 布局候选 CI 记录](https://github.com/siokr/mirascope/actions/runs/31305783164)。
+- GitHub Windows release、Android debug 与 Android 正式签名 APK 构建通过；
+- [查看 v0.3.0-rc.1 标签构建 #69](https://github.com/siokr/mirascope/actions/runs/31877458954)。
 
 50 MiB TXT 当前 AOT 复测：
 
@@ -95,6 +99,8 @@ Data          Drift、文件系统和平台插件实现
 - RSS 增量中位数 `206.74 MiB`。
 
 与 `v0.1.0` 同机基线相比没有阻塞发布的回归。完整环境和三次原始结果见 [当前性能报告](docs/performance/2026-08-09-txt-baseline.md)。
+
+漫画基线使用 85 章、891 页、243.60 MiB 本地样本：完整扫描及真实图片验证中位数 `15.17 s`，冷缓存首张读取 `6.02 ms`，连续读取 50 页 `463 ms`。完整边界和原始数据见 [漫画性能报告](docs/performance/2026-08-15-manga-baseline.md)。
 
 ## 在 Windows 上运行
 
@@ -129,7 +135,7 @@ flutter build windows --release
 - [候选版本演示指南](docs/demo-guide.md)
 - [MVP 任务与证据](docs/mvp-task-list.md)
 - [质量策略](docs/quality-strategy.md)
-- [MVP 0.2 候选版本记录](docs/releases/0.2.0-rc.1.md)
+- [Version 0.3 候选版本记录](docs/releases/0.3.0-rc.1.md)
 - [发布检查清单](docs/release-checklist.md)
 
 ### Windows 候选版实机截图
