@@ -15,6 +15,8 @@ import '../../features/settings/data/drift_reader_preference_repository.dart';
 import '../../features/settings/domain/reader_preference_repository.dart';
 import '../../features/manga/data/drift_manga_details_repository.dart';
 import '../../features/manga/domain/manga_details_repository.dart';
+import '../../features/manga/data/drift_manga_reader_preference_repository.dart';
+import '../../features/manga/domain/manga_reader_preference_repository.dart';
 import 'app_database.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
@@ -42,6 +44,13 @@ final novelDetailsRepositoryProvider = Provider<NovelDetailsRepository>((ref) {
 final mangaDetailsRepositoryProvider = Provider<MangaDetailsRepository>((ref) {
   return DriftMangaDetailsRepository(ref.watch(appDatabaseProvider));
 });
+
+final mangaReaderPreferenceRepositoryProvider =
+    Provider<MangaReaderPreferenceRepository>((ref) {
+      return DriftMangaReaderPreferenceRepository(
+        ref.watch(appDatabaseProvider),
+      );
+    });
 
 final readerPreferenceRepositoryProvider = Provider<ReaderPreferenceRepository>(
   (ref) {

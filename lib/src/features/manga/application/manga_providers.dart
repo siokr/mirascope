@@ -6,6 +6,8 @@ import '../../../core/database/database_providers.dart';
 import '../domain/manga_details.dart';
 import '../data/dart_io_manga_reader_repository.dart';
 import '../domain/manga_reader_book.dart';
+import 'manga_reading_state.dart';
+import '../../../core/ids/id_generator.dart';
 import '../../importing/application/importing_providers.dart';
 
 final mangaDetailsProvider = FutureProvider.autoDispose
@@ -43,3 +45,31 @@ final mangaReaderBookProvider = FutureProvider.autoDispose
       (ref, mediaItemId) =>
           ref.watch(mangaReaderRepositoryProvider).loadBook(mediaItemId),
     );
+
+typedef MangaReadingRequest = ({
+  String mediaItemId,
+  String? initialContentUnitId,
+});
+
+final mangaReadingStateProvider = FutureProvider.autoDispose
+    .family<MangaReadingState, MangaReadingRequest>((ref, request) async {
+      final book = await ref.watch(
+        mangaReaderBookProvider(request.mediaItemId).future,
+      );
+      if (book == null || book.pages.isEmpty) {
+        throw StateError('manga_reader_empty');
+      }
+      final state = MangaReadingState(
+        mediaItemId: request.mediaItemId,
+        book: book,
+        progressRepository: ref.watch(readingProgressRepositoryProvider),
+        preferenceRepository: ref.watch(
+          mangaReaderPreferenceRepositoryProvider,
+        ),
+        idGenerator: const UuidIdGenerator(),
+        clock: () => DateTime.now().toUtc(),
+        initialContentUnitId: request.initialContentUnitId,
+      );
+      await state.initialize();
+      return state;
+    });

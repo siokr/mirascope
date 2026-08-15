@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/manga_providers.dart';
+import '../application/manga_reading_state.dart';
 import '../domain/manga_page.dart';
 import '../domain/manga_reader_book.dart';
 import '../domain/manga_reader_preference.dart';
@@ -20,26 +23,25 @@ class MangaReaderPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final book = ref.watch(mangaReaderBookProvider(mediaItemId));
-    return book.when(
+    final request = (
+      mediaItemId: mediaItemId,
+      initialContentUnitId: initialContentUnitId,
+    );
+    final reading = ref.watch(mangaReadingStateProvider(request));
+    return reading.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (_, _) => Scaffold(
         appBar: AppBar(title: const Text('漫画阅读器')),
         body: const Center(child: Text('无法打开漫画')),
       ),
-      data: (value) => value == null || value.pages.isEmpty
-          ? Scaffold(
-              appBar: AppBar(title: const Text('漫画阅读器')),
-              body: const Center(child: Text('没有可阅读的页面')),
-            )
-          : _Reader(
-              book: value,
-              repository: ref.watch(mangaReaderRepositoryProvider),
-              mediaItemId: mediaItemId,
-              initialContentUnitId: initialContentUnitId,
-              onExit: onExit,
-            ),
+      data: (value) => _Reader(
+        book: value.book,
+        readingState: value,
+        repository: ref.watch(mangaReaderRepositoryProvider),
+        mediaItemId: mediaItemId,
+        onExit: onExit,
+      ),
     );
   }
 }
@@ -48,21 +50,21 @@ class _Reader extends StatefulWidget {
   const _Reader({
     required this.book,
     required this.repository,
+    required this.readingState,
     required this.mediaItemId,
     required this.onExit,
-    this.initialContentUnitId,
   });
   final MangaReaderBook book;
   final MangaReaderRepository repository;
+  final MangaReadingState readingState;
   final String mediaItemId;
-  final String? initialContentUnitId;
   final VoidCallback onExit;
 
   @override
   State<_Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends State<_Reader> {
+class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
   late int _currentIndex;
   var _mode = MangaReadingMode.vertical;
   var _direction = PageTurnDirection.leftToRight;
@@ -74,32 +76,39 @@ class _ReaderState extends State<_Reader> {
   @override
   void initState() {
     super.initState();
-    _currentIndex = _initialIndex();
+    WidgetsBinding.instance.addObserver(this);
+    _currentIndex = widget.readingState.currentPageIndex;
+    _mode = widget.readingState.mode;
+    _direction = widget.readingState.direction;
     _pageKeys = List.generate(widget.book.pages.length, (_) => GlobalKey());
     _pageController = PageController(initialPage: _currentIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) => _restoreVertical());
   }
 
-  int _initialIndex() {
-    final chapterId = widget.initialContentUnitId;
-    if (chapterId == null) return 0;
-    final index = widget.book.pages.indexWhere(
-      (page) => page.contentUnitId == chapterId,
-    );
-    return index < 0 ? 0 : index;
-  }
-
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(widget.readingState.flushProgress());
     _pageController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      unawaited(widget.readingState.flushProgress());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) => CallbackShortcuts(
     bindings: {
-      const SingleActivator(LogicalKeyboardKey.escape): widget.onExit,
+      const SingleActivator(LogicalKeyboardKey.escape): () =>
+          unawaited(_exit()),
       const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
           _step(_direction == PageTurnDirection.leftToRight ? -1 : 1),
       const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
@@ -114,7 +123,7 @@ class _ReaderState extends State<_Reader> {
           leading: IconButton(
             key: const Key('manga-reader-exit'),
             tooltip: '返回',
-            onPressed: widget.onExit,
+            onPressed: _exit,
             icon: const Icon(Icons.arrow_back),
           ),
           title: Text(widget.book.mediaItem.title),
@@ -170,6 +179,7 @@ class _ReaderState extends State<_Reader> {
   void _recordVerticalPage() {
     var closest = _currentIndex;
     var closestDistance = double.infinity;
+    var fraction = 0.0;
     for (var index = 0; index < _pageKeys.length; index++) {
       final box = _pageKeys[index].currentContext?.findRenderObject();
       if (box is! RenderBox || !box.attached) continue;
@@ -177,10 +187,14 @@ class _ReaderState extends State<_Reader> {
       if (distance < closestDistance) {
         closestDistance = distance;
         closest = index;
+        fraction = (-box.localToGlobal(Offset.zero).dy / box.size.height).clamp(
+          0.0,
+          1.0,
+        );
       }
     }
-    if (closest != _currentIndex && mounted) {
-      setState(() => _currentIndex = closest);
+    if (mounted) {
+      _setCurrentPage(closest, fraction: fraction);
     }
   }
 
@@ -189,7 +203,7 @@ class _ReaderState extends State<_Reader> {
     controller: _pageController,
     reverse: _direction == PageTurnDirection.rightToLeft,
     itemCount: widget.book.pages.length,
-    onPageChanged: (index) => setState(() => _currentIndex = index),
+    onPageChanged: _setCurrentPage,
     itemBuilder: (context, index) => InteractiveViewer(
       minScale: 1,
       maxScale: 4,
@@ -231,6 +245,7 @@ class _ReaderState extends State<_Reader> {
 
   void _setMode(MangaReadingMode mode) {
     if (_mode == mode) return;
+    unawaited(widget.readingState.flushProgress());
     setState(() {
       _mode = mode;
       if (mode == MangaReadingMode.horizontal) {
@@ -238,9 +253,26 @@ class _ReaderState extends State<_Reader> {
         _pageController = PageController(initialPage: _currentIndex);
       }
     });
+    unawaited(widget.readingState.setPreference(_mode, _direction));
     if (mode == MangaReadingMode.vertical) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _restoreVertical());
     }
+  }
+
+  void _setCurrentPage(int index, {double fraction = 0}) {
+    final changed = _currentIndex != index;
+    if (changed) {
+      setState(() => _currentIndex = index);
+    }
+    widget.readingState.updatePage(index, fraction: fraction);
+    if (changed) {
+      unawaited(widget.readingState.flushProgress());
+    }
+  }
+
+  Future<void> _exit() async {
+    await widget.readingState.flushProgress();
+    if (mounted) widget.onExit();
   }
 
   void _restoreVertical() {
@@ -292,6 +324,7 @@ class _ReaderState extends State<_Reader> {
               selected: {_direction},
               onSelectionChanged: (values) {
                 setState(() => _direction = values.single);
+                unawaited(widget.readingState.setPreference(_mode, _direction));
                 Navigator.pop(context);
               },
             ),
@@ -317,7 +350,7 @@ class _ReaderState extends State<_Reader> {
                   (page) => page.contentUnitId == chapter.unit.id,
                 );
                 if (index >= 0) {
-                  setState(() => _currentIndex = index);
+                  _setCurrentPage(index);
                   if (_mode == MangaReadingMode.horizontal) {
                     _pageController.jumpToPage(index);
                   } else {

@@ -4,11 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
+import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/manga/application/manga_providers.dart';
 import 'package:mirascope/src/features/manga/domain/manga_page.dart';
 import 'package:mirascope/src/features/manga/domain/manga_reader_book.dart';
+import 'package:mirascope/src/features/manga/domain/manga_reader_preference.dart';
+import 'package:mirascope/src/features/manga/domain/manga_reader_preference_repository.dart';
 import 'package:mirascope/src/features/manga/presentation/manga_reader_page.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
+import 'package:mirascope/src/features/novel/domain/progress_write_result.dart';
+import 'package:mirascope/src/features/novel/domain/reading_progress.dart';
+import 'package:mirascope/src/features/novel/domain/reading_progress_repository.dart';
 
 import '../../../../support/manga_test_fixture.dart';
 
@@ -67,7 +73,15 @@ Future<void> _pump(
 }) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [mangaReaderRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        mangaReaderRepositoryProvider.overrideWithValue(repository),
+        readingProgressRepositoryProvider.overrideWithValue(
+          _ProgressRepository(),
+        ),
+        mangaReaderPreferenceRepositoryProvider.overrideWithValue(
+          _PreferenceRepository(),
+        ),
+      ],
       child: MaterialApp(
         home: MangaReaderPage(
           mediaItemId: 'media',
@@ -89,6 +103,30 @@ final class _Repository implements MangaReaderRepository {
   Future<Uint8List> readPage(String mediaItemId, MangaPage page) async {
     if (page.id == failPageId) throw StateError('broken');
     return generatedMangaPng();
+  }
+}
+
+final class _ProgressRepository implements ReadingProgressRepository {
+  ReadingProgress? value;
+  @override
+  Future<ReadingProgress?> findForMedia(String mediaItemId) async => value;
+  @override
+  Future<ProgressWriteResult> save(ReadingProgress progress) async {
+    value = progress;
+    return progress.revision == 0
+        ? ProgressWriteResult.inserted
+        : ProgressWriteResult.updated;
+  }
+}
+
+final class _PreferenceRepository implements MangaReaderPreferenceRepository {
+  MangaReaderPreference? value;
+  @override
+  Future<MangaReaderPreference?> findForMedia(String mediaItemId) async =>
+      value;
+  @override
+  Future<void> save(MangaReaderPreference preference) async {
+    value = preference;
   }
 }
 
