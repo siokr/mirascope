@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/reader_settings_controller.dart';
 import '../application/settings_providers.dart';
+import '../../manga/application/manga_providers.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -21,15 +22,34 @@ class SettingsPage extends ConsumerWidget {
             child: const Text('重试'),
           ),
         ),
-        data: (value) => _GlobalReaderSettings(controller: value),
+        data: (value) => _GlobalReaderSettings(
+          controller: value,
+          clearMangaCache: () async {
+            final messenger = ScaffoldMessenger.of(context);
+            try {
+              await (await ref.read(mangaPageCacheProvider.future)).clear();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('漫画页面缓存已清理')),
+              );
+            } on Object {
+              messenger.showSnackBar(
+                const SnackBar(content: Text('清理失败，请稍后重试')),
+              );
+            }
+          },
+        ),
       ),
     );
   }
 }
 
 class _GlobalReaderSettings extends StatelessWidget {
-  const _GlobalReaderSettings({required this.controller});
+  const _GlobalReaderSettings({
+    required this.controller,
+    required this.clearMangaCache,
+  });
   final ReaderSettingsController controller;
+  final Future<void> Function() clearMangaCache;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +111,34 @@ class _GlobalReaderSettings extends StatelessWidget {
                   onPressed: controller.resetToInherited,
                   child: const Text('恢复程序默认值'),
                 ),
+              ),
+              const Divider(height: 32),
+              ListTile(
+                key: const Key('clear-manga-cache'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.cleaning_services_outlined),
+                title: const Text('清理漫画页面缓存'),
+                subtitle: const Text('不会删除书籍、阅读进度或源文件'),
+                onTap: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('清理漫画页面缓存？'),
+                      content: const Text('缓存会在下次阅读时自动重新生成。'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('取消'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('清理'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true) await clearMangaCache();
+                },
               ),
             ],
           ),

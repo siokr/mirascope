@@ -40,11 +40,20 @@ final class MangaPageLoader {
     for (final index in candidates) {
       if (generation != _generation) return;
       final page = pages[index];
-      final key = _key(page);
-      if (await cache.get(key) != null) continue;
-      final bytes = await repository.readPage(mediaItemId, page);
-      if (generation != _generation) return;
-      await cache.put(key, bytes);
+      try {
+        final key = _key(page);
+        if (await cache.get(key) != null) continue;
+        final bytes = await repository.readPage(mediaItemId, page);
+        if (generation != _generation) return;
+        await cache.put(key, bytes);
+      } on OutOfMemoryError {
+        cancelPreload();
+        return;
+      } on Object {
+        // Preloading is opportunistic. The foreground load owns user-visible
+        // recovery, so a broken neighbouring page must not interrupt reading.
+        continue;
+      }
     }
   }
 

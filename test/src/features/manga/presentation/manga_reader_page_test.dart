@@ -63,7 +63,27 @@ void main() {
     await _pump(tester, repository: _Repository(failPageId: 'page-1'));
     await tester.pumpAndSettle();
     expect(find.text('此页无法显示'), findsOneWidget);
+    expect(find.text('重试当前页'), findsOneWidget);
+    expect(find.text('本章所有页面均无法读取，请检查源文件或重试。'), findsOneWidget);
+    expect(find.text('重试本章'), findsOneWidget);
     expect(find.text('1 / 3'), findsOneWidget);
+  });
+
+  testWidgets('retry replaces the failed foreground load', (tester) async {
+    final repository = _RetryRepository();
+    await _pump(tester, repository: repository);
+    expect(find.text('此页无法显示'), findsOneWidget);
+
+    final retry = find.widgetWithText(TextButton, '重试当前页');
+    await tester.ensureVisible(retry);
+    await tester.pumpAndSettle();
+    tester.widget<TextButton>(retry).onPressed!();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
+
+    expect(find.text('此页无法显示'), findsNothing);
+    expect(find.text('重试当前页'), findsNothing);
   });
 }
 
@@ -71,7 +91,7 @@ Future<void> _pump(
   WidgetTester tester, {
   String? initialChapter,
   VoidCallback? onExit,
-  _Repository repository = const _Repository(),
+  MangaReaderRepository repository = const _Repository(),
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -95,6 +115,19 @@ Future<void> _pump(
     ),
   );
   await tester.pumpAndSettle();
+}
+
+final class _RetryRepository implements MangaReaderRepository {
+  var pageOneAttempts = 0;
+  @override
+  Future<MangaReaderBook?> loadBook(String mediaItemId) async => _book;
+  @override
+  Future<Uint8List> readPage(String mediaItemId, MangaPage page) async {
+    if (page.id == 'page-1' && pageOneAttempts++ == 0) {
+      throw StateError('temporarily broken');
+    }
+    return generatedMangaPng();
+  }
 }
 
 final class _Repository implements MangaReaderRepository {

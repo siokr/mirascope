@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +8,8 @@ import 'package:mirascope/src/features/settings/domain/effective_reader_preferen
 import 'package:mirascope/src/features/settings/domain/reader_preference.dart';
 import 'package:mirascope/src/features/settings/domain/reader_preference_repository.dart';
 import 'package:mirascope/src/features/settings/presentation/settings_page.dart';
+import 'package:mirascope/src/features/manga/application/manga_providers.dart';
+import 'package:mirascope/src/features/manga/domain/manga_page_cache.dart';
 
 void main() {
   testWidgets('settings remain usable on a narrow screen with large text', (
@@ -65,6 +69,42 @@ void main() {
       {'dark'},
     );
   });
+
+  testWidgets(
+    'clears only the regenerable manga page cache after confirmation',
+    (tester) async {
+      final cache = _PageCache();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            readerPreferenceRepositoryProvider.overrideWithValue(_Repository()),
+            mangaPageCacheProvider.overrideWith((ref) async => cache),
+          ],
+          child: const MaterialApp(home: SettingsPage()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).last, const Offset(0, -500));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('清理漫画页面缓存').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, '清理'));
+      await tester.pumpAndSettle();
+
+      expect(cache.clearCount, 1);
+      expect(find.text('漫画页面缓存已清理'), findsOneWidget);
+    },
+  );
+}
+
+final class _PageCache implements MangaPageCache {
+  var clearCount = 0;
+  @override
+  Future<void> clear() async => clearCount++;
+  @override
+  Future<Uint8List?> get(MangaPageCacheKey key) async => null;
+  @override
+  Future<void> put(MangaPageCacheKey key, Uint8List bytes) async {}
 }
 
 final class _Repository implements ReaderPreferenceRepository {

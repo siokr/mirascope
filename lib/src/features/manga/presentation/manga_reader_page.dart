@@ -80,6 +80,8 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
   late PageController _pageController;
   final ScrollController _scrollController = ScrollController();
   final _loads = <String, Future<Uint8List>>{};
+  final _failedPages = <String>{};
+  var _memoryPressure = false;
   late final List<GlobalKey> _pageKeys;
 
   @override
@@ -153,7 +155,21 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
             ),
           ],
         ),
-        body: _mode == MangaReadingMode.vertical ? _vertical() : _horizontal(),
+        body: Column(
+          children: [
+            if (_currentChapterFailed) _chapterFailureBanner(),
+            if (_memoryPressure)
+              const MaterialBanner(
+                content: Text('内存不足，已停止预加载；可重试当前页面。'),
+                actions: [SizedBox.shrink()],
+              ),
+            Expanded(
+              child: _mode == MangaReadingMode.vertical
+                  ? _vertical()
+                  : _horizontal(),
+            ),
+          ],
+        ),
         bottomNavigationBar: SafeArea(
           top: false,
           child: Padding(
@@ -182,6 +198,8 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
         child: _PageImage(
           key: ValueKey('manga-page-$index'),
           load: _load(widget.book.pages[index]),
+          onError: (error) => _recordFailure(widget.book.pages[index], error),
+          onRetry: () => _retryPage(widget.book.pages[index]),
         ),
       ),
     ),
@@ -218,12 +236,63 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     itemBuilder: (context, index) => InteractiveViewer(
       minScale: 1,
       maxScale: 4,
-      child: Center(child: _PageImage(load: _load(widget.book.pages[index]))),
+      child: Center(
+        child: _PageImage(
+          load: _load(widget.book.pages[index]),
+          onError: (error) => _recordFailure(widget.book.pages[index], error),
+          onRetry: () => _retryPage(widget.book.pages[index]),
+        ),
+      ),
     ),
   );
 
   Future<Uint8List> _load(MangaPage page) =>
       _loads.putIfAbsent(page.id, () => widget.loader.load(page));
+
+  void _recordFailure(MangaPage page, Object error) {
+    if (!mounted || _failedPages.contains(page.id)) return;
+    setState(() {
+      _failedPages.add(page.id);
+      if (error is OutOfMemoryError) {
+        _memoryPressure = true;
+        widget.loader.cancelPreload();
+      }
+    });
+  }
+
+  void _retryPage(MangaPage page) => setState(() {
+    _loads[page.id] = widget.loader.load(page);
+    _failedPages.remove(page.id);
+  });
+
+  bool get _currentChapterFailed {
+    final chapterId = widget.book.pages[_currentIndex].contentUnitId;
+    final pages = widget.book.pages.where(
+      (page) => page.contentUnitId == chapterId,
+    );
+    return pages.isNotEmpty &&
+        pages.every((page) => _failedPages.contains(page.id));
+  }
+
+  Widget _chapterFailureBanner() => MaterialBanner(
+    content: const Text('本章所有页面均无法读取，请检查源文件或重试。'),
+    actions: [
+      TextButton(onPressed: _retryCurrentChapter, child: const Text('重试本章')),
+      TextButton(onPressed: _showDirectory, child: const Text('返回目录')),
+    ],
+  );
+
+  void _retryCurrentChapter() {
+    final chapterId = widget.book.pages[_currentIndex].contentUnitId;
+    setState(() {
+      for (final page in widget.book.pages.where(
+        (page) => page.contentUnitId == chapterId,
+      )) {
+        _loads[page.id] = widget.loader.load(page);
+        _failedPages.remove(page.id);
+      }
+    });
+  }
 
   void _step(int delta) {
     if (_mode != MangaReadingMode.horizontal) return;
@@ -378,21 +447,54 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
 }
 
 class _PageImage extends StatefulWidget {
-  const _PageImage({required this.load, super.key});
+  const _PageImage({
+    required this.load,
+    required this.onError,
+    required this.onRetry,
+    super.key,
+  });
   final Future<Uint8List> load;
+  final ValueChanged<Object> onError;
+  final VoidCallback onRetry;
   @override
   State<_PageImage> createState() => _PageImageState();
 }
 
 class _PageImageState extends State<_PageImage> {
+  Object? _reportedError;
+
+  @override
+  void didUpdateWidget(covariant _PageImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.load != widget.load) _reportedError = null;
+  }
+
   @override
   Widget build(BuildContext context) => FutureBuilder<Uint8List>(
     future: widget.load,
     builder: (context, snapshot) {
       if (snapshot.hasError) {
-        return const SizedBox(
+        final error = snapshot.error!;
+        if (!identical(_reportedError, error)) {
+          _reportedError = error;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => widget.onError(error),
+          );
+        }
+        return SizedBox(
           height: 320,
-          child: Center(child: Text('此页无法显示')),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('此页无法显示'),
+                TextButton(
+                  onPressed: widget.onRetry,
+                  child: const Text('重试当前页'),
+                ),
+              ],
+            ),
+          ),
         );
       }
       if (!snapshot.hasData) {
