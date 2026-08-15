@@ -7,6 +7,7 @@ import '../domain/source_relocation_repository.dart';
 import '../domain/successful_import.dart';
 import '../domain/txt_encoding.dart';
 import '../domain/source_candidate.dart';
+import '../../library/domain/media_item.dart' show MediaType;
 
 final class DriftImportRepository
     implements ImportRepository, SourceRelocationRepository {
@@ -136,6 +137,27 @@ final class DriftImportRepository
               )
               .toList(),
         );
+        if (value.mangaPages.isNotEmpty) {
+          batch.insertAll(
+            database.mangaPages,
+            value.mangaPages
+                .map(
+                  (page) => MangaPagesCompanion.insert(
+                    id: page.id,
+                    contentUnitId: page.contentUnitId,
+                    orderIndex: page.orderIndex,
+                    contentRef: page.contentRef,
+                    sourceLocator: page.sourceLocator,
+                    contentHash: page.contentHash,
+                    mimeType: page.imageType.storageValue,
+                    byteLength: page.byteLength,
+                    pixelWidth: Value(page.pixelWidth),
+                    pixelHeight: Value(page.pixelHeight),
+                  ),
+                )
+                .toList(),
+          );
+        }
       });
       await database
           .into(database.importRecords)
@@ -180,6 +202,22 @@ final class DriftImportRepository
           'Every contentUnit.mediaItemId must equal mediaItem.id',
         );
       }
+    }
+    final contentUnitIds = value.contentUnits.map((unit) => unit.id).toSet();
+    for (final page in value.mangaPages) {
+      if (!contentUnitIds.contains(page.contentUnitId)) {
+        throw ArgumentError(
+          'Every mangaPage.contentUnitId must reference an imported content unit',
+        );
+      }
+    }
+    if (value.mediaItem.mediaType == MediaType.manga &&
+        value.mangaPages.isEmpty) {
+      throw ArgumentError('A manga import requires mangaPages');
+    }
+    if (value.mediaItem.mediaType != MediaType.manga &&
+        value.mangaPages.isNotEmpty) {
+      throw ArgumentError('Only manga imports may contain mangaPages');
     }
     if (value.importRecord.mediaItemId != mediaItemId) {
       throw ArgumentError('importRecord.mediaItemId must equal mediaItem.id');
