@@ -99,6 +99,35 @@ void main() {
     expect(find.byKey(const Key('manga-page-image-page-3')), findsOneWidget);
   });
 
+  testWidgets('double-page images meet at the center in landscape', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1600, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('manga-reader-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('横向双页'));
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<Align>(find.byKey(const Key('manga-spread-slot-0')))
+          .alignment,
+      Alignment.centerRight,
+    );
+    expect(
+      tester
+          .widget<Align>(find.byKey(const Key('manga-spread-slot-1')))
+          .alignment,
+      Alignment.centerLeft,
+    );
+  });
+
   testWidgets('a failed page shows a placeholder without blocking the reader', (
     tester,
   ) async {

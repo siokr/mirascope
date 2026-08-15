@@ -268,8 +268,18 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        for (final index in displayIndexes)
-          Expanded(child: Center(child: _pageImage(widget.book.pages[index]))),
+        for (var position = 0; position < displayIndexes.length; position++)
+          Expanded(
+            child: Align(
+              key: Key('manga-spread-slot-$position'),
+              alignment: displayIndexes.length == 1
+                  ? Alignment.center
+                  : position == 0
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
+              child: _pageImage(widget.book.pages[displayIndexes[position]]),
+            ),
+          ),
       ],
     );
   }
