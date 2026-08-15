@@ -34,6 +34,39 @@ void main() {
     );
   });
 
+  test('decodes strictly round-tripped legacy Chinese ZIP names', () async {
+    final encoded = await _encodedArchive([
+      ArchiveFile.bytes('chapte/1.png', generatedMangaPng()),
+    ]);
+    final legacyName = [
+      0xb5,
+      0xda,
+      0x30,
+      0x31,
+      0xbb,
+      0xd8,
+      0x2f,
+      0x31,
+      0x2e,
+      0x70,
+      0x6e,
+      0x67,
+    ];
+    final source = await _writeBytes(
+      temporaryDirectory,
+      _replaceFirstFilename(encoded, legacyName),
+    );
+    final container = await DartIoMangaArchiveContainer.open(
+      source.path,
+      legacyFilenameDecoder: (bytes) async =>
+          bytes.length == legacyName.length ? '第01回/1.png' : null,
+    );
+    addTearDown(container.close);
+
+    expect(container.contains('第01回/1.png'), isTrue);
+    expect(await container.readBytes('第01回/1.png'), generatedMangaPng());
+  });
+
   test('closed container cannot be reused', () async {
     final source = await _writeBytes(temporaryDirectory, basicMangaArchive());
     final container = await DartIoMangaArchiveContainer.open(source.path);
@@ -227,6 +260,33 @@ List<int> _markZipEncrypted(List<int> original) {
       bytes[index + 8] |= 0x1;
     }
   }
+  return bytes;
+}
+
+List<int> _replaceFirstFilename(List<int> original, List<int> replacement) {
+  final bytes = List<int>.from(original);
+  final originalLength = bytes[26] | (bytes[27] << 8);
+  if (originalLength != replacement.length) {
+    throw ArgumentError('replacement must keep the original byte length');
+  }
+  bytes.setRange(30, 30 + replacement.length, replacement);
+  for (var index = 0; index <= bytes.length - 4; index++) {
+    if (bytes[index] == 0x50 &&
+        bytes[index + 1] == 0x4b &&
+        bytes[index + 2] == 0x01 &&
+        bytes[index + 3] == 0x02) {
+      final nameLength = bytes[index + 28] | (bytes[index + 29] << 8);
+      if (nameLength != replacement.length) {
+        throw ArgumentError('central filename length changed');
+      }
+      bytes.setRange(index + 46, index + 46 + replacement.length, replacement);
+      bytes[index + 8] &= ~0x8;
+      bytes[index + 9] &= ~0x8;
+      break;
+    }
+  }
+  bytes[6] &= ~0x8;
+  bytes[7] &= ~0x8;
   return bytes;
 }
 

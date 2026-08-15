@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:charset_converter/charset_converter.dart';
 
 import '../../../core/errors/app_error_code.dart';
 import '../../../core/errors/app_failure.dart';
@@ -24,6 +25,7 @@ final class DartIoMangaArchiveContainer implements MangaArchiveContainer {
   static Future<DartIoMangaArchiveContainer> open(
     String sourcePath, {
     MangaArchiveBudget budget = const MangaArchiveBudget(),
+    Future<String?> Function(Uint8List bytes)? legacyFilenameDecoder,
   }) async {
     InputFileStream? input;
     try {
@@ -57,7 +59,12 @@ final class DartIoMangaArchiveContainer implements MangaArchiveContainer {
         if (header.compressionMethod != 0 && header.compressionMethod != 8) {
           throw AppFailure.fromCode(AppErrorCode.mangaInvalidContainer);
         }
-        final normalized = normalizeMangaArchivePath(header.filename);
+        final decodedFilename = await _decodeZipFilename(
+          header.filename,
+          header.generalPurposeBitFlag,
+          legacyFilenameDecoder ?? _decodeGb18030Filename,
+        );
+        final normalized = normalizeMangaArchivePath(decodedFilename);
         final file = archive.find(header.filename);
         if (file == null || file.isSymbolicLink) {
           throw AppFailure.fromCode(AppErrorCode.mangaUnsafePath);
@@ -154,6 +161,36 @@ final class DartIoMangaArchiveContainer implements MangaArchiveContainer {
       throw StateError('Manga archive container is closed');
     }
   }
+}
+
+Future<String> _decodeZipFilename(
+  String filename,
+  int generalPurposeBitFlag,
+  Future<String?> Function(Uint8List bytes) legacyDecoder,
+) async {
+  const utf8FilenameFlag = 0x800;
+  if ((generalPurposeBitFlag & utf8FilenameFlag) != 0 ||
+      filename.codeUnits.every((unit) => unit < 0x80) ||
+      filename.codeUnits.any((unit) => unit > 0xff)) {
+    return filename;
+  }
+  final bytes = Uint8List.fromList(filename.codeUnits);
+  try {
+    return await legacyDecoder(bytes) ?? filename;
+  } on Object {
+    return filename;
+  }
+}
+
+Future<String?> _decodeGb18030Filename(Uint8List bytes) async {
+  final decoded = await CharsetConverter.decode('GB18030', bytes);
+  if (decoded.contains('\uFFFD') || decoded.contains('\u0000')) return null;
+  final encoded = await CharsetConverter.encode('GB18030', decoded);
+  if (encoded.length != bytes.length) return null;
+  for (var index = 0; index < bytes.length; index++) {
+    if (encoded[index] != bytes[index]) return null;
+  }
+  return decoded;
 }
 
 String normalizeMangaArchivePath(String rawPath) {
