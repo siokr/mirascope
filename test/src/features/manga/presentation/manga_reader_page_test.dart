@@ -70,6 +70,8 @@ void main() {
     );
     expect(pageView.childrenDelegate.estimatedChildCount, 2);
     expect(find.byKey(const Key('manga-page-image-page-1')), findsOneWidget);
+    expect(find.byKey(const Key('manga-page-image-page-2')), findsNothing);
+    expect(find.text('1 / 3'), findsOneWidget);
 
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
     await tester.pumpAndSettle();

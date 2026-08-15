@@ -259,7 +259,8 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     final firstIndex = _spreadStart(spreadIndex);
     final indexes = [
       firstIndex,
-      if (firstIndex + 1 < widget.book.pages.length) firstIndex + 1,
+      if (spreadIndex != 0 && firstIndex + 1 < widget.book.pages.length)
+        firstIndex + 1,
     ];
     if (_direction == PageTurnDirection.rightToLeft) {
       indexes.setAll(0, indexes.reversed);
