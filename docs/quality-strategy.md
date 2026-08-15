@@ -90,6 +90,18 @@ dart build cli --target=bin/txt_performance_baseline.dart --output=build/txt_per
 
 工具生成 100 KiB、5 MiB 和 50 MiB 无版权样本；每组预热一次、正式运行三次，并在独立子进程中测量完整导入、首次打开、章节切换和 RSS。Flutter 版本参数必须与当次实际 SDK 一致。
 
+### 5.5 漫画基准入口
+
+漫画基准对用户明确选择的目录或 ZIP/CBZ 执行一次预热和三次正式运行，测量真实图片解码的完整扫描、冷缓存首张读取、连续 50 页读取、缓存字节和测试进程 RSS：
+
+```powershell
+$env:MIRASCOPE_MANGA_BENCHMARK_SOURCE='<directory-or-archive>'
+$env:MIRASCOPE_MANGA_BENCHMARK_KIND='directory' # 或 archive
+flutter test tool/manga_performance_baseline_test.dart --reporter expanded
+```
+
+报告必须说明测试进程模式不等同于 release UI/GPU 峰值，且不得提交私有样本的内容、标题或完整路径。
+
 ## 6. 测试数据
 
 - 自建或许可明确的样例文件；

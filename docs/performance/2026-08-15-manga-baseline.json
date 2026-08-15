@@ -1,0 +1,34 @@
+{
+  "date": "2026-08-15",
+  "commit": "54c0dbe",
+  "environment": {
+    "os": "Microsoft Windows 10 专业版 10.0.19045",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450H",
+    "logicalProcessors": 12,
+    "memoryBytes": 16870006784,
+    "flutter": "3.44.8 stable",
+    "dart": "3.12.2",
+    "mode": "flutter_test_jit"
+  },
+  "sample": {
+    "redistributable": false,
+    "chapters": 85,
+    "pages": 891,
+    "sourceBytes": 255433911,
+    "sequentialPages": 50
+  },
+  "iterations": [
+    {"iteration": 0, "warmup": true, "scanMs": 15279.298, "firstPageMs": 21.664, "sequentialMs": 463.874, "cacheBytes": 13996311, "rssBeforeBytes": 146300928, "rssAfterBytes": 190021632},
+    {"iteration": 1, "warmup": false, "scanMs": 15271.660, "firstPageMs": 6.829, "sequentialMs": 500.780, "cacheBytes": 13996311, "rssBeforeBytes": 190124032, "rssAfterBytes": 201707520},
+    {"iteration": 2, "warmup": false, "scanMs": 15165.746, "firstPageMs": 6.021, "sequentialMs": 463.145, "cacheBytes": 13996311, "rssBeforeBytes": 201773056, "rssAfterBytes": 192045056},
+    {"iteration": 3, "warmup": false, "scanMs": 14955.565, "firstPageMs": 5.686, "sequentialMs": 436.293, "cacheBytes": 13996311, "rssBeforeBytes": 192110592, "rssAfterBytes": 203931648}
+  ],
+  "medians": {
+    "scanMs": 15165.746,
+    "firstPageMs": 6.021,
+    "sequentialMs": 463.145,
+    "sequentialPerPageMs": 9.263,
+    "cacheBytes": 13996311
+  },
+  "maximumObservedRssBytes": 203931648
+}
