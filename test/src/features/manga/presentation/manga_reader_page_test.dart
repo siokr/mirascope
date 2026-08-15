@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,7 @@ import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/manga/application/manga_providers.dart';
 import 'package:mirascope/src/features/manga/domain/manga_page.dart';
+import 'package:mirascope/src/features/manga/domain/manga_page_cache.dart';
 import 'package:mirascope/src/features/manga/domain/manga_reader_book.dart';
 import 'package:mirascope/src/features/manga/domain/manga_reader_preference.dart';
 import 'package:mirascope/src/features/manga/domain/manga_reader_preference_repository.dart';
@@ -75,6 +77,7 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         mangaReaderRepositoryProvider.overrideWithValue(repository),
+        mangaPageCacheProvider.overrideWith((ref) async => _PageCache()),
         readingProgressRepositoryProvider.overrideWithValue(
           _ProgressRepository(),
         ),
@@ -165,9 +168,21 @@ MangaPage _page(String id, String chapter, int order) => MangaPage(
   orderIndex: order,
   contentRef: id,
   sourceLocator: '$id.png',
-  contentHash: 'hash-$id',
+  contentHash: 'sha256:${sha256.convert(generatedMangaPng())}',
   imageType: MangaImageType.png,
-  byteLength: 1,
+  byteLength: generatedMangaPng().length,
   pixelWidth: 1,
   pixelHeight: 1,
 );
+
+final class _PageCache implements MangaPageCache {
+  final values = <String, Uint8List>{};
+  @override
+  Future<Uint8List?> get(MangaPageCacheKey key) async =>
+      values[key.stableValue];
+  @override
+  Future<void> put(MangaPageCacheKey key, Uint8List bytes) async =>
+      values[key.stableValue] = bytes;
+  @override
+  Future<void> clear() async => values.clear();
+}

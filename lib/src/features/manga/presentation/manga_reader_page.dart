@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/manga_providers.dart';
 import '../application/manga_reading_state.dart';
+import '../application/manga_page_loader.dart';
 import '../domain/manga_page.dart';
 import '../domain/manga_reader_book.dart';
 import '../domain/manga_reader_preference.dart';
@@ -35,13 +36,23 @@ class MangaReaderPage extends ConsumerWidget {
         appBar: AppBar(title: const Text('漫画阅读器')),
         body: const Center(child: Text('无法打开漫画')),
       ),
-      data: (value) => _Reader(
-        book: value.book,
-        readingState: value,
-        repository: ref.watch(mangaReaderRepositoryProvider),
-        mediaItemId: mediaItemId,
-        onExit: onExit,
-      ),
+      data: (value) {
+        final loader = ref.watch(mangaPageLoaderProvider(mediaItemId));
+        return loader.when(
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (_, _) => Scaffold(
+            appBar: AppBar(title: const Text('漫画阅读器')),
+            body: const Center(child: Text('无法准备页面缓存')),
+          ),
+          data: (pageLoader) => _Reader(
+            book: value.book,
+            readingState: value,
+            loader: pageLoader,
+            onExit: onExit,
+          ),
+        );
+      },
     );
   }
 }
@@ -49,15 +60,13 @@ class MangaReaderPage extends ConsumerWidget {
 class _Reader extends StatefulWidget {
   const _Reader({
     required this.book,
-    required this.repository,
+    required this.loader,
     required this.readingState,
-    required this.mediaItemId,
     required this.onExit,
   });
   final MangaReaderBook book;
-  final MangaReaderRepository repository;
+  final MangaPageLoader loader;
   final MangaReadingState readingState;
-  final String mediaItemId;
   final VoidCallback onExit;
 
   @override
@@ -83,11 +92,13 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     _pageKeys = List.generate(widget.book.pages.length, (_) => GlobalKey());
     _pageController = PageController(initialPage: _currentIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) => _restoreVertical());
+    unawaited(widget.loader.preloadAround(widget.book.pages, _currentIndex));
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    widget.loader.cancelPreload();
     unawaited(widget.readingState.flushProgress());
     _pageController.dispose();
     _scrollController.dispose();
@@ -211,10 +222,8 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     ),
   );
 
-  Future<Uint8List> _load(MangaPage page) => _loads.putIfAbsent(
-    page.id,
-    () => widget.repository.readPage(widget.mediaItemId, page),
-  );
+  Future<Uint8List> _load(MangaPage page) =>
+      _loads.putIfAbsent(page.id, () => widget.loader.load(page));
 
   void _step(int delta) {
     if (_mode != MangaReadingMode.horizontal) return;
@@ -266,6 +275,7 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     }
     widget.readingState.updatePage(index, fraction: fraction);
     if (changed) {
+      unawaited(widget.loader.preloadAround(widget.book.pages, index));
       unawaited(widget.readingState.flushProgress());
     }
   }

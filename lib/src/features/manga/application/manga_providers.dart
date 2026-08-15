@@ -7,6 +7,9 @@ import '../domain/manga_details.dart';
 import '../data/dart_io_manga_reader_repository.dart';
 import '../domain/manga_reader_book.dart';
 import 'manga_reading_state.dart';
+import 'manga_page_loader.dart';
+import '../data/dart_io_manga_page_cache.dart';
+import '../domain/manga_page_cache.dart';
 import '../../../core/ids/id_generator.dart';
 import '../../importing/application/importing_providers.dart';
 
@@ -39,6 +42,24 @@ final mangaReaderRepositoryProvider = Provider<MangaReaderRepository>((ref) {
     ref.watch(mangaManifestScannerProvider),
   );
 });
+
+final mangaPageCacheProvider = FutureProvider<MangaPageCache>((ref) async {
+  final support = await getApplicationSupportDirectory();
+  return DartIoMangaPageCache(
+    Directory(
+      '${support.path}${Platform.pathSeparator}derived_manga${Platform.pathSeparator}cache',
+    ),
+  );
+});
+
+final mangaPageLoaderProvider = FutureProvider.autoDispose
+    .family<MangaPageLoader, String>((ref, mediaItemId) async {
+      return MangaPageLoader(
+        mediaItemId: mediaItemId,
+        repository: ref.watch(mangaReaderRepositoryProvider),
+        cache: await ref.watch(mangaPageCacheProvider.future),
+      );
+    });
 
 final mangaReaderBookProvider = FutureProvider.autoDispose
     .family<MangaReaderBook?, String>(
