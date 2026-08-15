@@ -1,7 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
@@ -55,6 +54,28 @@ void main() {
       find.byKey(const Key('manga-horizontal-reader')),
     );
     expect(pageView.reverse, isTrue);
+  });
+
+  testWidgets('double-page mode keeps the cover single and pairs later pages', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('manga-reader-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('横向双页'));
+    await tester.pumpAndSettle();
+
+    final pageView = tester.widget<PageView>(
+      find.byKey(const Key('manga-horizontal-reader')),
+    );
+    expect(pageView.childrenDelegate.estimatedChildCount, 2);
+    expect(find.byKey(const Key('manga-page-image-page-1')), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('manga-page-image-page-2')), findsOneWidget);
+    expect(find.byKey(const Key('manga-page-image-page-3')), findsOneWidget);
+    expect(find.text('2 / 3'), findsOneWidget);
   });
 
   testWidgets('a failed page shows a placeholder without blocking the reader', (

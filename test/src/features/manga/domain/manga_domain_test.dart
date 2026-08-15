@@ -7,6 +7,7 @@ void main() {
   test('manga enums use stable storage values', () {
     expect(MangaImageType.webp.storageValue, 'image/webp');
     expect(MangaReadingMode.horizontal.storageValue, 'horizontal');
+    expect(MangaReadingMode.doublePage.storageValue, 'doublePage');
     expect(PageTurnDirection.rightToLeft.storageValue, 'rightToLeft');
   });
 
@@ -16,7 +17,7 @@ void main() {
       throwsArgumentError,
     );
     expect(
-      () => MangaReadingMode.fromStorageValue('doublePage'),
+      () => MangaReadingMode.fromStorageValue('unknown'),
       throwsArgumentError,
     );
     expect(

@@ -8,7 +8,7 @@ final _now = DateTime.utc(2026, 7, 28);
 final _constraintViolation = throwsA(isA<Exception>());
 
 void main() {
-  test('schema version is 4 and creates exactly the nine v4 tables', () async {
+  test('schema version is 5 and creates exactly the nine v5 tables', () async {
     final database = createTestDatabase();
     addTearDown(database.close);
 
@@ -20,7 +20,7 @@ void main() {
         )
         .get();
 
-    expect(database.schemaVersion, 4);
+    expect(database.schemaVersion, 5);
     expect(tableRows.map((row) => row.read<String>('name')).toList(), [
       'bookmarks',
       'content_units',

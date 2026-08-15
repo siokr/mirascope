@@ -35,7 +35,7 @@ void main() {
   });
 
   test(
-    'current AppDatabase onCreate matches the generated v4 schema',
+    'current AppDatabase onCreate matches the generated v5 schema',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -44,14 +44,14 @@ void main() {
 
       await verifier.migrateAndValidate(
         database,
-        4,
+        5,
         options: const ValidationOptions(validateDropped: true),
       );
     },
   );
 
   test(
-    'v4 enables foreign keys and contains every declared relation and index',
+    'v5 enables foreign keys and contains every declared relation and index',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -117,6 +117,38 @@ void main() {
     },
   );
 
+  test('v4 upgrades to v5 and preserves manga preferences', () async {
+    final schema = await verifier.schemaAt(4);
+    schema.rawDatabase.execute(
+      'INSERT INTO media_items '
+      '(id, media_type, title, created_at, updated_at) '
+      "VALUES ('existing-manga', 'manga', 'Existing manga', 1, 1)",
+    );
+    schema.rawDatabase.execute(
+      'INSERT INTO manga_reader_preferences '
+      '(id, media_item_id, reading_mode, page_turn_direction, updated_at) '
+      "VALUES ('preference', 'existing-manga', 'horizontal', "
+      "'rightToLeft', 1)",
+    );
+    final database = AppDatabase(schema.newConnection());
+    addTearDown(database.close);
+
+    await verifier.migrateAndValidate(
+      database,
+      5,
+      options: const ValidationOptions(validateDropped: true),
+    );
+
+    final preference = await database
+        .select(database.mangaReaderPreferences)
+        .getSingle();
+    expect(preference.readingMode, 'horizontal');
+    expect(preference.pageTurnDirection, 'rightToLeft');
+    await database.customStatement(
+      "UPDATE manga_reader_preferences SET reading_mode = 'doublePage'",
+    );
+  });
+
   test('v2 upgrades to v3 and preserves existing reading data', () async {
     final schema = await verifier.schemaAt(2);
     schema.rawDatabase.execute(
@@ -138,7 +170,7 @@ void main() {
   });
 
   for (final legacyVersion in [1, 2]) {
-    test('v$legacyVersion upgrades directly to v4', () async {
+    test('v$legacyVersion upgrades directly to v5', () async {
       final schema = await verifier.schemaAt(legacyVersion);
       schema.rawDatabase.execute(
         'INSERT INTO media_items '
@@ -150,7 +182,7 @@ void main() {
 
       await verifier.migrateAndValidate(
         database,
-        4,
+        5,
         options: const ValidationOptions(validateDropped: true),
       );
 
@@ -162,7 +194,7 @@ void main() {
     });
   }
 
-  test('v3 upgrades to v4 and preserves existing novel data', () async {
+  test('v3 upgrades to v5 and preserves existing novel data', () async {
     final schema = await verifier.schemaAt(3);
     schema.rawDatabase.execute(
       'INSERT INTO media_items '
@@ -200,7 +232,7 @@ void main() {
 
     await verifier.migrateAndValidate(
       database,
-      4,
+      5,
       options: const ValidationOptions(validateDropped: true),
     );
 

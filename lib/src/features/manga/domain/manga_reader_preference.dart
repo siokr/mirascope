@@ -1,6 +1,7 @@
 enum MangaReadingMode {
   vertical('vertical'),
-  horizontal('horizontal');
+  horizontal('horizontal'),
+  doublePage('doublePage');
 
   const MangaReadingMode(this.storageValue);
 

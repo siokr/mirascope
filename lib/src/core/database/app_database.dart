@@ -33,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -60,6 +60,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 4 && to >= 4) {
         await migrator.createTable(mangaPages);
         await migrator.createTable(mangaReaderPreferences);
+      }
+      if (from < 5 && to >= 5) {
+        await migrator.alterTable(TableMigration(mangaReaderPreferences));
       }
     },
     beforeOpen: (details) async {

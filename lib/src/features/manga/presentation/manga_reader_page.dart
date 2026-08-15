@@ -92,7 +92,11 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     _mode = widget.readingState.mode;
     _direction = widget.readingState.direction;
     _pageKeys = List.generate(widget.book.pages.length, (_) => GlobalKey());
-    _pageController = PageController(initialPage: _currentIndex);
+    _pageController = PageController(
+      initialPage: _mode == MangaReadingMode.doublePage
+          ? _spreadIndex(_currentIndex)
+          : _currentIndex,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) => _restoreVertical());
     unawaited(widget.loader.preloadAround(widget.book.pages, _currentIndex));
   }
@@ -166,7 +170,9 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
             Expanded(
               child: _mode == MangaReadingMode.vertical
                   ? _vertical()
-                  : _horizontal(),
+                  : _horizontal(
+                      doublePage: _mode == MangaReadingMode.doublePage,
+                    ),
             ),
           ],
         ),
@@ -227,23 +233,51 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     }
   }
 
-  Widget _horizontal() => PageView.builder(
+  Widget _horizontal({required bool doublePage}) => PageView.builder(
     key: const Key('manga-horizontal-reader'),
     controller: _pageController,
     reverse: _direction == PageTurnDirection.rightToLeft,
-    itemCount: widget.book.pages.length,
-    onPageChanged: _setCurrentPage,
+    itemCount: doublePage ? _spreadCount : widget.book.pages.length,
+    onPageChanged: (index) =>
+        _setCurrentPage(doublePage ? _spreadStart(index) : index),
     itemBuilder: (context, index) => InteractiveViewer(
       minScale: 1,
       maxScale: 4,
-      child: Center(
-        child: _PageImage(
-          load: _load(widget.book.pages[index]),
-          onError: (error) => _recordFailure(widget.book.pages[index], error),
-          onRetry: () => _retryPage(widget.book.pages[index]),
-        ),
-      ),
+      child: doublePage ? _spread(index) : _horizontalPage(index),
     ),
+  );
+
+  int get _spreadCount => 1 + ((widget.book.pages.length - 1) / 2).ceil();
+  int _spreadIndex(int pageIndex) => pageIndex == 0 ? 0 : (pageIndex + 1) ~/ 2;
+  int _spreadStart(int spreadIndex) =>
+      spreadIndex == 0 ? 0 : spreadIndex * 2 - 1;
+
+  Widget _horizontalPage(int index) =>
+      Center(child: _pageImage(widget.book.pages[index]));
+
+  Widget _spread(int spreadIndex) {
+    final firstIndex = _spreadStart(spreadIndex);
+    final indexes = [
+      firstIndex,
+      if (firstIndex + 1 < widget.book.pages.length) firstIndex + 1,
+    ];
+    if (_direction == PageTurnDirection.rightToLeft) {
+      indexes.setAll(0, indexes.reversed);
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (final index in indexes)
+          Expanded(child: Center(child: _pageImage(widget.book.pages[index]))),
+      ],
+    );
+  }
+
+  Widget _pageImage(MangaPage page) => _PageImage(
+    key: Key('manga-page-image-${page.id}'),
+    load: _load(page),
+    onError: (error) => _recordFailure(page, error),
+    onRetry: () => _retryPage(page),
   );
 
   Future<Uint8List> _load(MangaPage page) =>
@@ -295,11 +329,14 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
   }
 
   void _step(int delta) {
-    if (_mode != MangaReadingMode.horizontal) return;
-    final target = (_currentIndex + delta).clamp(
-      0,
-      widget.book.pages.length - 1,
-    );
+    if (_mode == MangaReadingMode.vertical) return;
+    final current = _mode == MangaReadingMode.doublePage
+        ? _spreadIndex(_currentIndex)
+        : _currentIndex;
+    final maximum = _mode == MangaReadingMode.doublePage
+        ? _spreadCount - 1
+        : widget.book.pages.length - 1;
+    final target = (current + delta).clamp(0, maximum);
     _pageController.animateToPage(
       target,
       duration: const Duration(milliseconds: 180),
@@ -326,9 +363,13 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
     unawaited(widget.readingState.flushProgress());
     setState(() {
       _mode = mode;
-      if (mode == MangaReadingMode.horizontal) {
+      if (mode != MangaReadingMode.vertical) {
         _pageController.dispose();
-        _pageController = PageController(initialPage: _currentIndex);
+        _pageController = PageController(
+          initialPage: mode == MangaReadingMode.doublePage
+              ? _spreadIndex(_currentIndex)
+              : _currentIndex,
+        );
       }
     });
     unawaited(widget.readingState.setPreference(_mode, _direction));
@@ -381,6 +422,10 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
                   value: MangaReadingMode.horizontal,
                   label: Text('横向单页'),
                 ),
+                ButtonSegment(
+                  value: MangaReadingMode.doublePage,
+                  label: Text('横向双页'),
+                ),
               ],
               selected: {_mode},
               onSelectionChanged: (values) {
@@ -430,8 +475,12 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
                 );
                 if (index >= 0) {
                   _setCurrentPage(index);
-                  if (_mode == MangaReadingMode.horizontal) {
-                    _pageController.jumpToPage(index);
+                  if (_mode != MangaReadingMode.vertical) {
+                    _pageController.jumpToPage(
+                      _mode == MangaReadingMode.doublePage
+                          ? _spreadIndex(index)
+                          : index,
+                    );
                   } else {
                     WidgetsBinding.instance.addPostFrameCallback(
                       (_) => _restoreVertical(),

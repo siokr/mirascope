@@ -21,7 +21,7 @@ class MangaReaderPreferences extends Table {
 
   @override
   List<String> get customConstraints => [
-    "CHECK (reading_mode IN ('vertical', 'horizontal'))",
+    "CHECK (reading_mode IN ('vertical', 'horizontal', 'doublePage'))",
     "CHECK (page_turn_direction IN ('leftToRight', 'rightToLeft'))",
   ];
 }
