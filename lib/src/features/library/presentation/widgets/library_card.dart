@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/library_item.dart';
+import '../../../manga/application/manga_providers.dart';
+import '../../domain/media_item.dart';
 
 enum LibraryCardAction { archive, restore, delete }
 
-class LibraryCard extends StatelessWidget {
+class LibraryCard extends ConsumerWidget {
   const LibraryCard({
     required this.item,
     required this.archived,
@@ -25,9 +28,12 @@ class LibraryCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final media = item.mediaItem;
-    final metadata = media.creator ?? media.subtitle ?? 'TXT 小说';
+    final metadata =
+        media.creator ??
+        media.subtitle ??
+        (media.mediaType == MediaType.manga ? '本地漫画' : 'TXT 小说');
 
     return Semantics(
       button: !busy && !archived,
@@ -51,15 +57,7 @@ class LibraryCard extends StatelessWidget {
                 child: ColoredBox(
                   key: ValueKey('library-cover-${media.id}'),
                   color: _placeholderColor(context, media.id),
-                  child: Center(
-                    child: Text(
-                      _firstCharacter(media.title),
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
+                  child: _Cover(item: item),
                 ),
               ),
               Expanded(
@@ -156,6 +154,44 @@ class LibraryCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Cover extends ConsumerWidget {
+  const _Cover({required this.item});
+  final LibraryItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final media = item.mediaItem;
+    final coverRef = media.coverRef;
+    if (media.mediaType == MediaType.manga && coverRef != null) {
+      final cover = ref.watch(mangaCoverFileProvider(coverRef));
+      if (cover.value case final file?) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _Placeholder(title: media.title),
+        );
+      }
+    }
+    return _Placeholder(title: media.title);
+  }
+}
+
+class _Placeholder extends StatelessWidget {
+  const _Placeholder({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Text(
+      _firstCharacter(title),
+      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+        color: Theme.of(context).colorScheme.onPrimaryContainer,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
 }
 
 Color _placeholderColor(BuildContext context, String mediaId) {

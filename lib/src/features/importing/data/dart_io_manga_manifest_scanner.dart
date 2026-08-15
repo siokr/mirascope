@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import '../../../core/errors/app_error_code.dart';
 import '../../../core/errors/app_failure.dart';
@@ -17,6 +18,55 @@ final class DartIoMangaManifestScanner {
       MangaSourceKind.directory => _scanDirectory(selection.path),
       MangaSourceKind.archive => _scanArchive(selection.path),
     };
+  }
+
+  Future<Uint8List> readPage(
+    MangaSourceSelection selection,
+    String sourcePath,
+  ) async {
+    return switch (selection.kind) {
+      MangaSourceKind.directory => _readDirectoryPage(
+        selection.path,
+        sourcePath,
+      ),
+      MangaSourceKind.archive => _readArchivePage(selection.path, sourcePath),
+    };
+  }
+
+  Future<Uint8List> _readDirectoryPage(
+    String rootPath,
+    String sourcePath,
+  ) async {
+    if (sourcePath.contains('\\') ||
+        sourcePath.startsWith('/') ||
+        sourcePath
+            .split('/')
+            .any((part) => part.isEmpty || part == '.' || part == '..')) {
+      throw AppFailure.fromCode(AppErrorCode.mangaUnsafePath);
+    }
+    final root = Directory(rootPath).absolute;
+    final file = File(
+      [root.path, ...sourcePath.split('/')].join(Platform.pathSeparator),
+    ).absolute;
+    final prefix = root.path.endsWith(Platform.pathSeparator)
+        ? root.path
+        : '${root.path}${Platform.pathSeparator}';
+    if (!file.path.startsWith(prefix)) {
+      throw AppFailure.fromCode(AppErrorCode.mangaUnsafePath);
+    }
+    return file.readAsBytes();
+  }
+
+  Future<Uint8List> _readArchivePage(
+    String archivePath,
+    String sourcePath,
+  ) async {
+    final container = await DartIoMangaArchiveContainer.open(archivePath);
+    try {
+      return await container.readBytes(sourcePath);
+    } finally {
+      await container.close();
+    }
   }
 
   Future<MangaManifest> _scanDirectory(String sourcePath) async {

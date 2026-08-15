@@ -39,12 +39,20 @@ void main() {
       ).exists(),
       isTrue,
     );
-    await store.removeCommitted(staged);
+    await store.removeCommittedRef('manga/media-1/chapters/0');
     expect(
       await Directory(
         '${root.path}${Platform.pathSeparator}content${Platform.pathSeparator}media-1',
       ).exists(),
       isFalse,
+    );
+  });
+
+  test('rejects unsafe derived cleanup references', () async {
+    final store = DartIoDerivedMangaStore(root, const _Encoder());
+    await expectLater(
+      store.removeCommittedRef('../media-1'),
+      throwsArgumentError,
     );
   });
 

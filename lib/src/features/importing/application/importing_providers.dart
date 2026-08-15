@@ -16,8 +16,13 @@ import '../data/file_selector_txt_file_picker.dart';
 import '../data/file_selector_epub_file_picker.dart';
 import '../data/file_selector_manga_source_picker.dart';
 import '../data/dart_io_manga_source_inspector.dart';
+import '../data/dart_io_manga_manifest_scanner.dart';
+import '../data/dart_io_derived_manga_store.dart';
+import '../data/flutter_manga_image_decoder.dart';
+import '../data/flutter_manga_thumbnail_encoder.dart';
 import '../domain/epub_file_picker.dart';
 import '../domain/manga_source.dart';
+import '../domain/derived_manga_store.dart';
 import '../domain/derived_epub_store.dart';
 import '../domain/epub_source_candidate.dart';
 import '../domain/txt_encoding.dart';
@@ -28,6 +33,7 @@ import '../domain/txt_source_reader.dart';
 import 'decode_txt_source.dart';
 import 'import_epub.dart';
 import 'import_txt.dart';
+import 'import_manga.dart';
 import 'normalize_epub_content.dart';
 import 'parse_epub_package.dart';
 import 'prepare_epub_source.dart';
@@ -35,6 +41,7 @@ import 'prepare_manga_source.dart';
 import 'prepare_txt_source.dart';
 import 'relocate_txt_source.dart';
 import 'relocate_epub_source.dart';
+import 'relocate_manga_source.dart';
 import 'txt_chapter_detector.dart';
 import 'txt_decoder.dart';
 
@@ -107,6 +114,22 @@ final derivedEpubStoreProvider = FutureProvider<DerivedEpubStore>((ref) async {
   );
 });
 
+final derivedMangaStoreProvider = FutureProvider<DerivedMangaStore>((
+  ref,
+) async {
+  final supportDirectory = await getApplicationSupportDirectory();
+  return DartIoDerivedMangaStore(
+    Directory('${supportDirectory.path}${Platform.pathSeparator}derived_manga'),
+    const FlutterMangaThumbnailEncoder(),
+  );
+});
+
+final mangaManifestScannerProvider = Provider<DartIoMangaManifestScanner>((
+  ref,
+) {
+  return const DartIoMangaManifestScanner(FlutterMangaImageDecoder());
+});
+
 final epubContainerFactoryProvider = Provider<EpubContainerFactory>((ref) {
   return (path) => DartIoEpubContainer.open(path);
 });
@@ -137,6 +160,23 @@ final importTxtProvider = FutureProvider<ImportTxt>((ref) async {
     chapterDetector: ref.watch(txtChapterDetectorProvider),
     importRepository: ref.watch(importRepositoryProvider),
     derivedTxtStore: await ref.watch(derivedTxtStoreProvider.future),
+    idGenerator: ref.watch(importIdGeneratorProvider),
+    clock: ref.watch(importClockProvider),
+  );
+});
+
+final importMangaProvider = FutureProvider<ImportManga>((ref) async {
+  final scanner = ref.watch(mangaManifestScannerProvider);
+  return ImportManga(
+    loadManifest: (candidate) => scanner.scan(
+      MangaSourceSelection(path: candidate.path, kind: candidate.kind),
+    ),
+    loadPageBytes: (candidate, sourcePath) => scanner.readPage(
+      MangaSourceSelection(path: candidate.path, kind: candidate.kind),
+      sourcePath,
+    ),
+    importRepository: ref.watch(importRepositoryProvider),
+    derivedMangaStore: await ref.watch(derivedMangaStoreProvider.future),
     idGenerator: ref.watch(importIdGeneratorProvider),
     clock: ref.watch(importClockProvider),
   );
@@ -178,6 +218,14 @@ final relocateEpubSourceProvider = Provider<RelocateEpubSource>((ref) {
   return RelocateEpubSource(
     filePicker: ref.watch(epubFilePickerProvider),
     sourceInspector: ref.watch(epubSourceInspectorProvider),
+    repository: ref.watch(sourceRelocationRepositoryProvider),
+  );
+});
+
+final relocateMangaSourceProvider = Provider<RelocateMangaSource>((ref) {
+  return RelocateMangaSource(
+    sourcePicker: ref.watch(mangaSourcePickerProvider),
+    sourceInspector: ref.watch(mangaSourceInspectorProvider),
     repository: ref.watch(sourceRelocationRepositoryProvider),
   );
 });

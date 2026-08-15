@@ -85,6 +85,21 @@ final class DartIoDerivedMangaStore implements DerivedMangaStore {
   Future<void> removeCommitted(StagedDerivedManga staged) =>
       _deleteIfPresent(_committed(staged.mediaItemId));
 
+  @override
+  Future<void> removeCommittedRef(String contentRef) async {
+    final match = RegExp(
+      r'^manga/([A-Za-z0-9_-]+)/chapters/[0-9]+$',
+    ).firstMatch(contentRef);
+    if (match == null) {
+      throw ArgumentError.value(
+        contentRef,
+        'contentRef',
+        'Unsafe manga content reference',
+      );
+    }
+    await _deleteIfPresent(_committed(match.group(1)!));
+  }
+
   Directory _committed(String mediaItemId) => Directory(
     '${rootDirectory.path}${Platform.pathSeparator}content'
     '${Platform.pathSeparator}$mediaItemId',

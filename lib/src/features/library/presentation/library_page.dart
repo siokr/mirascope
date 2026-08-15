@@ -9,11 +9,14 @@ import '../../../core/errors/app_error_code.dart';
 import '../../importing/application/import_txt.dart';
 import '../../importing/application/import_epub.dart';
 import '../../importing/application/importing_providers.dart';
+import '../../importing/application/import_manga.dart';
+import '../../importing/application/prepare_manga_source.dart';
 import '../../importing/application/prepare_epub_source.dart';
 import '../../importing/application/prepare_txt_source.dart';
 import '../../importing/domain/epub_source_candidate.dart';
 import '../../importing/domain/txt_encoding.dart';
 import '../../importing/domain/txt_source_candidate.dart';
+import '../../importing/domain/manga_source.dart';
 import '../application/library_actions_controller.dart';
 import '../application/library_providers.dart';
 import '../domain/library_item.dart';
@@ -26,6 +29,10 @@ typedef PrepareTxtForImport = Future<TxtSourcePreparationResult> Function();
 typedef PrepareEpubForImport = Future<EpubSourcePreparationResult> Function();
 typedef CompleteEpubImport =
     Future<EpubImportResult> Function(EpubSourceCandidate candidate);
+typedef PrepareMangaForImport =
+    Future<MangaSourcePreparationResult> Function(MangaSourceKind kind);
+typedef CompleteMangaImport =
+    Future<MangaImportResult> Function(MangaSourceCandidate candidate);
 typedef CompleteTxtImport =
     Future<TxtImportResult> Function({
       required TxtSourceCandidate candidate,
@@ -38,20 +45,26 @@ class LibraryPage extends ConsumerStatefulWidget {
     required this.onOpenSettings,
     required this.onOpenArchive,
     required this.onOpenNovel,
+    this.onOpenManga,
     this.prepareTxtForImport,
     this.completeTxtImport,
     this.prepareEpubForImport,
     this.completeEpubImport,
+    this.prepareMangaForImport,
+    this.completeMangaImport,
     super.key,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenArchive;
   final ValueChanged<String> onOpenNovel;
+  final ValueChanged<String>? onOpenManga;
   final PrepareTxtForImport? prepareTxtForImport;
   final CompleteTxtImport? completeTxtImport;
   final PrepareEpubForImport? prepareEpubForImport;
   final CompleteEpubImport? completeEpubImport;
+  final PrepareMangaForImport? prepareMangaForImport;
+  final CompleteMangaImport? completeMangaImport;
 
   @override
   ConsumerState<LibraryPage> createState() => _LibraryPageState();
@@ -111,6 +124,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          FloatingActionButton.extended(
+            key: const Key('import-manga'),
+            heroTag: 'import-manga',
+            onPressed: _importing ? null : _chooseMangaSource,
+            icon: const Icon(Icons.collections_bookmark_outlined),
+            label: const Text('导入漫画'),
+          ),
+          const SizedBox(height: 12),
           FloatingActionButton.extended(
             key: const Key('import-epub'),
             heroTag: 'import-epub',
@@ -252,6 +273,75 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     }
   }
 
+  Future<void> _chooseMangaSource() async {
+    final kind = await showModalBottomSheet<MangaSourceKind>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              key: const Key('import-manga-archive'),
+              leading: const Icon(Icons.folder_zip_outlined),
+              title: const Text('选择 ZIP / CBZ'),
+              onTap: () => Navigator.pop(sheetContext, MangaSourceKind.archive),
+            ),
+            ListTile(
+              key: const Key('import-manga-directory'),
+              leading: const Icon(Icons.folder_outlined),
+              title: const Text('选择漫画目录'),
+              onTap: () =>
+                  Navigator.pop(sheetContext, MangaSourceKind.directory),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (kind == null || !mounted) return;
+    await _importManga(kind);
+  }
+
+  Future<void> _importManga(MangaSourceKind kind) async {
+    setState(() => _importing = true);
+    try {
+      final preparation =
+          await widget.prepareMangaForImport?.call(kind) ??
+          await ref.read(prepareMangaSourceProvider)(kind);
+      if (!mounted) return;
+      switch (preparation) {
+        case MangaSourceCancelled():
+          return;
+        case MangaSourceDuplicate(:final mediaItemId):
+          widget.onOpenManga?.call(mediaItemId);
+          return;
+        case MangaSourceFailed(:final failure):
+          _showFailure(context, failure);
+          return;
+        case MangaSourceReady(:final candidate):
+          final importer = widget.completeMangaImport;
+          final result = importer != null
+              ? await importer(candidate)
+              : await (await ref.read(importMangaProvider.future))(candidate);
+          if (!mounted) return;
+          switch (result) {
+            case MangaImportSucceeded(:final mediaItemId):
+              ref.invalidate(activeLibraryProvider);
+              widget.onOpenManga?.call(mediaItemId);
+            case MangaImportDuplicate(:final mediaItemId):
+              widget.onOpenManga?.call(mediaItemId);
+            case MangaImportFailed(:final failure):
+              _showFailure(context, failure);
+          }
+      }
+    } on Object {
+      if (mounted) {
+        _showFailure(context, AppFailure.fromCode(AppErrorCode.storageFailed));
+      }
+    } finally {
+      if (mounted) setState(() => _importing = false);
+    }
+  }
+
   Future<String?> _requestTitle() {
     return showDialog<String>(
       context: context,
@@ -289,11 +379,6 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     WidgetRef ref,
     LibraryItem item,
   ) async {
-    if (item.mediaItem.mediaType != MediaType.novel) {
-      _showMessage(context, '当前版本还不能打开这类内容。');
-      return;
-    }
-
     final result = await ref
         .read(libraryActionsProvider.notifier)
         .open(item.mediaItem.id);
@@ -302,7 +387,11 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       return;
     }
     if (context.mounted && result == LibraryActionResult.succeeded) {
-      widget.onOpenNovel(item.mediaItem.id);
+      if (item.mediaItem.mediaType == MediaType.manga) {
+        widget.onOpenManga?.call(item.mediaItem.id);
+      } else {
+        widget.onOpenNovel(item.mediaItem.id);
+      }
     }
   }
 

@@ -65,6 +65,11 @@ final class LibraryActionsController extends Notifier<Set<String>> {
             if (contentRef.startsWith('epub/')) {
               final epubStore = await ref.read(derivedEpubStoreProvider.future);
               await epubStore.removeCommittedRef(contentRef);
+            } else if (contentRef.startsWith('manga/')) {
+              final mangaStore = await ref.read(
+                derivedMangaStoreProvider.future,
+              );
+              await mangaStore.removeCommittedRef(contentRef);
             } else {
               final txtStore = await ref.read(derivedTxtStoreProvider.future);
               await txtStore.removeCommittedRef(contentRef);

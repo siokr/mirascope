@@ -169,6 +169,9 @@ final class _Store implements DerivedMangaStore {
   Future<void> removeCommitted(StagedDerivedManga staged) async {
     removed = true;
   }
+
+  @override
+  Future<void> removeCommittedRef(String contentRef) async {}
 }
 
 final class _Repository implements ImportRepository {

@@ -73,4 +73,51 @@ void main() {
     ]);
     expect(manifest.ignoredFileCount, 1);
   });
+
+  test(
+    'reads selected directory and archive pages without escaping source',
+    () async {
+      final chapter = Directory(
+        '${temporaryDirectory.path}${Platform.pathSeparator}chapter',
+      );
+      await chapter.create();
+      final page = File('${chapter.path}${Platform.pathSeparator}1.png');
+      await page.writeAsBytes(generatedMangaPng());
+      final archive = File(
+        '${temporaryDirectory.path}${Platform.pathSeparator}book.cbz',
+      );
+      await archive.writeAsBytes(basicMangaArchive());
+
+      expect(
+        await scanner.readPage(
+          MangaSourceSelection(
+            path: temporaryDirectory.path,
+            kind: MangaSourceKind.directory,
+          ),
+          'chapter/1.png',
+        ),
+        generatedMangaPng(),
+      );
+      expect(
+        await scanner.readPage(
+          MangaSourceSelection(
+            path: archive.path,
+            kind: MangaSourceKind.archive,
+          ),
+          '第2话/2.png',
+        ),
+        generatedMangaPng(),
+      );
+      await expectLater(
+        scanner.readPage(
+          MangaSourceSelection(
+            path: temporaryDirectory.path,
+            kind: MangaSourceKind.directory,
+          ),
+          '../outside.png',
+        ),
+        throwsA(isA<Object>()),
+      );
+    },
+  );
 }

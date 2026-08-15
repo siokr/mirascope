@@ -30,4 +30,6 @@ abstract interface class DerivedMangaStore {
   Future<void> discard(StagedDerivedManga staged);
 
   Future<void> removeCommitted(StagedDerivedManga staged);
+
+  Future<void> removeCommittedRef(String contentRef);
 }

@@ -10,10 +10,13 @@ import 'package:mirascope/src/features/importing/application/import_txt.dart';
 import 'package:mirascope/src/features/importing/application/import_epub.dart';
 import 'package:mirascope/src/features/importing/application/prepare_epub_source.dart';
 import 'package:mirascope/src/features/importing/application/prepare_txt_source.dart';
+import 'package:mirascope/src/features/importing/application/import_manga.dart';
+import 'package:mirascope/src/features/importing/application/prepare_manga_source.dart';
 import 'package:mirascope/src/features/importing/domain/decoded_txt.dart';
 import 'package:mirascope/src/features/importing/domain/epub_source_candidate.dart';
 import 'package:mirascope/src/features/importing/domain/txt_encoding.dart';
 import 'package:mirascope/src/features/importing/domain/txt_source_candidate.dart';
+import 'package:mirascope/src/features/importing/domain/manga_source.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart';
 import 'package:mirascope/src/features/library/domain/library_item.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
@@ -114,6 +117,31 @@ void main() {
 
     expect(importedTitle, '长夜书简');
     expect(openedId, 'new-book');
+  });
+
+  testWidgets('CBZ manga imports and opens its manga details', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    String? openedId;
+    await _pumpPage(
+      tester,
+      repository,
+      onOpenManga: (id) => openedId = id,
+      prepareMangaForImport: (kind) async {
+        expect(kind, MangaSourceKind.archive);
+        return MangaSourceReady(_mangaCandidate);
+      },
+      completeMangaImport: (_) async => const MangaImportSucceeded('manga-1'),
+    );
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('import-manga')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('import-manga-archive')));
+    await tester.pumpAndSettle();
+
+    expect(openedId, 'manga-1');
   });
 
   testWidgets('unknown encoding retries with the explicit user choice', (
@@ -385,10 +413,13 @@ Future<void> _pumpPage(
   WidgetTester tester,
   FakeMediaLibraryRepository repository, {
   ValueChanged<String>? onOpenNovel,
+  ValueChanged<String>? onOpenManga,
   PrepareTxtForImport? prepareTxtForImport,
   CompleteTxtImport? completeTxtImport,
   PrepareEpubForImport? prepareEpubForImport,
   CompleteEpubImport? completeEpubImport,
+  PrepareMangaForImport? prepareMangaForImport,
+  CompleteMangaImport? completeMangaImport,
 }) {
   return tester.pumpWidget(
     ProviderScope(
@@ -398,10 +429,13 @@ Future<void> _pumpPage(
           onOpenSettings: () {},
           onOpenArchive: () {},
           onOpenNovel: onOpenNovel ?? (_) {},
+          onOpenManga: onOpenManga,
           prepareTxtForImport: prepareTxtForImport,
           completeTxtImport: completeTxtImport,
           prepareEpubForImport: prepareEpubForImport,
           completeEpubImport: completeEpubImport,
+          prepareMangaForImport: prepareMangaForImport,
+          completeMangaImport: completeMangaImport,
         ),
       ),
     ),
@@ -420,6 +454,15 @@ final _epubCandidate = EpubSourceCandidate(
   fileSize: 2048,
   modifiedAt: DateTime.utc(2026, 8, 7),
   fingerprint: 'sha256:epub:2048',
+);
+
+final _mangaCandidate = MangaSourceCandidate(
+  path: 'private-source.cbz',
+  kind: MangaSourceKind.archive,
+  fileSize: 4096,
+  modifiedAt: DateTime.utc(2026, 8, 15),
+  fingerprint: 'sha256:manga:4096',
+  imageCount: 2,
 );
 
 LibraryItem _item(String id, String title) {
