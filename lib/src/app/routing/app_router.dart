@@ -40,6 +40,8 @@ GoRouter createAppRouter() {
           if (mediaItemId.isEmpty) return const _InvalidMediaPage();
           return MangaDetailsPage(
             mediaItemId: mediaItemId,
+            onContinueReading: () =>
+                context.push(AppRoutes.mangaReader(mediaItemId)),
             onOpenChapter: (contentUnitId) => context.push(
               AppRoutes.mangaReader(mediaItemId, contentUnitId: contentUnitId),
             ),

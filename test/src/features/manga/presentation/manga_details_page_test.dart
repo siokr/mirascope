@@ -12,6 +12,7 @@ import 'package:mirascope/src/features/novel/domain/content_unit.dart';
 void main() {
   testWidgets('shows stable chapter order and page counts', (tester) async {
     String? opened;
+    var continued = false;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -22,6 +23,7 @@ void main() {
         child: MaterialApp(
           home: MangaDetailsPage(
             mediaItemId: 'media',
+            onContinueReading: () => continued = true,
             onOpenChapter: (id) => opened = id,
           ),
         ),
@@ -32,6 +34,8 @@ void main() {
     expect(find.text('共 2 章 · 5 页'), findsOneWidget);
     expect(find.text('第一话'), findsOneWidget);
     expect(find.text('3 页'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('continue-manga-reading')));
+    expect(continued, isTrue);
     await tester.tap(find.text('第二话'));
     expect(opened, 'chapter-2');
   });
@@ -50,6 +54,7 @@ void main() {
         child: MaterialApp(
           home: MangaDetailsPage(
             mediaItemId: 'media',
+            onContinueReading: () => opened = true,
             onOpenChapter: (_) => opened = true,
           ),
         ),
@@ -57,6 +62,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('源文件已移动'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const Key('continue-manga-reading')))
+          .onPressed,
+      isNull,
+    );
     expect(find.text('第一话'), findsOneWidget);
     await tester.tap(find.text('第一话'));
     expect(opened, isFalse);

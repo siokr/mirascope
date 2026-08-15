@@ -11,10 +11,12 @@ class MangaDetailsPage extends ConsumerStatefulWidget {
   const MangaDetailsPage({
     required this.mediaItemId,
     required this.onOpenChapter,
+    required this.onContinueReading,
     super.key,
   });
   final String mediaItemId;
   final ValueChanged<String> onOpenChapter;
+  final VoidCallback onContinueReading;
 
   @override
   ConsumerState<MangaDetailsPage> createState() => _MangaDetailsPageState();
@@ -42,6 +44,18 @@ class _MangaDetailsPageState extends ConsumerState<MangaDetailsPage> {
               ),
               const SizedBox(height: 8),
               Text('共 ${value.chapters.length} 章 · ${value.pageCount} 页'),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                  key: const Key('continue-manga-reading'),
+                  onPressed: value.sourceAvailable
+                      ? widget.onContinueReading
+                      : null,
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('继续阅读'),
+                ),
+              ),
               if (!value.sourceAvailable) ...[
                 const Card(
                   margin: EdgeInsets.only(top: 20),
