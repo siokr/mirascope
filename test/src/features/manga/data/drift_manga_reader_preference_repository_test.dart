@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mirascope/src/core/database/app_database.dart' show MediaItemsCompanion;
+import 'package:mirascope/src/core/database/app_database.dart'
+    show MediaItemsCompanion;
 import 'package:mirascope/src/features/manga/data/drift_manga_reader_preference_repository.dart';
 import 'package:mirascope/src/features/manga/domain/manga_reader_preference.dart';
 
