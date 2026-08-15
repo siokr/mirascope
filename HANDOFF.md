@@ -1,27 +1,27 @@
 # mirascope 项目交接说明
 
 > 更新时间：2026-08-15
-> 已发布版本：`v0.2.0`（提交 `276472b`）
-> 发布后记录：`e15c966`
+> 已发布版本：`v0.3.0`（提交 `9d4cbe9`）
+> 正式构建：Quality Gate #73（运行 `31878819271`）
 
 ## 1. 当前状态
 
-MVP 0.2 已正式发布。Windows 与 Android 的 TXT/EPUB 导入、章节目录、阅读、设置、进度、书签、归档、重定位和删除闭环均已取得自动化或人工证据；50 MiB TXT 性能复测完成；Android 正式签名密钥已在仓库外生成并异地备份。
+Version 0.3 已正式发布。Windows 与 Android 的 TXT/EPUB 和本地漫画 ZIP/CBZ 导入、目录、阅读、设置、进度、书签、归档、重定位和删除闭环均已取得自动化或人工证据；TXT 与漫画性能基线完成；Android 正式签名密钥已在仓库外生成并异地备份。
 
-正式标签构建运行 `31310474175`：格式、静态分析、290 项测试、Windows release、Android debug 和 Android signed release 全部通过。GitHub Release：
+正式标签构建运行 `31878819271`：格式、静态分析、381 项测试、Windows release、Android debug 和 Android signed release 全部通过。GitHub Release：
 
-`https://github.com/siokr/mirascope/releases/tag/v0.2.0`
+`https://github.com/siokr/mirascope/releases/tag/v0.3.0`
 
-正式发布物 SHA-256：
+正式构建 artifact ZIP SHA-256：
 
 ```text
-Windows ZIP  14FE31FA42D8FB57006B8553B2B9AB6F892D1C27C87850231F656FAFFBEB4E02
-Android APK  A08325AF32C125BE303C493C8A36F47EC4D9FD554AF3CA1966624800281A500B
+Windows ZIP  E54F1620C879706553CADF6A8F4B92AC20EC3E6F2D6D8F8D5C4159E59BDFD592
+Android ZIP  D0F69065C0857FEC938A85F45D5811062CEFC070CAC56BEB18D2F2CBB13994BB
 ```
 
-## 2. 下一阶段
+## 2. 已完成阶段与下一阶段
 
-下一阶段是 Version 0.3 本地漫画阅读：
+Version 0.3 本地漫画阅读主线已完成：
 
 ```text
 复核输入、图片解码和许可证
@@ -34,7 +34,7 @@ Android APK  A08325AF32C125BE303C493C8A36F47EC4D9FD554AF3CA1966624800281A500B
 → v0.3.0 Release
 ```
 
-`M03-001`、`M03-002`、`M03-004` 至 `M03-011` 已完成；`M03-003` 的 ZIP/CBZ 与 Windows 目录身份及重定位已实现，Android 目录因现有插件不保留 SAF URI 权限而保持进行中。漫画阅读器已具备纵向、横向单页与封面单独成屏的横向双页、页级状态、有界分层缓存、安全清理、预加载错误隔离，以及单页/整章失败和内存不足的恢复界面。85 章/891 页性能基线与 Windows/Android 人工验收已完成；Quality Gate #67 的格式、分析、381 项测试、Windows release 和 Android debug 全部通过。下一步创建候选标签、验证正式签名 APK 和发布 `v0.3.0`。在线漫画源、站点规则、下载、番剧、账号和同步不属于 0.3。
+`M03-001`、`M03-002`、`M03-004` 至 `M03-012` 已完成；`M03-003` 的 ZIP/CBZ 与 Windows 目录身份及重定位已实现，Android 普通图片目录因现有插件不保留 SAF URI 权限而保持进行中，但不阻塞 0.3 已承诺的 Android ZIP/CBZ 闭环。85 章/891 页性能基线、Windows/Android 人工验收、正式签名和 `v0.3.0` GitHub Release 均已完成。下一步先冻结 0.4 范围，再决定优先推进阅读体验、媒体组织或经过单独合规评审的在线扩展；在线源不得直接沿用本地导入的信任模型。
 
 ## 3. 关键风险
 
@@ -90,4 +90,4 @@ schema v5 必须覆盖 v1/v2/v3/v4 迁移并保留小说、书签、进度和既
 
 ## 7. 一句话状态
 
-`v0.2.0` 已正式发布；`v0.3.0-rc.1` 的本地漫画阅读、性能基线、双平台人工验收、正式签名、证书连续性、哈希与正式 APK 安装复验均已完成，Android 目录持久权限保持显式限制；下一步合并发布分支并创建 `v0.3.0` GitHub Release。
+`v0.3.0` 已正式发布，本地漫画阅读、性能基线、双平台人工验收、正式签名、证书连续性、哈希与正式 APK 安装复验全部完成；Android 普通图片目录持久权限保持显式限制，下一步冻结 Version 0.4 范围。
