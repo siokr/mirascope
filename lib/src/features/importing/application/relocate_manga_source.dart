@@ -28,10 +28,11 @@ final class RelocateMangaSource {
         mediaItemId,
         sourceKind: sourceKind,
       );
-      if (current == null)
+      if (current == null) {
         return SourceRelocationFailed(
           AppFailure.fromCode(AppErrorCode.fileNotFound),
         );
+      }
       final path = kind == MangaSourceKind.archive
           ? await sourcePicker.pickArchive()
           : await sourcePicker.pickDirectory();
@@ -39,11 +40,12 @@ final class RelocateMangaSource {
       final candidate = await sourceInspector.inspect(
         MangaSourceSelection(path: path, kind: kind),
       );
-      if (candidate.fingerprint != current.fingerprint)
+      if (candidate.fingerprint != current.fingerprint) {
         return SourceChangeConfirmationRequired(
           current: current,
           candidate: candidate,
         );
+      }
       await repository.relocateMatchingSource(
         importRecordId: current.id,
         mediaItemId: mediaItemId,

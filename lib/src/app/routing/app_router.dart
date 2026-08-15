@@ -7,6 +7,7 @@ import 'package:mirascope/src/features/novel/presentation/novel_details_page.dar
 import 'package:mirascope/src/features/novel/presentation/novel_reader_page.dart';
 import 'package:mirascope/src/features/settings/presentation/settings_page.dart';
 import 'package:mirascope/src/features/manga/presentation/manga_details_page.dart';
+import 'package:mirascope/src/features/manga/presentation/manga_reader_page.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -39,13 +40,26 @@ GoRouter createAppRouter() {
           if (mediaItemId.isEmpty) return const _InvalidMediaPage();
           return MangaDetailsPage(
             mediaItemId: mediaItemId,
-            onOpenChapter: (_) {
-              ScaffoldMessenger.of(context)
-                ..clearSnackBars()
-                ..showSnackBar(const SnackBar(content: Text('漫画阅读器将在下一阶段接入')));
-            },
+            onOpenChapter: (contentUnitId) => context.push(
+              AppRoutes.mangaReader(mediaItemId, contentUnitId: contentUnitId),
+            ),
           );
         },
+        routes: [
+          GoRoute(
+            path: 'read',
+            builder: (context, state) {
+              final mediaItemId =
+                  state.pathParameters['mediaItemId']?.trim() ?? '';
+              if (mediaItemId.isEmpty) return const _InvalidMediaPage();
+              return MangaReaderPage(
+                mediaItemId: mediaItemId,
+                initialContentUnitId: state.uri.queryParameters['chapter'],
+                onExit: () => context.go(AppRoutes.library),
+              );
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/novel/:mediaItemId',

@@ -4,6 +4,9 @@ import 'dart:io';
 
 import '../../../core/database/database_providers.dart';
 import '../domain/manga_details.dart';
+import '../data/dart_io_manga_reader_repository.dart';
+import '../domain/manga_reader_book.dart';
+import '../../importing/application/importing_providers.dart';
 
 final mangaDetailsProvider = FutureProvider.autoDispose
     .family<MangaDetails?, String>(
@@ -27,3 +30,16 @@ final mangaCoverFileProvider = FutureProvider.autoDispose.family<File?, String>(
   );
   return await file.exists() ? file : null;
 });
+
+final mangaReaderRepositoryProvider = Provider<MangaReaderRepository>((ref) {
+  return DartIoMangaReaderRepository(
+    ref.watch(appDatabaseProvider),
+    ref.watch(mangaManifestScannerProvider),
+  );
+});
+
+final mangaReaderBookProvider = FutureProvider.autoDispose
+    .family<MangaReaderBook?, String>(
+      (ref, mediaItemId) =>
+          ref.watch(mangaReaderRepositoryProvider).loadBook(mediaItemId),
+    );

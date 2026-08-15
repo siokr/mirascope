@@ -9,6 +9,13 @@ abstract final class AppRoutes {
   static String mangaDetails(String mediaItemId) =>
       '/manga/${Uri.encodeComponent(mediaItemId)}';
 
+  static String mangaReader(String mediaItemId, {String? contentUnitId}) {
+    final path = '/manga/${Uri.encodeComponent(mediaItemId)}/read';
+    return contentUnitId == null
+        ? path
+        : '$path?chapter=${Uri.encodeQueryComponent(contentUnitId)}';
+  }
+
   static String novelReader(String mediaItemId, {String? contentUnitId}) {
     final path = '/novel/${Uri.encodeComponent(mediaItemId)}/read';
     return contentUnitId == null
