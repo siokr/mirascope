@@ -31,6 +31,8 @@
 - [`novel-reader-spec.md`](novel-reader-spec.md)：TXT/EPUB 导入与小说阅读行为。
 - [`manga-reader-spec.md`](manga-reader-spec.md)：Version 0.3 本地漫画边界。
 - [`m03-task-list.md`](m03-task-list.md)：Version 0.3 当前任务、依赖和验收证据。
+- [`m03-cross-platform-acceptance.md`](m03-cross-platform-acceptance.md)：Version 0.3 Windows/Android 漫画人工验收清单。
+- [`releases/0.3.0-rc.1.md`](releases/0.3.0-rc.1.md)：Version 0.3 候选发布记录。
 - [`sync-protocol.md`](sync-protocol.md)：Version 0.4 同步语义。
 
 ### 设计与实施记录
