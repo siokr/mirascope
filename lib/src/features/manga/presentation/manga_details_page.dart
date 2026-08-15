@@ -52,8 +52,8 @@ class _MangaDetailsPageState extends ConsumerState<MangaDetailsPage> {
                   onPressed: value.sourceAvailable
                       ? widget.onContinueReading
                       : null,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('继续阅读'),
+                  icon: const Icon(Icons.menu_book),
+                  label: const Text('开始阅读'),
                 ),
               ),
               if (!value.sourceAvailable) ...[
