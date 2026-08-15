@@ -262,13 +262,13 @@ class _ReaderState extends State<_Reader> with WidgetsBindingObserver {
       if (spreadIndex != 0 && firstIndex + 1 < widget.book.pages.length)
         firstIndex + 1,
     ];
-    if (_direction == PageTurnDirection.rightToLeft) {
-      indexes.setAll(0, indexes.reversed);
-    }
+    final displayIndexes = _direction == PageTurnDirection.rightToLeft
+        ? indexes.reversed.toList()
+        : indexes;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        for (final index in indexes)
+        for (final index in displayIndexes)
           Expanded(child: Center(child: _pageImage(widget.book.pages[index]))),
       ],
     );

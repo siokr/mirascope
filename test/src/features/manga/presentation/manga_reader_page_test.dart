@@ -80,6 +80,25 @@ void main() {
     expect(find.text('2 / 3'), findsOneWidget);
   });
 
+  testWidgets('right-to-left double-page mode keeps both distinct pages', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('manga-reader-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('从右到左'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('manga-reader-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('横向双页'));
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('manga-page-image-page-2')), findsOneWidget);
+    expect(find.byKey(const Key('manga-page-image-page-3')), findsOneWidget);
+  });
+
   testWidgets('a failed page shows a placeholder without blocking the reader', (
     tester,
   ) async {
