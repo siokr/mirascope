@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../../../core/database/app_database.dart';
 import '../domain/library_item.dart' as domain;
 import '../domain/library_entry.dart' as domain;
+import '../domain/library_query.dart';
 import '../domain/media_item.dart' as domain;
 import '../domain/media_library_repository.dart';
 
@@ -13,56 +14,48 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
 
   @override
   Stream<List<domain.LibraryItem>> watchActiveLibrary() {
-    return _watchLibrary(archived: false);
+    return watchLibrary(const LibraryQuery());
   }
 
   @override
   Stream<List<domain.LibraryItem>> watchArchivedLibrary() {
-    return _watchLibrary(archived: true);
+    return watchLibrary(
+      const LibraryQuery(archived: true, sort: LibrarySort.recentlyAdded),
+    );
   }
 
-  Stream<List<domain.LibraryItem>> _watchLibrary({required bool archived}) {
+  @override
+  Stream<List<domain.LibraryItem>> watchLibrary(LibraryQuery libraryQuery) {
     final query = database.select(database.libraryEntries).join([
       innerJoin(
         database.mediaItems,
         database.mediaItems.id.equalsExp(database.libraryEntries.mediaItemId),
       ),
     ]);
-    if (archived) {
-      query
-        ..where(database.libraryEntries.archivedAt.isNotNull())
-        ..orderBy([
-          OrderingTerm(
-            expression: database.libraryEntries.archivedAt,
-            mode: OrderingMode.desc,
-          ),
-          OrderingTerm(
-            expression: database.libraryEntries.addedAt,
-            mode: OrderingMode.desc,
-          ),
-          OrderingTerm(
-            expression: database.libraryEntries.id,
-            mode: OrderingMode.asc,
-          ),
-        ]);
+    if (libraryQuery.archived) {
+      query.where(database.libraryEntries.archivedAt.isNotNull());
     } else {
-      query
-        ..where(database.libraryEntries.archivedAt.isNull())
-        ..orderBy([
-          OrderingTerm(
-            expression: database.libraryEntries.lastOpenedAt,
-            mode: OrderingMode.desc,
-          ),
-          OrderingTerm(
-            expression: database.libraryEntries.addedAt,
-            mode: OrderingMode.desc,
-          ),
-          OrderingTerm(
-            expression: database.libraryEntries.id,
-            mode: OrderingMode.asc,
-          ),
-        ]);
+      query.where(database.libraryEntries.archivedAt.isNull());
     }
+    if (libraryQuery.favoriteOnly) {
+      query.where(database.libraryEntries.favorite.equals(true));
+    }
+    if (libraryQuery.mediaTypes.isNotEmpty) {
+      query.where(
+        database.mediaItems.mediaType.isIn(
+          libraryQuery.mediaTypes.map((type) => type.storageValue),
+        ),
+      );
+    }
+    final searchText = libraryQuery.normalizedSearchText;
+    if (searchText.isNotEmpty) {
+      query.where(
+        database.mediaItems.title.lower().contains(searchText) |
+            database.mediaItems.subtitle.lower().contains(searchText) |
+            database.mediaItems.creator.lower().contains(searchText),
+      );
+    }
+    query.orderBy(_orderTerms(libraryQuery));
 
     return query.watch().map(
       (rows) => rows
@@ -74,6 +67,64 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
           )
           .toList(),
     );
+  }
+
+  List<OrderingTerm> _orderTerms(LibraryQuery query) {
+    final stableId = OrderingTerm(
+      expression: database.libraryEntries.id,
+      mode: OrderingMode.asc,
+    );
+    return switch (query.sort) {
+      LibrarySort.recentlyOpened when query.archived => [
+        OrderingTerm(
+          expression: database.libraryEntries.archivedAt,
+          mode: OrderingMode.desc,
+        ),
+        OrderingTerm(
+          expression: database.libraryEntries.addedAt,
+          mode: OrderingMode.desc,
+        ),
+        stableId,
+      ],
+      LibrarySort.recentlyOpened => [
+        OrderingTerm(
+          expression: database.libraryEntries.lastOpenedAt,
+          mode: OrderingMode.desc,
+        ),
+        OrderingTerm(
+          expression: database.libraryEntries.addedAt,
+          mode: OrderingMode.desc,
+        ),
+        stableId,
+      ],
+      LibrarySort.recentlyAdded => [
+        OrderingTerm(
+          expression: query.archived
+              ? database.libraryEntries.archivedAt
+              : database.libraryEntries.addedAt,
+          mode: OrderingMode.desc,
+        ),
+        OrderingTerm(
+          expression: database.libraryEntries.addedAt,
+          mode: OrderingMode.desc,
+        ),
+        stableId,
+      ],
+      LibrarySort.titleAscending => [
+        OrderingTerm(
+          expression: database.mediaItems.title.lower(),
+          mode: OrderingMode.asc,
+        ),
+        stableId,
+      ],
+      LibrarySort.titleDescending => [
+        OrderingTerm(
+          expression: database.mediaItems.title.lower(),
+          mode: OrderingMode.desc,
+        ),
+        stableId,
+      ],
+    };
   }
 
   @override

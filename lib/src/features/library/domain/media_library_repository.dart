@@ -1,7 +1,9 @@
 import 'library_item.dart';
+import 'library_query.dart';
 import 'media_item.dart';
 
 abstract interface class MediaLibraryRepository {
+  Stream<List<LibraryItem>> watchLibrary(LibraryQuery query);
   Stream<List<LibraryItem>> watchActiveLibrary();
   Stream<List<LibraryItem>> watchArchivedLibrary();
   Future<MediaItem?> findMediaItem(String mediaItemId);

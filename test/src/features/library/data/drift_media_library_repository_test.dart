@@ -4,6 +4,9 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/app_database.dart';
 import 'package:mirascope/src/features/library/data/drift_media_library_repository.dart';
+import 'package:mirascope/src/features/library/domain/library_query.dart';
+import 'package:mirascope/src/features/library/domain/media_item.dart'
+    as domain;
 
 import '../../../core/database/database_test_support.dart';
 
@@ -42,6 +45,117 @@ void main() {
     final items = await repository.watchArchivedLibrary().first;
 
     expect(items.map((item) => item.mediaItem.id).toList(), ['archived']);
+  });
+
+  test(
+    'query searches title subtitle and creator case-insensitively',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
+      final repository = DriftMediaLibraryRepository(database);
+      await _insertMediaAndLibraryEntry(
+        database,
+        id: 'title',
+        title: 'DART 入门',
+      );
+      await _insertMediaAndLibraryEntry(
+        database,
+        id: 'subtitle',
+        title: 'Second',
+        subtitle: 'Flutter DART',
+      );
+      await _insertMediaAndLibraryEntry(
+        database,
+        id: 'creator',
+        title: 'Third',
+        creator: 'Dart Author',
+      );
+      await _insertMediaAndLibraryEntry(
+        database,
+        id: 'other',
+        title: 'Unrelated',
+      );
+
+      final items = await repository
+          .watchLibrary(const LibraryQuery(searchText: '  dArT  '))
+          .first;
+
+      expect(items.map((item) => item.mediaItem.id), [
+        'creator',
+        'subtitle',
+        'title',
+      ]);
+    },
+  );
+
+  test('query combines media type and favorite filters', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'favorite-manga',
+      title: 'Favorite manga',
+      mediaType: 'manga',
+      favorite: true,
+    );
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'plain-manga',
+      title: 'Plain manga',
+      mediaType: 'manga',
+    );
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'favorite-novel',
+      title: 'Favorite novel',
+      favorite: true,
+    );
+
+    final items = await repository
+        .watchLibrary(
+          const LibraryQuery(
+            mediaTypes: {domain.MediaType.manga},
+            favoriteOnly: true,
+          ),
+        )
+        .first;
+
+    expect(items.single.mediaItem.id, 'favorite-manga');
+  });
+
+  test('query supports stable title sorting in both directions', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'z',
+      entryId: 'entry-z',
+      title: 'beta',
+    );
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'b',
+      entryId: 'entry-b',
+      title: 'Alpha',
+    );
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'a',
+      entryId: 'entry-a',
+      title: 'alpha',
+    );
+
+    final ascending = await repository
+        .watchLibrary(const LibraryQuery(sort: LibrarySort.titleAscending))
+        .first;
+    final descending = await repository
+        .watchLibrary(const LibraryQuery(sort: LibrarySort.titleDescending))
+        .first;
+
+    expect(ascending.map((item) => item.mediaItem.id), ['a', 'b', 'z']);
+    expect(descending.map((item) => item.mediaItem.id), ['z', 'a', 'b']);
   });
 
   test('archive removes an item from the active stream', () async {
@@ -355,6 +469,10 @@ Future<void> _insertMediaAndLibraryEntry(
   required String id,
   String? entryId,
   required String title,
+  String mediaType = 'novel',
+  String? subtitle,
+  String? creator,
+  bool favorite = false,
   DateTime? addedAt,
   DateTime? lastOpenedAt,
   DateTime? archivedAt,
@@ -364,8 +482,10 @@ Future<void> _insertMediaAndLibraryEntry(
       .insert(
         MediaItemsCompanion.insert(
           id: id,
-          mediaType: 'novel',
+          mediaType: mediaType,
           title: title,
+          subtitle: Value(subtitle),
+          creator: Value(creator),
           createdAt: _now,
           updatedAt: _now,
         ),
@@ -376,7 +496,7 @@ Future<void> _insertMediaAndLibraryEntry(
         LibraryEntriesCompanion.insert(
           id: entryId ?? 'entry-$id',
           mediaItemId: id,
-          favorite: false,
+          favorite: favorite,
           addedAt: addedAt ?? _now,
           lastOpenedAt: Value(lastOpenedAt),
           archivedAt: Value(archivedAt),

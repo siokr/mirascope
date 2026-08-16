@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:mirascope/src/features/library/domain/library_item.dart';
+import 'package:mirascope/src/features/library/domain/library_query.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/features/library/domain/media_library_repository.dart';
 import 'package:mirascope/src/features/importing/domain/derived_txt_store.dart';
@@ -30,6 +31,16 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   Future<void> close() async {
     await activeController.close();
     await archivedController.close();
+  }
+
+  @override
+  Stream<List<LibraryItem>> watchLibrary(LibraryQuery query) {
+    if (query.archived) {
+      archivedWatchCount += 1;
+      return archivedController.stream;
+    }
+    activeWatchCount += 1;
+    return activeController.stream;
   }
 
   @override
