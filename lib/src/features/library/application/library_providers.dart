@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/database_providers.dart';
 import '../domain/library_item.dart';
+import '../domain/library_query.dart';
 
 typedef LibraryClock = DateTime Function();
 
@@ -9,8 +10,29 @@ final libraryClockProvider = Provider<LibraryClock>((ref) {
   return () => DateTime.now().toUtc();
 });
 
+final libraryQueryProvider =
+    NotifierProvider<LibraryQueryController, LibraryQuery>(
+      LibraryQueryController.new,
+    );
+
+final class LibraryQueryController extends Notifier<LibraryQuery> {
+  @override
+  LibraryQuery build() => const LibraryQuery();
+
+  void setSearchText(String value) {
+    state = state.copyWith(searchText: value);
+  }
+
+  void clearSearch() {
+    if (state.searchText.isNotEmpty) {
+      state = state.copyWith(searchText: '');
+    }
+  }
+}
+
 final activeLibraryProvider = StreamProvider<List<LibraryItem>>((ref) {
-  return ref.watch(mediaLibraryRepositoryProvider).watchActiveLibrary();
+  final query = ref.watch(libraryQueryProvider);
+  return ref.watch(mediaLibraryRepositoryProvider).watchLibrary(query);
 });
 
 final archivedLibraryProvider = StreamProvider<List<LibraryItem>>((ref) {

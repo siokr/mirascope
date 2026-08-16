@@ -19,6 +19,7 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   final deleted = <String>[];
   var activeWatchCount = 0;
   var archivedWatchCount = 0;
+  LibraryQuery? lastQuery;
 
   Completer<void>? markOpenedGate;
   Completer<void>? archiveGate;
@@ -35,6 +36,7 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
 
   @override
   Stream<List<LibraryItem>> watchLibrary(LibraryQuery query) {
+    lastQuery = query;
     if (query.archived) {
       archivedWatchCount += 1;
       return archivedController.stream;

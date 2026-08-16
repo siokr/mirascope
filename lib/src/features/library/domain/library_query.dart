@@ -23,4 +23,20 @@ final class LibraryQuery {
   final LibrarySort sort;
 
   String get normalizedSearchText => searchText.trim().toLowerCase();
+
+  LibraryQuery copyWith({
+    bool? archived,
+    String? searchText,
+    Set<MediaType>? mediaTypes,
+    bool? favoriteOnly,
+    LibrarySort? sort,
+  }) {
+    return LibraryQuery(
+      archived: archived ?? this.archived,
+      searchText: searchText ?? this.searchText,
+      mediaTypes: mediaTypes ?? this.mediaTypes,
+      favoriteOnly: favoriteOnly ?? this.favoriteOnly,
+      sort: sort ?? this.sort,
+    );
+  }
 }

@@ -72,16 +72,47 @@ class LibraryPage extends ConsumerStatefulWidget {
 
 class _LibraryPageState extends ConsumerState<LibraryPage> {
   var _importing = false;
+  var _searching = false;
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final library = ref.watch(activeLibraryProvider);
+    final query = ref.watch(libraryQueryProvider);
     final busyMediaIds = ref.watch(libraryActionsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('媒体库'),
+        title: _searching
+            ? TextField(
+                key: const Key('library-search-field'),
+                controller: _searchController,
+                autofocus: true,
+                textInputAction: TextInputAction.search,
+                decoration: const InputDecoration(
+                  hintText: '搜索书名、作者',
+                  border: InputBorder.none,
+                ),
+                onChanged: ref
+                    .read(libraryQueryProvider.notifier)
+                    .setSearchText,
+              )
+            : const Text('媒体库'),
         actions: [
+          IconButton(
+            key: Key(
+              _searching ? 'close-library-search' : 'open-library-search',
+            ),
+            onPressed: _toggleSearch,
+            tooltip: _searching ? '关闭搜索' : '搜索',
+            icon: Icon(_searching ? Icons.close : Icons.search),
+          ),
           IconButton(
             key: const Key('open-archive'),
             onPressed: widget.onOpenArchive,
@@ -103,6 +134,18 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         ),
         data: (items) {
           if (items.isEmpty) {
+            if (query.normalizedSearchText.isNotEmpty) {
+              return EmptyState(
+                icon: Icons.search_off_outlined,
+                title: '没有找到匹配内容',
+                message: '试试其他书名或作者关键词。',
+                action: TextButton(
+                  key: const Key('clear-library-search'),
+                  onPressed: _clearSearch,
+                  child: const Text('清除搜索'),
+                ),
+              );
+            }
             return const EmptyState(
               icon: Icons.menu_book_outlined,
               title: '媒体库还是空的',
@@ -155,6 +198,20 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         ],
       ),
     );
+  }
+
+  void _toggleSearch() {
+    if (_searching) {
+      _clearSearch();
+      setState(() => _searching = false);
+      return;
+    }
+    setState(() => _searching = true);
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(libraryQueryProvider.notifier).clearSearch();
   }
 
   Future<void> _importTxt() async {

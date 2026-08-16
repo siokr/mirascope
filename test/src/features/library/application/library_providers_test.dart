@@ -6,6 +6,7 @@ import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/application/library_providers.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart';
 import 'package:mirascope/src/features/library/domain/library_item.dart';
+import 'package:mirascope/src/features/library/domain/library_query.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
 
 import '../library_test_support.dart';
@@ -51,6 +52,30 @@ void main() {
 
       expect(await active.future, [activeItem]);
       expect(await archived.future, [archivedItem]);
+    },
+  );
+
+  test(
+    'search query changes resubscribe with the new repository query',
+    () async {
+      final repository = FakeMediaLibraryRepository();
+      addTearDown(repository.close);
+      final container = ProviderContainer(
+        overrides: [
+          mediaLibraryRepositoryProvider.overrideWithValue(repository),
+        ],
+      );
+      addTearDown(container.dispose);
+      final subscription = container.listen(activeLibraryProvider, (_, _) {});
+      addTearDown(subscription.close);
+      await Future<void>.delayed(Duration.zero);
+
+      container.read(libraryQueryProvider.notifier).setSearchText('漫画');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.lastQuery?.searchText, '漫画');
+      expect(repository.lastQuery?.sort, LibrarySort.recentlyOpened);
+      expect(repository.activeWatchCount, 2);
     },
   );
 }

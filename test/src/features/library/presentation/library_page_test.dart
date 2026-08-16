@@ -42,6 +42,60 @@ void main() {
     expect(find.text('导入 EPUB'), findsOneWidget);
   });
 
+  testWidgets('searches through the repository and can close search', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository);
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('open-library-search')));
+    await tester.pump();
+    expect(find.byKey(const Key('library-search-field')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('library-search-field')),
+      '  林遥  ',
+    );
+    await tester.pump();
+    expect(repository.lastQuery?.searchText, '  林遥  ');
+
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+    expect(find.text('长夜书简'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('close-library-search')));
+    await tester.pump();
+    expect(find.byKey(const Key('library-search-field')), findsNothing);
+    expect(repository.lastQuery?.searchText, isEmpty);
+  });
+
+  testWidgets('search empty state clears the current query', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository);
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('open-library-search')));
+    await tester.pump();
+    await tester.enterText(
+      find.byKey(const Key('library-search-field')),
+      '不存在',
+    );
+    await tester.pump();
+    repository.activeController.add([]);
+    await tester.pump();
+
+    expect(find.text('没有找到匹配内容'), findsOneWidget);
+    expect(find.text('试试其他书名或作者关键词。'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('clear-library-search')));
+    await tester.pump();
+    expect(repository.lastQuery?.searchText, isEmpty);
+  });
+
   testWidgets('cancelled import stays on the library without feedback', (
     tester,
   ) async {
