@@ -18,6 +18,9 @@ import 'package:mirascope/src/features/importing/domain/txt_encoding.dart';
 import 'package:mirascope/src/features/importing/domain/txt_source_candidate.dart';
 import 'package:mirascope/src/features/importing/domain/manga_source.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart';
+import 'package:mirascope/src/features/library/domain/custom_shelf.dart';
+import 'package:mirascope/src/features/library/domain/library_organization_repository.dart';
+import 'package:mirascope/src/features/library/domain/media_tag.dart';
 import 'package:mirascope/src/features/library/domain/library_item.dart';
 import 'package:mirascope/src/features/library/domain/library_query.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
@@ -27,6 +30,38 @@ import 'package:mirascope/src/features/library/presentation/widgets/library_load
 import '../library_test_support.dart';
 
 void main() {
+  testWidgets('organizes a book with tags and custom shelves', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    final organization = _FakeOrganizationRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository, organization: organization);
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('library-menu-book-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('标签与书架'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('organization-sheet')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('organization-tag')));
+    await tester.pump();
+    expect(organization.assignedTagIds, {'tag'});
+    await tester.tap(find.byKey(const Key('organization-shelf')));
+    await tester.pump();
+    expect(organization.assignedShelfIds, {'shelf'});
+
+    await tester.tap(find.text('新建标签'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('organization-name-field')),
+      '奇幻',
+    );
+    await tester.tap(find.text('创建'));
+    await tester.pumpAndSettle();
+    expect(organization.createdTags.single.name, '奇幻');
+  });
+
   testWidgets('shows loading then the active empty state', (tester) async {
     final repository = FakeMediaLibraryRepository();
     addTearDown(repository.close);
@@ -541,10 +576,15 @@ Future<void> _pumpPage(
   CompleteEpubImport? completeEpubImport,
   PrepareMangaForImport? prepareMangaForImport,
   CompleteMangaImport? completeMangaImport,
+  LibraryOrganizationRepository? organization,
 }) {
   return tester.pumpWidget(
     ProviderScope(
-      overrides: [mediaLibraryRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        mediaLibraryRepositoryProvider.overrideWithValue(repository),
+        if (organization != null)
+          libraryOrganizationRepositoryProvider.overrideWithValue(organization),
+      ],
       child: MaterialApp(
         home: LibraryPage(
           onOpenSettings: () {},
@@ -561,6 +601,74 @@ Future<void> _pumpPage(
       ),
     ),
   );
+}
+
+final class _FakeOrganizationRepository
+    implements LibraryOrganizationRepository {
+  final assignedTagIds = <String>{};
+  final assignedShelfIds = <String>{};
+  final createdTags = <MediaTag>[];
+
+  @override
+  Stream<List<MediaTag>> watchTags() => Stream.value([
+    MediaTag(id: 'tag', name: '收藏', createdAt: DateTime.utc(2026)),
+  ]);
+
+  @override
+  Stream<List<CustomShelf>> watchShelves() => Stream.value([
+    CustomShelf(
+      id: 'shelf',
+      name: '待读',
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    ),
+  ]);
+
+  @override
+  Stream<Set<String>> watchTagIdsForMedia(String mediaItemId) =>
+      Stream.value(assignedTagIds);
+
+  @override
+  Stream<Set<String>> watchShelfIdsForMedia(String mediaItemId) =>
+      Stream.value(assignedShelfIds);
+
+  @override
+  Future<void> createTag(MediaTag tag) async => createdTags.add(tag);
+
+  @override
+  Future<void> createShelf(CustomShelf shelf) async {}
+
+  @override
+  Future<void> setTagAssigned({
+    required String tagId,
+    required String mediaItemId,
+    required bool assigned,
+    required DateTime changedAt,
+  }) async =>
+      assigned ? assignedTagIds.add(tagId) : assignedTagIds.remove(tagId);
+
+  @override
+  Future<void> setMediaInShelf({
+    required String shelfId,
+    required String mediaItemId,
+    required bool included,
+    required DateTime changedAt,
+  }) async => included
+      ? assignedShelfIds.add(shelfId)
+      : assignedShelfIds.remove(shelfId);
+
+  @override
+  Future<void> deleteShelf(String shelfId) async {}
+  @override
+  Future<void> deleteTag(String tagId) async {}
+  @override
+  Future<void> renameShelf(
+    String shelfId,
+    String name,
+    DateTime updatedAt,
+  ) async {}
+  @override
+  Future<void> renameTag(String tagId, String name) async {}
 }
 
 final _candidate = TxtSourceCandidate(

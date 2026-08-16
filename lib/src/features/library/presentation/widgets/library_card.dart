@@ -5,7 +5,7 @@ import '../../domain/library_item.dart';
 import '../../../manga/application/manga_providers.dart';
 import '../../domain/media_item.dart';
 
-enum LibraryCardAction { archive, restore, delete }
+enum LibraryCardAction { organize, archive, restore, delete }
 
 class LibraryCard extends ConsumerWidget {
   const LibraryCard({
@@ -16,6 +16,7 @@ class LibraryCard extends ConsumerWidget {
     required this.onArchive,
     required this.onRestore,
     required this.onDelete,
+    this.onOrganize,
     super.key,
   });
 
@@ -26,6 +27,7 @@ class LibraryCard extends ConsumerWidget {
   final VoidCallback onArchive;
   final VoidCallback onRestore;
   final VoidCallback onDelete;
+  final VoidCallback? onOrganize;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -110,6 +112,8 @@ class LibraryCard extends ConsumerWidget {
                         tooltip: '更多操作',
                         onSelected: (action) {
                           switch (action) {
+                            case LibraryCardAction.organize:
+                              onOrganize?.call();
                             case LibraryCardAction.archive:
                               onArchive();
                             case LibraryCardAction.restore:
@@ -129,6 +133,10 @@ class LibraryCard extends ConsumerWidget {
                               child: Text('永久删除'),
                             ),
                           ] else ...const [
+                            PopupMenuItem(
+                              value: LibraryCardAction.organize,
+                              child: Text('标签与书架'),
+                            ),
                             PopupMenuItem(
                               value: LibraryCardAction.archive,
                               child: Text('移入归档'),

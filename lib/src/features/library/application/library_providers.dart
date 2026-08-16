@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database_providers.dart';
 import '../domain/library_item.dart';
 import '../domain/library_query.dart';
+import '../domain/custom_shelf.dart';
+import '../domain/media_tag.dart';
 
 typedef LibraryClock = DateTime Function();
 
@@ -45,4 +47,30 @@ final activeLibraryProvider = StreamProvider<List<LibraryItem>>((ref) {
 
 final archivedLibraryProvider = StreamProvider<List<LibraryItem>>((ref) {
   return ref.watch(mediaLibraryRepositoryProvider).watchArchivedLibrary();
+});
+
+final organizationTagsProvider = StreamProvider<List<MediaTag>>((ref) {
+  return ref.watch(libraryOrganizationRepositoryProvider).watchTags();
+});
+
+final organizationShelvesProvider = StreamProvider<List<CustomShelf>>((ref) {
+  return ref.watch(libraryOrganizationRepositoryProvider).watchShelves();
+});
+
+final mediaTagIdsProvider = StreamProvider.family<Set<String>, String>((
+  ref,
+  id,
+) {
+  return ref
+      .watch(libraryOrganizationRepositoryProvider)
+      .watchTagIdsForMedia(id);
+});
+
+final mediaShelfIdsProvider = StreamProvider.family<Set<String>, String>((
+  ref,
+  id,
+) {
+  return ref
+      .watch(libraryOrganizationRepositoryProvider)
+      .watchShelfIdsForMedia(id);
 });

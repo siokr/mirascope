@@ -6,6 +6,8 @@ import 'package:mirascope/src/shared/widgets/empty_state.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/app_error_code.dart';
+import '../../../core/database/database_providers.dart';
+import '../../../core/ids/id_generator.dart';
 import '../../importing/application/import_txt.dart';
 import '../../importing/application/import_epub.dart';
 import '../../importing/application/importing_providers.dart';
@@ -21,6 +23,8 @@ import '../application/library_actions_controller.dart';
 import '../application/library_providers.dart';
 import '../domain/library_item.dart';
 import '../domain/library_query.dart';
+import '../domain/custom_shelf.dart';
+import '../domain/media_tag.dart';
 import '../domain/media_item.dart';
 import 'widgets/library_error_state.dart';
 import 'widgets/library_grid.dart';
@@ -173,6 +177,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             onArchive: (item) => unawaited(_confirmArchive(context, ref, item)),
             onRestore: (_) {},
             onDelete: (_) {},
+            onOrganize: (item) => unawaited(_openOrganization(item)),
           );
         },
       ),
@@ -533,6 +538,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     }
   }
 
+  Future<void> _openOrganization(LibraryItem item) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _OrganizationSheet(item: item),
+    );
+  }
+
   Future<void> _undoArchive(
     BuildContext context,
     WidgetRef ref,
@@ -568,6 +581,237 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         ),
       );
   }
+}
+
+class _OrganizationSheet extends ConsumerWidget {
+  const _OrganizationSheet({required this.item});
+
+  final LibraryItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mediaId = item.mediaItem.id;
+    final tags = ref.watch(organizationTagsProvider);
+    final shelves = ref.watch(organizationShelvesProvider);
+    final selectedTags = ref.watch(mediaTagIdsProvider(mediaId));
+    final selectedShelves = ref.watch(mediaShelfIdsProvider(mediaId));
+    return SafeArea(
+      child: FractionallySizedBox(
+        heightFactor: 0.82,
+        child: ListView(
+          key: const Key('organization-sheet'),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          children: [
+            Text(
+              '整理《${item.mediaItem.title}》',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 20),
+            _OrganizationHeader(
+              title: '标签',
+              actionLabel: '新建标签',
+              onAdd: () => _createTag(context, ref),
+            ),
+            _OrganizationChoices(
+              values: tags,
+              selectedIds: selectedTags,
+              emptyText: '还没有标签',
+              idOf: (value) => value.id,
+              nameOf: (value) => value.name,
+              onChanged: (id, selected) => ref
+                  .read(libraryOrganizationRepositoryProvider)
+                  .setTagAssigned(
+                    tagId: id,
+                    mediaItemId: mediaId,
+                    assigned: selected,
+                    changedAt: DateTime.now().toUtc(),
+                  ),
+            ),
+            const Divider(height: 32),
+            _OrganizationHeader(
+              title: '自定义书架',
+              actionLabel: '新建书架',
+              onAdd: () => _createShelf(context, ref),
+            ),
+            _OrganizationChoices(
+              values: shelves,
+              selectedIds: selectedShelves,
+              emptyText: '还没有自定义书架',
+              idOf: (value) => value.id,
+              nameOf: (value) => value.name,
+              onChanged: (id, selected) => ref
+                  .read(libraryOrganizationRepositoryProvider)
+                  .setMediaInShelf(
+                    shelfId: id,
+                    mediaItemId: mediaId,
+                    included: selected,
+                    changedAt: DateTime.now().toUtc(),
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _createTag(BuildContext context, WidgetRef ref) async {
+    final name = await _requestOrganizationName(context, '新建标签');
+    if (name == null) return;
+    try {
+      await ref
+          .read(libraryOrganizationRepositoryProvider)
+          .createTag(
+            MediaTag(
+              id: const UuidIdGenerator().newId(),
+              name: name,
+              createdAt: DateTime.now().toUtc(),
+            ),
+          );
+    } on Object {
+      if (context.mounted) _showOrganizationFailure(context);
+    }
+  }
+
+  Future<void> _createShelf(BuildContext context, WidgetRef ref) async {
+    final name = await _requestOrganizationName(context, '新建书架');
+    if (name == null) return;
+    final now = DateTime.now().toUtc();
+    try {
+      await ref
+          .read(libraryOrganizationRepositoryProvider)
+          .createShelf(
+            CustomShelf(
+              id: const UuidIdGenerator().newId(),
+              name: name,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    } on Object {
+      if (context.mounted) _showOrganizationFailure(context);
+    }
+  }
+}
+
+class _OrganizationHeader extends StatelessWidget {
+  const _OrganizationHeader({
+    required this.title,
+    required this.actionLabel,
+    required this.onAdd,
+  });
+  final String title;
+  final String actionLabel;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Expanded(
+        child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+      ),
+      TextButton.icon(
+        onPressed: onAdd,
+        icon: const Icon(Icons.add),
+        label: Text(actionLabel),
+      ),
+    ],
+  );
+}
+
+class _OrganizationChoices<T> extends StatelessWidget {
+  const _OrganizationChoices({
+    required this.values,
+    required this.selectedIds,
+    required this.emptyText,
+    required this.idOf,
+    required this.nameOf,
+    required this.onChanged,
+  });
+  final AsyncValue<List<T>> values;
+  final AsyncValue<Set<String>> selectedIds;
+  final String emptyText;
+  final String Function(T) idOf;
+  final String Function(T) nameOf;
+  final Future<void> Function(String, bool) onChanged;
+
+  @override
+  Widget build(BuildContext context) => values.when(
+    loading: () => const Center(child: CircularProgressIndicator()),
+    error: (_, _) => const Text('加载失败，请重试。'),
+    data: (items) => selectedIds.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, _) => const Text('加载失败，请重试。'),
+      data: (selected) => items.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text(emptyText),
+            )
+          : Column(
+              children: [
+                for (final value in items)
+                  CheckboxListTile(
+                    key: Key('organization-${idOf(value)}'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(nameOf(value)),
+                    value: selected.contains(idOf(value)),
+                    onChanged: (checked) {
+                      if (checked != null) {
+                        unawaited(_change(context, idOf(value), checked));
+                      }
+                    },
+                  ),
+              ],
+            ),
+    ),
+  );
+
+  Future<void> _change(BuildContext context, String id, bool selected) async {
+    try {
+      await onChanged(id, selected);
+    } on Object {
+      if (context.mounted) _showOrganizationFailure(context);
+    }
+  }
+}
+
+void _showOrganizationFailure(BuildContext context) {
+  ScaffoldMessenger.of(context)
+    ..clearSnackBars()
+    ..showSnackBar(const SnackBar(content: Text('无法保存，名称可能已存在，请重试。')));
+}
+
+Future<String?> _requestOrganizationName(
+  BuildContext context,
+  String title,
+) async {
+  final controller = TextEditingController();
+  final result = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(title),
+      content: TextField(
+        key: const Key('organization-name-field'),
+        controller: controller,
+        autofocus: true,
+        maxLength: 60,
+        decoration: const InputDecoration(labelText: '名称'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final name = controller.text.trim();
+            if (name.isNotEmpty) Navigator.pop(dialogContext, name);
+          },
+          child: const Text('创建'),
+        ),
+      ],
+    ),
+  );
+  return result;
 }
 
 class _LibraryFilterSheet extends StatefulWidget {
