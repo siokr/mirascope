@@ -78,6 +78,27 @@ void main() {
       expect(repository.activeWatchCount, 2);
     },
   );
+
+  test('filter changes preserve search and reset independently', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final controller = container.read(libraryQueryProvider.notifier);
+    controller.setSearchText('作者');
+
+    controller.applyFilters(
+      const LibraryQuery(
+        mediaTypes: {MediaType.manga},
+        favoriteOnly: true,
+        sort: LibrarySort.titleDescending,
+      ),
+    );
+    expect(container.read(libraryQueryProvider).searchText, '作者');
+    expect(container.read(libraryQueryProvider).favoriteOnly, isTrue);
+
+    controller.resetFilters();
+    expect(container.read(libraryQueryProvider).searchText, '作者');
+    expect(container.read(libraryQueryProvider).hasActiveFilters, isFalse);
+  });
 }
 
 LibraryItem _item(String id) {

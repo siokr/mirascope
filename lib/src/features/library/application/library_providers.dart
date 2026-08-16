@@ -28,6 +28,14 @@ final class LibraryQueryController extends Notifier<LibraryQuery> {
       state = state.copyWith(searchText: '');
     }
   }
+
+  void applyFilters(LibraryQuery query) {
+    state = query.copyWith(archived: false, searchText: state.searchText);
+  }
+
+  void resetFilters() {
+    state = LibraryQuery(searchText: state.searchText);
+  }
 }
 
 final activeLibraryProvider = StreamProvider<List<LibraryItem>>((ref) {

@@ -20,6 +20,7 @@ import '../../importing/domain/manga_source.dart';
 import '../application/library_actions_controller.dart';
 import '../application/library_providers.dart';
 import '../domain/library_item.dart';
+import '../domain/library_query.dart';
 import '../domain/media_item.dart';
 import 'widgets/library_error_state.dart';
 import 'widgets/library_grid.dart';
@@ -114,6 +115,16 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             icon: Icon(_searching ? Icons.close : Icons.search),
           ),
           IconButton(
+            key: const Key('open-library-filters'),
+            onPressed: _openFilters,
+            tooltip: query.hasActiveFilters ? '筛选和排序，已应用' : '筛选和排序',
+            icon: Icon(
+              query.hasActiveFilters
+                  ? Icons.filter_alt
+                  : Icons.filter_alt_outlined,
+            ),
+          ),
+          IconButton(
             key: const Key('open-archive'),
             onPressed: widget.onOpenArchive,
             tooltip: '已归档',
@@ -134,15 +145,17 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         ),
         data: (items) {
           if (items.isEmpty) {
-            if (query.normalizedSearchText.isNotEmpty) {
+            if (query.normalizedSearchText.isNotEmpty ||
+                query.hasActiveFilters) {
+              final searching = query.normalizedSearchText.isNotEmpty;
               return EmptyState(
                 icon: Icons.search_off_outlined,
                 title: '没有找到匹配内容',
-                message: '试试其他书名或作者关键词。',
+                message: searching ? '试试其他书名或作者关键词。' : '试试减少筛选条件。',
                 action: TextButton(
                   key: const Key('clear-library-search'),
-                  onPressed: _clearSearch,
-                  child: const Text('清除搜索'),
+                  onPressed: searching ? _clearSearch : _resetFilters,
+                  child: Text(searching ? '清除搜索' : '重置筛选'),
                 ),
               );
             }
@@ -212,6 +225,22 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   void _clearSearch() {
     _searchController.clear();
     ref.read(libraryQueryProvider.notifier).clearSearch();
+  }
+
+  void _resetFilters() {
+    ref.read(libraryQueryProvider.notifier).resetFilters();
+  }
+
+  Future<void> _openFilters() async {
+    final result = await showModalBottomSheet<LibraryQuery>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) =>
+          _LibraryFilterSheet(initialQuery: ref.read(libraryQueryProvider)),
+    );
+    if (result != null && mounted) {
+      ref.read(libraryQueryProvider.notifier).applyFilters(result);
+    }
   }
 
   Future<void> _importTxt() async {
@@ -540,6 +569,147 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       );
   }
 }
+
+class _LibraryFilterSheet extends StatefulWidget {
+  const _LibraryFilterSheet({required this.initialQuery});
+
+  final LibraryQuery initialQuery;
+
+  @override
+  State<_LibraryFilterSheet> createState() => _LibraryFilterSheetState();
+}
+
+class _LibraryFilterSheetState extends State<_LibraryFilterSheet> {
+  late Set<MediaType> _mediaTypes;
+  late bool _favoriteOnly;
+  late LibrarySort _sort;
+
+  @override
+  void initState() {
+    super.initState();
+    _mediaTypes = {...widget.initialQuery.mediaTypes};
+    _favoriteOnly = widget.initialQuery.favoriteOnly;
+    _sort = widget.initialQuery.sort;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+        children: [
+          Text('筛选和排序', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 20),
+          Text('类型', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              FilterChip(
+                key: const Key('filter-media-novel'),
+                label: const Text('小说'),
+                selected: _mediaTypes.contains(MediaType.novel),
+                onSelected: (selected) =>
+                    _setMediaType(MediaType.novel, selected),
+              ),
+              FilterChip(
+                key: const Key('filter-media-manga'),
+                label: const Text('漫画'),
+                selected: _mediaTypes.contains(MediaType.manga),
+                onSelected: (selected) =>
+                    _setMediaType(MediaType.manga, selected),
+              ),
+              FilterChip(
+                key: const Key('filter-favorite-only'),
+                label: const Text('仅收藏'),
+                selected: _favoriteOnly,
+                onSelected: (selected) =>
+                    setState(() => _favoriteOnly = selected),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text('排序', style: Theme.of(context).textTheme.titleMedium),
+          RadioGroup<LibrarySort>(
+            groupValue: _sort,
+            onChanged: (value) {
+              if (value != null) setState(() => _sort = value);
+            },
+            child: Column(
+              children: [
+                for (final option in LibrarySort.values)
+                  RadioListTile<LibrarySort>(
+                    key: Key('sort-${option.name}'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_sortLabel(option)),
+                    value: option,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              TextButton(
+                key: const Key('reset-library-filters'),
+                onPressed: _reset,
+                child: const Text('重置'),
+              ),
+              const Spacer(),
+              TextButton(
+                key: const Key('cancel-library-filters'),
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('取消'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                key: const Key('apply-library-filters'),
+                onPressed: _apply,
+                child: const Text('应用'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _setMediaType(MediaType type, bool selected) {
+    setState(() {
+      if (selected) {
+        _mediaTypes.add(type);
+      } else {
+        _mediaTypes.remove(type);
+      }
+    });
+  }
+
+  void _reset() {
+    setState(() {
+      _mediaTypes.clear();
+      _favoriteOnly = false;
+      _sort = LibrarySort.recentlyOpened;
+    });
+  }
+
+  void _apply() {
+    Navigator.of(context).pop(
+      widget.initialQuery.copyWith(
+        mediaTypes: Set.unmodifiable(_mediaTypes),
+        favoriteOnly: _favoriteOnly,
+        sort: _sort,
+      ),
+    );
+  }
+}
+
+String _sortLabel(LibrarySort sort) => switch (sort) {
+  LibrarySort.recentlyOpened => '最近阅读',
+  LibrarySort.recentlyAdded => '最近加入',
+  LibrarySort.titleAscending => '书名 A–Z',
+  LibrarySort.titleDescending => '书名 Z–A',
+};
 
 class _ImportTitleDialog extends StatefulWidget {
   const _ImportTitleDialog();

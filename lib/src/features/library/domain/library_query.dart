@@ -24,6 +24,11 @@ final class LibraryQuery {
 
   String get normalizedSearchText => searchText.trim().toLowerCase();
 
+  bool get hasActiveFilters =>
+      mediaTypes.isNotEmpty ||
+      favoriteOnly ||
+      sort != LibrarySort.recentlyOpened;
+
   LibraryQuery copyWith({
     bool? archived,
     String? searchText,

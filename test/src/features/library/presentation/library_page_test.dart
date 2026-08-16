@@ -19,6 +19,7 @@ import 'package:mirascope/src/features/importing/domain/txt_source_candidate.dar
 import 'package:mirascope/src/features/importing/domain/manga_source.dart';
 import 'package:mirascope/src/features/library/domain/library_entry.dart';
 import 'package:mirascope/src/features/library/domain/library_item.dart';
+import 'package:mirascope/src/features/library/domain/library_query.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/features/library/presentation/library_page.dart';
 import 'package:mirascope/src/features/library/presentation/widgets/library_loading_grid.dart';
@@ -94,6 +95,72 @@ void main() {
     await tester.tap(find.byKey(const Key('clear-library-search')));
     await tester.pump();
     expect(repository.lastQuery?.searchText, isEmpty);
+  });
+
+  testWidgets('applies media favorite and sort filters together', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository);
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('open-library-filters')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('filter-media-manga')));
+    await tester.tap(find.byKey(const Key('filter-favorite-only')));
+    await tester.ensureVisible(find.byKey(const Key('sort-titleAscending')));
+    await tester.tap(find.byKey(const Key('sort-titleAscending')));
+    await tester.ensureVisible(find.byKey(const Key('apply-library-filters')));
+    await tester.tap(find.byKey(const Key('apply-library-filters')));
+    await tester.pumpAndSettle();
+
+    expect(repository.lastQuery?.mediaTypes, {MediaType.manga});
+    expect(repository.lastQuery?.favoriteOnly, isTrue);
+    expect(repository.lastQuery?.sort, LibrarySort.titleAscending);
+    expect(find.byTooltip('筛选和排序，已应用'), findsOneWidget);
+  });
+
+  testWidgets('cancelling filters preserves the current query', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository);
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('open-library-filters')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('filter-media-manga')));
+    await tester.ensureVisible(find.byKey(const Key('cancel-library-filters')));
+    await tester.tap(find.byKey(const Key('cancel-library-filters')));
+    await tester.pumpAndSettle();
+
+    expect(repository.lastQuery?.mediaTypes, isEmpty);
+    expect(repository.activeWatchCount, 1);
+  });
+
+  testWidgets('filtered empty state can reset applied filters', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository);
+    repository.activeController.add([]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('open-library-filters')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('filter-media-novel')));
+    await tester.ensureVisible(find.byKey(const Key('apply-library-filters')));
+    await tester.tap(find.byKey(const Key('apply-library-filters')));
+    await tester.pumpAndSettle();
+    repository.activeController.add([]);
+    await tester.pumpAndSettle();
+
+    expect(find.text('试试减少筛选条件。'), findsOneWidget);
+    expect(find.text('重置筛选'), findsOneWidget);
+    await tester.tap(find.text('重置筛选'));
+    await tester.pump();
+    expect(repository.lastQuery?.mediaTypes, isEmpty);
   });
 
   testWidgets('cancelled import stays on the library without feedback', (
