@@ -4765,6 +4765,1302 @@ class ImportRecordsCompanion extends UpdateCompanion<ImportRecord> {
   }
 }
 
+class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _normalizedNameMeta = const VerificationMeta(
+    'normalizedName',
+  );
+  @override
+  late final GeneratedColumn<String> normalizedName = GeneratedColumn<String>(
+    'normalized_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> createdAt =
+      GeneratedColumn<int>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($TagsTable.$convertercreatedAt);
+  @override
+  List<GeneratedColumn> get $columns => [id, name, normalizedName, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Tag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('normalized_name')) {
+      context.handle(
+        _normalizedNameMeta,
+        normalizedName.isAcceptableOrUnknown(
+          data['normalized_name']!,
+          _normalizedNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_normalizedNameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Tag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Tag(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      normalizedName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}normalized_name'],
+      )!,
+      createdAt: $TagsTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $TagsTable createAlias(String alias) {
+    return $TagsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, int> $convertercreatedAt =
+      const DateTimeMillisConverter();
+}
+
+class Tag extends DataClass implements Insertable<Tag> {
+  final String id;
+  final String name;
+  final String normalizedName;
+  final DateTime createdAt;
+  const Tag({
+    required this.id,
+    required this.name,
+    required this.normalizedName,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['normalized_name'] = Variable<String>(normalizedName);
+    {
+      map['created_at'] = Variable<int>(
+        $TagsTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    return map;
+  }
+
+  TagsCompanion toCompanion(bool nullToAbsent) {
+    return TagsCompanion(
+      id: Value(id),
+      name: Value(name),
+      normalizedName: Value(normalizedName),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Tag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Tag(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      normalizedName: serializer.fromJson<String>(json['normalizedName']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'normalizedName': serializer.toJson<String>(normalizedName),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Tag copyWith({
+    String? id,
+    String? name,
+    String? normalizedName,
+    DateTime? createdAt,
+  }) => Tag(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    normalizedName: normalizedName ?? this.normalizedName,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Tag copyWithCompanion(TagsCompanion data) {
+    return Tag(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      normalizedName: data.normalizedName.present
+          ? data.normalizedName.value
+          : this.normalizedName,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Tag(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('normalizedName: $normalizedName, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, normalizedName, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Tag &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.normalizedName == this.normalizedName &&
+          other.createdAt == this.createdAt);
+}
+
+class TagsCompanion extends UpdateCompanion<Tag> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> normalizedName;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const TagsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.normalizedName = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TagsCompanion.insert({
+    required String id,
+    required String name,
+    required String normalizedName,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       normalizedName = Value(normalizedName),
+       createdAt = Value(createdAt);
+  static Insertable<Tag> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? normalizedName,
+    Expression<int>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (normalizedName != null) 'normalized_name': normalizedName,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TagsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? normalizedName,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return TagsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      normalizedName: normalizedName ?? this.normalizedName,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (normalizedName.present) {
+      map['normalized_name'] = Variable<String>(normalizedName.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(
+        $TagsTable.$convertercreatedAt.toSql(createdAt.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TagsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('normalizedName: $normalizedName, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MediaTagAssignmentsTable extends MediaTagAssignments
+    with TableInfo<$MediaTagAssignmentsTable, MediaTagAssignment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MediaTagAssignmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
+    'tag_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tags (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _mediaItemIdMeta = const VerificationMeta(
+    'mediaItemId',
+  );
+  @override
+  late final GeneratedColumn<String> mediaItemId = GeneratedColumn<String>(
+    'media_item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES media_items (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> createdAt =
+      GeneratedColumn<int>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($MediaTagAssignmentsTable.$convertercreatedAt);
+  @override
+  List<GeneratedColumn> get $columns => [tagId, mediaItemId, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'media_tag_assignments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MediaTagAssignment> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('tag_id')) {
+      context.handle(
+        _tagIdMeta,
+        tagId.isAcceptableOrUnknown(data['tag_id']!, _tagIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tagIdMeta);
+    }
+    if (data.containsKey('media_item_id')) {
+      context.handle(
+        _mediaItemIdMeta,
+        mediaItemId.isAcceptableOrUnknown(
+          data['media_item_id']!,
+          _mediaItemIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mediaItemIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {tagId, mediaItemId};
+  @override
+  MediaTagAssignment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MediaTagAssignment(
+      tagId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tag_id'],
+      )!,
+      mediaItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_item_id'],
+      )!,
+      createdAt: $MediaTagAssignmentsTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $MediaTagAssignmentsTable createAlias(String alias) {
+    return $MediaTagAssignmentsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, int> $convertercreatedAt =
+      const DateTimeMillisConverter();
+}
+
+class MediaTagAssignment extends DataClass
+    implements Insertable<MediaTagAssignment> {
+  final String tagId;
+  final String mediaItemId;
+  final DateTime createdAt;
+  const MediaTagAssignment({
+    required this.tagId,
+    required this.mediaItemId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['tag_id'] = Variable<String>(tagId);
+    map['media_item_id'] = Variable<String>(mediaItemId);
+    {
+      map['created_at'] = Variable<int>(
+        $MediaTagAssignmentsTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    return map;
+  }
+
+  MediaTagAssignmentsCompanion toCompanion(bool nullToAbsent) {
+    return MediaTagAssignmentsCompanion(
+      tagId: Value(tagId),
+      mediaItemId: Value(mediaItemId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory MediaTagAssignment.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MediaTagAssignment(
+      tagId: serializer.fromJson<String>(json['tagId']),
+      mediaItemId: serializer.fromJson<String>(json['mediaItemId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'tagId': serializer.toJson<String>(tagId),
+      'mediaItemId': serializer.toJson<String>(mediaItemId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  MediaTagAssignment copyWith({
+    String? tagId,
+    String? mediaItemId,
+    DateTime? createdAt,
+  }) => MediaTagAssignment(
+    tagId: tagId ?? this.tagId,
+    mediaItemId: mediaItemId ?? this.mediaItemId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  MediaTagAssignment copyWithCompanion(MediaTagAssignmentsCompanion data) {
+    return MediaTagAssignment(
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      mediaItemId: data.mediaItemId.present
+          ? data.mediaItemId.value
+          : this.mediaItemId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaTagAssignment(')
+          ..write('tagId: $tagId, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(tagId, mediaItemId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MediaTagAssignment &&
+          other.tagId == this.tagId &&
+          other.mediaItemId == this.mediaItemId &&
+          other.createdAt == this.createdAt);
+}
+
+class MediaTagAssignmentsCompanion extends UpdateCompanion<MediaTagAssignment> {
+  final Value<String> tagId;
+  final Value<String> mediaItemId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const MediaTagAssignmentsCompanion({
+    this.tagId = const Value.absent(),
+    this.mediaItemId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MediaTagAssignmentsCompanion.insert({
+    required String tagId,
+    required String mediaItemId,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : tagId = Value(tagId),
+       mediaItemId = Value(mediaItemId),
+       createdAt = Value(createdAt);
+  static Insertable<MediaTagAssignment> custom({
+    Expression<String>? tagId,
+    Expression<String>? mediaItemId,
+    Expression<int>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (tagId != null) 'tag_id': tagId,
+      if (mediaItemId != null) 'media_item_id': mediaItemId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MediaTagAssignmentsCompanion copyWith({
+    Value<String>? tagId,
+    Value<String>? mediaItemId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return MediaTagAssignmentsCompanion(
+      tagId: tagId ?? this.tagId,
+      mediaItemId: mediaItemId ?? this.mediaItemId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (tagId.present) {
+      map['tag_id'] = Variable<String>(tagId.value);
+    }
+    if (mediaItemId.present) {
+      map['media_item_id'] = Variable<String>(mediaItemId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(
+        $MediaTagAssignmentsTable.$convertercreatedAt.toSql(createdAt.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaTagAssignmentsCompanion(')
+          ..write('tagId: $tagId, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CustomShelvesTable extends CustomShelves
+    with TableInfo<$CustomShelvesTable, CustomShelve> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CustomShelvesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _normalizedNameMeta = const VerificationMeta(
+    'normalizedName',
+  );
+  @override
+  late final GeneratedColumn<String> normalizedName = GeneratedColumn<String>(
+    'normalized_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> createdAt =
+      GeneratedColumn<int>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($CustomShelvesTable.$convertercreatedAt);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> updatedAt =
+      GeneratedColumn<int>(
+        'updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($CustomShelvesTable.$converterupdatedAt);
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    normalizedName,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'custom_shelves';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CustomShelve> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('normalized_name')) {
+      context.handle(
+        _normalizedNameMeta,
+        normalizedName.isAcceptableOrUnknown(
+          data['normalized_name']!,
+          _normalizedNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_normalizedNameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CustomShelve map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CustomShelve(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      normalizedName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}normalized_name'],
+      )!,
+      createdAt: $CustomShelvesTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+      updatedAt: $CustomShelvesTable.$converterupdatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}updated_at'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $CustomShelvesTable createAlias(String alias) {
+    return $CustomShelvesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, int> $convertercreatedAt =
+      const DateTimeMillisConverter();
+  static TypeConverter<DateTime, int> $converterupdatedAt =
+      const DateTimeMillisConverter();
+}
+
+class CustomShelve extends DataClass implements Insertable<CustomShelve> {
+  final String id;
+  final String name;
+  final String normalizedName;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const CustomShelve({
+    required this.id,
+    required this.name,
+    required this.normalizedName,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['normalized_name'] = Variable<String>(normalizedName);
+    {
+      map['created_at'] = Variable<int>(
+        $CustomShelvesTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    {
+      map['updated_at'] = Variable<int>(
+        $CustomShelvesTable.$converterupdatedAt.toSql(updatedAt),
+      );
+    }
+    return map;
+  }
+
+  CustomShelvesCompanion toCompanion(bool nullToAbsent) {
+    return CustomShelvesCompanion(
+      id: Value(id),
+      name: Value(name),
+      normalizedName: Value(normalizedName),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory CustomShelve.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CustomShelve(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      normalizedName: serializer.fromJson<String>(json['normalizedName']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'normalizedName': serializer.toJson<String>(normalizedName),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  CustomShelve copyWith({
+    String? id,
+    String? name,
+    String? normalizedName,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => CustomShelve(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    normalizedName: normalizedName ?? this.normalizedName,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  CustomShelve copyWithCompanion(CustomShelvesCompanion data) {
+    return CustomShelve(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      normalizedName: data.normalizedName.present
+          ? data.normalizedName.value
+          : this.normalizedName,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomShelve(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('normalizedName: $normalizedName, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, normalizedName, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CustomShelve &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.normalizedName == this.normalizedName &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CustomShelvesCompanion extends UpdateCompanion<CustomShelve> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> normalizedName;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const CustomShelvesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.normalizedName = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CustomShelvesCompanion.insert({
+    required String id,
+    required String name,
+    required String normalizedName,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       normalizedName = Value(normalizedName),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<CustomShelve> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? normalizedName,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (normalizedName != null) 'normalized_name': normalizedName,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CustomShelvesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? normalizedName,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return CustomShelvesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      normalizedName: normalizedName ?? this.normalizedName,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (normalizedName.present) {
+      map['normalized_name'] = Variable<String>(normalizedName.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(
+        $CustomShelvesTable.$convertercreatedAt.toSql(createdAt.value),
+      );
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(
+        $CustomShelvesTable.$converterupdatedAt.toSql(updatedAt.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomShelvesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('normalizedName: $normalizedName, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CustomShelfItemsTable extends CustomShelfItems
+    with TableInfo<$CustomShelfItemsTable, CustomShelfItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CustomShelfItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _shelfIdMeta = const VerificationMeta(
+    'shelfId',
+  );
+  @override
+  late final GeneratedColumn<String> shelfId = GeneratedColumn<String>(
+    'shelf_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES custom_shelves (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _mediaItemIdMeta = const VerificationMeta(
+    'mediaItemId',
+  );
+  @override
+  late final GeneratedColumn<String> mediaItemId = GeneratedColumn<String>(
+    'media_item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES media_items (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _orderIndexMeta = const VerificationMeta(
+    'orderIndex',
+  );
+  @override
+  late final GeneratedColumn<int> orderIndex = GeneratedColumn<int>(
+    'order_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> addedAt =
+      GeneratedColumn<int>(
+        'added_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($CustomShelfItemsTable.$converteraddedAt);
+  @override
+  List<GeneratedColumn> get $columns => [
+    shelfId,
+    mediaItemId,
+    orderIndex,
+    addedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'custom_shelf_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CustomShelfItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('shelf_id')) {
+      context.handle(
+        _shelfIdMeta,
+        shelfId.isAcceptableOrUnknown(data['shelf_id']!, _shelfIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_shelfIdMeta);
+    }
+    if (data.containsKey('media_item_id')) {
+      context.handle(
+        _mediaItemIdMeta,
+        mediaItemId.isAcceptableOrUnknown(
+          data['media_item_id']!,
+          _mediaItemIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mediaItemIdMeta);
+    }
+    if (data.containsKey('order_index')) {
+      context.handle(
+        _orderIndexMeta,
+        orderIndex.isAcceptableOrUnknown(data['order_index']!, _orderIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_orderIndexMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {shelfId, mediaItemId};
+  @override
+  CustomShelfItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CustomShelfItem(
+      shelfId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}shelf_id'],
+      )!,
+      mediaItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_item_id'],
+      )!,
+      orderIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}order_index'],
+      )!,
+      addedAt: $CustomShelfItemsTable.$converteraddedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}added_at'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $CustomShelfItemsTable createAlias(String alias) {
+    return $CustomShelfItemsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, int> $converteraddedAt =
+      const DateTimeMillisConverter();
+}
+
+class CustomShelfItem extends DataClass implements Insertable<CustomShelfItem> {
+  final String shelfId;
+  final String mediaItemId;
+  final int orderIndex;
+  final DateTime addedAt;
+  const CustomShelfItem({
+    required this.shelfId,
+    required this.mediaItemId,
+    required this.orderIndex,
+    required this.addedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['shelf_id'] = Variable<String>(shelfId);
+    map['media_item_id'] = Variable<String>(mediaItemId);
+    map['order_index'] = Variable<int>(orderIndex);
+    {
+      map['added_at'] = Variable<int>(
+        $CustomShelfItemsTable.$converteraddedAt.toSql(addedAt),
+      );
+    }
+    return map;
+  }
+
+  CustomShelfItemsCompanion toCompanion(bool nullToAbsent) {
+    return CustomShelfItemsCompanion(
+      shelfId: Value(shelfId),
+      mediaItemId: Value(mediaItemId),
+      orderIndex: Value(orderIndex),
+      addedAt: Value(addedAt),
+    );
+  }
+
+  factory CustomShelfItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CustomShelfItem(
+      shelfId: serializer.fromJson<String>(json['shelfId']),
+      mediaItemId: serializer.fromJson<String>(json['mediaItemId']),
+      orderIndex: serializer.fromJson<int>(json['orderIndex']),
+      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'shelfId': serializer.toJson<String>(shelfId),
+      'mediaItemId': serializer.toJson<String>(mediaItemId),
+      'orderIndex': serializer.toJson<int>(orderIndex),
+      'addedAt': serializer.toJson<DateTime>(addedAt),
+    };
+  }
+
+  CustomShelfItem copyWith({
+    String? shelfId,
+    String? mediaItemId,
+    int? orderIndex,
+    DateTime? addedAt,
+  }) => CustomShelfItem(
+    shelfId: shelfId ?? this.shelfId,
+    mediaItemId: mediaItemId ?? this.mediaItemId,
+    orderIndex: orderIndex ?? this.orderIndex,
+    addedAt: addedAt ?? this.addedAt,
+  );
+  CustomShelfItem copyWithCompanion(CustomShelfItemsCompanion data) {
+    return CustomShelfItem(
+      shelfId: data.shelfId.present ? data.shelfId.value : this.shelfId,
+      mediaItemId: data.mediaItemId.present
+          ? data.mediaItemId.value
+          : this.mediaItemId,
+      orderIndex: data.orderIndex.present
+          ? data.orderIndex.value
+          : this.orderIndex,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomShelfItem(')
+          ..write('shelfId: $shelfId, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('orderIndex: $orderIndex, ')
+          ..write('addedAt: $addedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(shelfId, mediaItemId, orderIndex, addedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CustomShelfItem &&
+          other.shelfId == this.shelfId &&
+          other.mediaItemId == this.mediaItemId &&
+          other.orderIndex == this.orderIndex &&
+          other.addedAt == this.addedAt);
+}
+
+class CustomShelfItemsCompanion extends UpdateCompanion<CustomShelfItem> {
+  final Value<String> shelfId;
+  final Value<String> mediaItemId;
+  final Value<int> orderIndex;
+  final Value<DateTime> addedAt;
+  final Value<int> rowid;
+  const CustomShelfItemsCompanion({
+    this.shelfId = const Value.absent(),
+    this.mediaItemId = const Value.absent(),
+    this.orderIndex = const Value.absent(),
+    this.addedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CustomShelfItemsCompanion.insert({
+    required String shelfId,
+    required String mediaItemId,
+    required int orderIndex,
+    required DateTime addedAt,
+    this.rowid = const Value.absent(),
+  }) : shelfId = Value(shelfId),
+       mediaItemId = Value(mediaItemId),
+       orderIndex = Value(orderIndex),
+       addedAt = Value(addedAt);
+  static Insertable<CustomShelfItem> custom({
+    Expression<String>? shelfId,
+    Expression<String>? mediaItemId,
+    Expression<int>? orderIndex,
+    Expression<int>? addedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (shelfId != null) 'shelf_id': shelfId,
+      if (mediaItemId != null) 'media_item_id': mediaItemId,
+      if (orderIndex != null) 'order_index': orderIndex,
+      if (addedAt != null) 'added_at': addedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CustomShelfItemsCompanion copyWith({
+    Value<String>? shelfId,
+    Value<String>? mediaItemId,
+    Value<int>? orderIndex,
+    Value<DateTime>? addedAt,
+    Value<int>? rowid,
+  }) {
+    return CustomShelfItemsCompanion(
+      shelfId: shelfId ?? this.shelfId,
+      mediaItemId: mediaItemId ?? this.mediaItemId,
+      orderIndex: orderIndex ?? this.orderIndex,
+      addedAt: addedAt ?? this.addedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (shelfId.present) {
+      map['shelf_id'] = Variable<String>(shelfId.value);
+    }
+    if (mediaItemId.present) {
+      map['media_item_id'] = Variable<String>(mediaItemId.value);
+    }
+    if (orderIndex.present) {
+      map['order_index'] = Variable<int>(orderIndex.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<int>(
+        $CustomShelfItemsTable.$converteraddedAt.toSql(addedAt.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomShelfItemsCompanion(')
+          ..write('shelfId: $shelfId, ')
+          ..write('mediaItemId: $mediaItemId, ')
+          ..write('orderIndex: $orderIndex, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4780,6 +6076,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MangaReaderPreferencesTable mangaReaderPreferences =
       $MangaReaderPreferencesTable(this);
   late final $ImportRecordsTable importRecords = $ImportRecordsTable(this);
+  late final $TagsTable tags = $TagsTable(this);
+  late final $MediaTagAssignmentsTable mediaTagAssignments =
+      $MediaTagAssignmentsTable(this);
+  late final $CustomShelvesTable customShelves = $CustomShelvesTable(this);
+  late final $CustomShelfItemsTable customShelfItems = $CustomShelfItemsTable(
+    this,
+  );
   late final Index bookmarksMediaCreatedIdx = Index(
     'bookmarks_media_created_idx',
     'CREATE INDEX bookmarks_media_created_idx ON bookmarks (media_item_id, created_at)',
@@ -4800,6 +6103,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'import_records_fingerprint_idx',
     'CREATE INDEX import_records_fingerprint_idx ON import_records (fingerprint)',
   );
+  late final Index mediaTagAssignmentsMediaIdx = Index(
+    'media_tag_assignments_media_idx',
+    'CREATE INDEX media_tag_assignments_media_idx ON media_tag_assignments (media_item_id, created_at)',
+  );
+  late final Index customShelfItemsShelfOrderIdx = Index(
+    'custom_shelf_items_shelf_order_idx',
+    'CREATE INDEX custom_shelf_items_shelf_order_idx ON custom_shelf_items (shelf_id, order_index)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4814,11 +6125,17 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     readerPreferences,
     mangaReaderPreferences,
     importRecords,
+    tags,
+    mediaTagAssignments,
+    customShelves,
+    customShelfItems,
     bookmarksMediaCreatedIdx,
     mediaItemsTypeUpdatedIdx,
     readerPreferencesGlobalIdx,
     readerPreferencesMediaIdx,
     importRecordsFingerprintIdx,
+    mediaTagAssignmentsMediaIdx,
+    customShelfItemsShelfOrderIdx,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4893,6 +6210,34 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('import_records', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'tags',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('media_tag_assignments', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'media_items',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('media_tag_assignments', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'custom_shelves',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('custom_shelf_items', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'media_items',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('custom_shelf_items', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -5066,6 +6411,50 @@ final class $$MediaItemsTableReferences
     ).filter((f) => f.mediaItemId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_importRecordsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $MediaTagAssignmentsTable,
+    List<MediaTagAssignment>
+  >
+  _mediaTagAssignmentsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.mediaTagAssignments,
+        aliasName: 'media_items__id__media_tag_assignments__media_item_id',
+      );
+
+  $$MediaTagAssignmentsTableProcessedTableManager get mediaTagAssignmentsRefs {
+    final manager = $$MediaTagAssignmentsTableTableManager(
+      $_db,
+      $_db.mediaTagAssignments,
+    ).filter((f) => f.mediaItemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _mediaTagAssignmentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CustomShelfItemsTable, List<CustomShelfItem>>
+  _customShelfItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.customShelfItems,
+    aliasName: 'media_items__id__custom_shelf_items__media_item_id',
+  );
+
+  $$CustomShelfItemsTableProcessedTableManager get customShelfItemsRefs {
+    final manager = $$CustomShelfItemsTableTableManager(
+      $_db,
+      $_db.customShelfItems,
+    ).filter((f) => f.mediaItemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _customShelfItemsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -5296,6 +6685,56 @@ class $$MediaItemsTableFilterComposer
           }) => $$ImportRecordsTableFilterComposer(
             $db: $db,
             $table: $db.importRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> mediaTagAssignmentsRefs(
+    Expression<bool> Function($$MediaTagAssignmentsTableFilterComposer f) f,
+  ) {
+    final $$MediaTagAssignmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.mediaTagAssignments,
+      getReferencedColumn: (t) => t.mediaItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaTagAssignmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.mediaTagAssignments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> customShelfItemsRefs(
+    Expression<bool> Function($$CustomShelfItemsTableFilterComposer f) f,
+  ) {
+    final $$CustomShelfItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.customShelfItems,
+      getReferencedColumn: (t) => t.mediaItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CustomShelfItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.customShelfItems,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5576,6 +7015,57 @@ class $$MediaItemsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> mediaTagAssignmentsRefs<T extends Object>(
+    Expression<T> Function($$MediaTagAssignmentsTableAnnotationComposer a) f,
+  ) {
+    final $$MediaTagAssignmentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.mediaTagAssignments,
+          getReferencedColumn: (t) => t.mediaItemId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$MediaTagAssignmentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.mediaTagAssignments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> customShelfItemsRefs<T extends Object>(
+    Expression<T> Function($$CustomShelfItemsTableAnnotationComposer a) f,
+  ) {
+    final $$CustomShelfItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.customShelfItems,
+      getReferencedColumn: (t) => t.mediaItemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CustomShelfItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.customShelfItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MediaItemsTableTableManager
@@ -5599,6 +7089,8 @@ class $$MediaItemsTableTableManager
             bool readerPreferencesRefs,
             bool mangaReaderPreferencesRefs,
             bool importRecordsRefs,
+            bool mediaTagAssignmentsRefs,
+            bool customShelfItemsRefs,
           })
         > {
   $$MediaItemsTableTableManager(_$AppDatabase db, $MediaItemsTable table)
@@ -5677,6 +7169,8 @@ class $$MediaItemsTableTableManager
                 readerPreferencesRefs = false,
                 mangaReaderPreferencesRefs = false,
                 importRecordsRefs = false,
+                mediaTagAssignmentsRefs = false,
+                customShelfItemsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -5688,6 +7182,8 @@ class $$MediaItemsTableTableManager
                     if (readerPreferencesRefs) db.readerPreferences,
                     if (mangaReaderPreferencesRefs) db.mangaReaderPreferences,
                     if (importRecordsRefs) db.importRecords,
+                    if (mediaTagAssignmentsRefs) db.mediaTagAssignments,
+                    if (customShelfItemsRefs) db.customShelfItems,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -5839,6 +7335,48 @@ class $$MediaItemsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (mediaTagAssignmentsRefs)
+                        await $_getPrefetchedData<
+                          MediaItem,
+                          $MediaItemsTable,
+                          MediaTagAssignment
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MediaItemsTableReferences
+                              ._mediaTagAssignmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MediaItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).mediaTagAssignmentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.mediaItemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (customShelfItemsRefs)
+                        await $_getPrefetchedData<
+                          MediaItem,
+                          $MediaItemsTable,
+                          CustomShelfItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MediaItemsTableReferences
+                              ._customShelfItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MediaItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).customShelfItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.mediaItemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -5867,6 +7405,8 @@ typedef $$MediaItemsTableProcessedTableManager =
         bool readerPreferencesRefs,
         bool mangaReaderPreferencesRefs,
         bool importRecordsRefs,
+        bool mediaTagAssignmentsRefs,
+        bool customShelfItemsRefs,
       })
     >;
 typedef $$ContentUnitsTableCreateCompanionBuilder =
@@ -9429,6 +10969,1393 @@ typedef $$ImportRecordsTableProcessedTableManager =
       ImportRecord,
       PrefetchHooks Function({bool mediaItemId})
     >;
+typedef $$TagsTableCreateCompanionBuilder =
+    TagsCompanion Function({
+      required String id,
+      required String name,
+      required String normalizedName,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$TagsTableUpdateCompanionBuilder =
+    TagsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> normalizedName,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$TagsTableReferences
+    extends BaseReferences<_$AppDatabase, $TagsTable, Tag> {
+  $$TagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<
+    $MediaTagAssignmentsTable,
+    List<MediaTagAssignment>
+  >
+  _mediaTagAssignmentsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.mediaTagAssignments,
+        aliasName: 'tags__id__media_tag_assignments__tag_id',
+      );
+
+  $$MediaTagAssignmentsTableProcessedTableManager get mediaTagAssignmentsRefs {
+    final manager = $$MediaTagAssignmentsTableTableManager(
+      $_db,
+      $_db.mediaTagAssignments,
+    ).filter((f) => f.tagId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _mediaTagAssignmentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TagsTableFilterComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get normalizedName => $composableBuilder(
+    column: $table.normalizedName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, int> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  Expression<bool> mediaTagAssignmentsRefs(
+    Expression<bool> Function($$MediaTagAssignmentsTableFilterComposer f) f,
+  ) {
+    final $$MediaTagAssignmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.mediaTagAssignments,
+      getReferencedColumn: (t) => t.tagId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaTagAssignmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.mediaTagAssignments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get normalizedName => $composableBuilder(
+    column: $table.normalizedName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get normalizedName => $composableBuilder(
+    column: $table.normalizedName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<DateTime, int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> mediaTagAssignmentsRefs<T extends Object>(
+    Expression<T> Function($$MediaTagAssignmentsTableAnnotationComposer a) f,
+  ) {
+    final $$MediaTagAssignmentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.mediaTagAssignments,
+          getReferencedColumn: (t) => t.tagId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$MediaTagAssignmentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.mediaTagAssignments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$TagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TagsTable,
+          Tag,
+          $$TagsTableFilterComposer,
+          $$TagsTableOrderingComposer,
+          $$TagsTableAnnotationComposer,
+          $$TagsTableCreateCompanionBuilder,
+          $$TagsTableUpdateCompanionBuilder,
+          (Tag, $$TagsTableReferences),
+          Tag,
+          PrefetchHooks Function({bool mediaTagAssignmentsRefs})
+        > {
+  $$TagsTableTableManager(_$AppDatabase db, $TagsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> normalizedName = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TagsCompanion(
+                id: id,
+                name: name,
+                normalizedName: normalizedName,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required String normalizedName,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => TagsCompanion.insert(
+                id: id,
+                name: name,
+                normalizedName: normalizedName,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$TagsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({mediaTagAssignmentsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (mediaTagAssignmentsRefs) db.mediaTagAssignments,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (mediaTagAssignmentsRefs)
+                    await $_getPrefetchedData<
+                      Tag,
+                      $TagsTable,
+                      MediaTagAssignment
+                    >(
+                      currentTable: table,
+                      referencedTable: $$TagsTableReferences
+                          ._mediaTagAssignmentsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$TagsTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).mediaTagAssignmentsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.tagId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TagsTable,
+      Tag,
+      $$TagsTableFilterComposer,
+      $$TagsTableOrderingComposer,
+      $$TagsTableAnnotationComposer,
+      $$TagsTableCreateCompanionBuilder,
+      $$TagsTableUpdateCompanionBuilder,
+      (Tag, $$TagsTableReferences),
+      Tag,
+      PrefetchHooks Function({bool mediaTagAssignmentsRefs})
+    >;
+typedef $$MediaTagAssignmentsTableCreateCompanionBuilder =
+    MediaTagAssignmentsCompanion Function({
+      required String tagId,
+      required String mediaItemId,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$MediaTagAssignmentsTableUpdateCompanionBuilder =
+    MediaTagAssignmentsCompanion Function({
+      Value<String> tagId,
+      Value<String> mediaItemId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$MediaTagAssignmentsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $MediaTagAssignmentsTable,
+          MediaTagAssignment
+        > {
+  $$MediaTagAssignmentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $TagsTable _tagIdTable(_$AppDatabase db) =>
+      db.tags.createAlias('media_tag_assignments__tag_id__tags__id');
+
+  $$TagsTableProcessedTableManager get tagId {
+    final $_column = $_itemColumn<String>('tag_id')!;
+
+    final manager = $$TagsTableTableManager(
+      $_db,
+      $_db.tags,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tagIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $MediaItemsTable _mediaItemIdTable(_$AppDatabase db) => db.mediaItems
+      .createAlias('media_tag_assignments__media_item_id__media_items__id');
+
+  $$MediaItemsTableProcessedTableManager get mediaItemId {
+    final $_column = $_itemColumn<String>('media_item_id')!;
+
+    final manager = $$MediaItemsTableTableManager(
+      $_db,
+      $_db.mediaItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_mediaItemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MediaTagAssignmentsTableFilterComposer
+    extends Composer<_$AppDatabase, $MediaTagAssignmentsTable> {
+  $$MediaTagAssignmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<DateTime, DateTime, int> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$TagsTableFilterComposer get tagId {
+    final $$TagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableFilterComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MediaItemsTableFilterComposer get mediaItemId {
+    final $$MediaItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaTagAssignmentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MediaTagAssignmentsTable> {
+  $$MediaTagAssignmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TagsTableOrderingComposer get tagId {
+    final $$TagsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableOrderingComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MediaItemsTableOrderingComposer get mediaItemId {
+    final $$MediaItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaTagAssignmentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MediaTagAssignmentsTable> {
+  $$MediaTagAssignmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<DateTime, int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$TagsTableAnnotationComposer get tagId {
+    final $$TagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MediaItemsTableAnnotationComposer get mediaItemId {
+    final $$MediaItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaTagAssignmentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MediaTagAssignmentsTable,
+          MediaTagAssignment,
+          $$MediaTagAssignmentsTableFilterComposer,
+          $$MediaTagAssignmentsTableOrderingComposer,
+          $$MediaTagAssignmentsTableAnnotationComposer,
+          $$MediaTagAssignmentsTableCreateCompanionBuilder,
+          $$MediaTagAssignmentsTableUpdateCompanionBuilder,
+          (MediaTagAssignment, $$MediaTagAssignmentsTableReferences),
+          MediaTagAssignment,
+          PrefetchHooks Function({bool tagId, bool mediaItemId})
+        > {
+  $$MediaTagAssignmentsTableTableManager(
+    _$AppDatabase db,
+    $MediaTagAssignmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MediaTagAssignmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MediaTagAssignmentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MediaTagAssignmentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> tagId = const Value.absent(),
+                Value<String> mediaItemId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MediaTagAssignmentsCompanion(
+                tagId: tagId,
+                mediaItemId: mediaItemId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String tagId,
+                required String mediaItemId,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => MediaTagAssignmentsCompanion.insert(
+                tagId: tagId,
+                mediaItemId: mediaItemId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MediaTagAssignmentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({tagId = false, mediaItemId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (tagId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.tagId,
+                                referencedTable:
+                                    $$MediaTagAssignmentsTableReferences
+                                        ._tagIdTable(db),
+                                referencedColumn:
+                                    $$MediaTagAssignmentsTableReferences
+                                        ._tagIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (mediaItemId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.mediaItemId,
+                                referencedTable:
+                                    $$MediaTagAssignmentsTableReferences
+                                        ._mediaItemIdTable(db),
+                                referencedColumn:
+                                    $$MediaTagAssignmentsTableReferences
+                                        ._mediaItemIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MediaTagAssignmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MediaTagAssignmentsTable,
+      MediaTagAssignment,
+      $$MediaTagAssignmentsTableFilterComposer,
+      $$MediaTagAssignmentsTableOrderingComposer,
+      $$MediaTagAssignmentsTableAnnotationComposer,
+      $$MediaTagAssignmentsTableCreateCompanionBuilder,
+      $$MediaTagAssignmentsTableUpdateCompanionBuilder,
+      (MediaTagAssignment, $$MediaTagAssignmentsTableReferences),
+      MediaTagAssignment,
+      PrefetchHooks Function({bool tagId, bool mediaItemId})
+    >;
+typedef $$CustomShelvesTableCreateCompanionBuilder =
+    CustomShelvesCompanion Function({
+      required String id,
+      required String name,
+      required String normalizedName,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$CustomShelvesTableUpdateCompanionBuilder =
+    CustomShelvesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> normalizedName,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$CustomShelvesTableReferences
+    extends BaseReferences<_$AppDatabase, $CustomShelvesTable, CustomShelve> {
+  $$CustomShelvesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$CustomShelfItemsTable, List<CustomShelfItem>>
+  _customShelfItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.customShelfItems,
+    aliasName: 'custom_shelves__id__custom_shelf_items__shelf_id',
+  );
+
+  $$CustomShelfItemsTableProcessedTableManager get customShelfItemsRefs {
+    final manager = $$CustomShelfItemsTableTableManager(
+      $_db,
+      $_db.customShelfItems,
+    ).filter((f) => f.shelfId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _customShelfItemsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$CustomShelvesTableFilterComposer
+    extends Composer<_$AppDatabase, $CustomShelvesTable> {
+  $$CustomShelvesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get normalizedName => $composableBuilder(
+    column: $table.normalizedName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, int> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, int> get updatedAt =>
+      $composableBuilder(
+        column: $table.updatedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  Expression<bool> customShelfItemsRefs(
+    Expression<bool> Function($$CustomShelfItemsTableFilterComposer f) f,
+  ) {
+    final $$CustomShelfItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.customShelfItems,
+      getReferencedColumn: (t) => t.shelfId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CustomShelfItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.customShelfItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CustomShelvesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CustomShelvesTable> {
+  $$CustomShelvesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get normalizedName => $composableBuilder(
+    column: $table.normalizedName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CustomShelvesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CustomShelvesTable> {
+  $$CustomShelvesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get normalizedName => $composableBuilder(
+    column: $table.normalizedName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<DateTime, int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> customShelfItemsRefs<T extends Object>(
+    Expression<T> Function($$CustomShelfItemsTableAnnotationComposer a) f,
+  ) {
+    final $$CustomShelfItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.customShelfItems,
+      getReferencedColumn: (t) => t.shelfId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CustomShelfItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.customShelfItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CustomShelvesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CustomShelvesTable,
+          CustomShelve,
+          $$CustomShelvesTableFilterComposer,
+          $$CustomShelvesTableOrderingComposer,
+          $$CustomShelvesTableAnnotationComposer,
+          $$CustomShelvesTableCreateCompanionBuilder,
+          $$CustomShelvesTableUpdateCompanionBuilder,
+          (CustomShelve, $$CustomShelvesTableReferences),
+          CustomShelve,
+          PrefetchHooks Function({bool customShelfItemsRefs})
+        > {
+  $$CustomShelvesTableTableManager(_$AppDatabase db, $CustomShelvesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CustomShelvesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CustomShelvesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CustomShelvesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> normalizedName = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CustomShelvesCompanion(
+                id: id,
+                name: name,
+                normalizedName: normalizedName,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required String normalizedName,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CustomShelvesCompanion.insert(
+                id: id,
+                name: name,
+                normalizedName: normalizedName,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CustomShelvesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({customShelfItemsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (customShelfItemsRefs) db.customShelfItems,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (customShelfItemsRefs)
+                    await $_getPrefetchedData<
+                      CustomShelve,
+                      $CustomShelvesTable,
+                      CustomShelfItem
+                    >(
+                      currentTable: table,
+                      referencedTable: $$CustomShelvesTableReferences
+                          ._customShelfItemsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$CustomShelvesTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).customShelfItemsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.shelfId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CustomShelvesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CustomShelvesTable,
+      CustomShelve,
+      $$CustomShelvesTableFilterComposer,
+      $$CustomShelvesTableOrderingComposer,
+      $$CustomShelvesTableAnnotationComposer,
+      $$CustomShelvesTableCreateCompanionBuilder,
+      $$CustomShelvesTableUpdateCompanionBuilder,
+      (CustomShelve, $$CustomShelvesTableReferences),
+      CustomShelve,
+      PrefetchHooks Function({bool customShelfItemsRefs})
+    >;
+typedef $$CustomShelfItemsTableCreateCompanionBuilder =
+    CustomShelfItemsCompanion Function({
+      required String shelfId,
+      required String mediaItemId,
+      required int orderIndex,
+      required DateTime addedAt,
+      Value<int> rowid,
+    });
+typedef $$CustomShelfItemsTableUpdateCompanionBuilder =
+    CustomShelfItemsCompanion Function({
+      Value<String> shelfId,
+      Value<String> mediaItemId,
+      Value<int> orderIndex,
+      Value<DateTime> addedAt,
+      Value<int> rowid,
+    });
+
+final class $$CustomShelfItemsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $CustomShelfItemsTable, CustomShelfItem> {
+  $$CustomShelfItemsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CustomShelvesTable _shelfIdTable(_$AppDatabase db) => db.customShelves
+      .createAlias('custom_shelf_items__shelf_id__custom_shelves__id');
+
+  $$CustomShelvesTableProcessedTableManager get shelfId {
+    final $_column = $_itemColumn<String>('shelf_id')!;
+
+    final manager = $$CustomShelvesTableTableManager(
+      $_db,
+      $_db.customShelves,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_shelfIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $MediaItemsTable _mediaItemIdTable(_$AppDatabase db) => db.mediaItems
+      .createAlias('custom_shelf_items__media_item_id__media_items__id');
+
+  $$MediaItemsTableProcessedTableManager get mediaItemId {
+    final $_column = $_itemColumn<String>('media_item_id')!;
+
+    final manager = $$MediaItemsTableTableManager(
+      $_db,
+      $_db.mediaItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_mediaItemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CustomShelfItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $CustomShelfItemsTable> {
+  $$CustomShelfItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, int> get addedAt =>
+      $composableBuilder(
+        column: $table.addedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$CustomShelvesTableFilterComposer get shelfId {
+    final $$CustomShelvesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shelfId,
+      referencedTable: $db.customShelves,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CustomShelvesTableFilterComposer(
+            $db: $db,
+            $table: $db.customShelves,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MediaItemsTableFilterComposer get mediaItemId {
+    final $$MediaItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CustomShelfItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CustomShelfItemsTable> {
+  $$CustomShelfItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CustomShelvesTableOrderingComposer get shelfId {
+    final $$CustomShelvesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shelfId,
+      referencedTable: $db.customShelves,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CustomShelvesTableOrderingComposer(
+            $db: $db,
+            $table: $db.customShelves,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MediaItemsTableOrderingComposer get mediaItemId {
+    final $$MediaItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CustomShelfItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CustomShelfItemsTable> {
+  $$CustomShelfItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<DateTime, int> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => column);
+
+  $$CustomShelvesTableAnnotationComposer get shelfId {
+    final $$CustomShelvesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.shelfId,
+      referencedTable: $db.customShelves,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CustomShelvesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.customShelves,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MediaItemsTableAnnotationComposer get mediaItemId {
+    final $$MediaItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mediaItemId,
+      referencedTable: $db.mediaItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MediaItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.mediaItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CustomShelfItemsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CustomShelfItemsTable,
+          CustomShelfItem,
+          $$CustomShelfItemsTableFilterComposer,
+          $$CustomShelfItemsTableOrderingComposer,
+          $$CustomShelfItemsTableAnnotationComposer,
+          $$CustomShelfItemsTableCreateCompanionBuilder,
+          $$CustomShelfItemsTableUpdateCompanionBuilder,
+          (CustomShelfItem, $$CustomShelfItemsTableReferences),
+          CustomShelfItem,
+          PrefetchHooks Function({bool shelfId, bool mediaItemId})
+        > {
+  $$CustomShelfItemsTableTableManager(
+    _$AppDatabase db,
+    $CustomShelfItemsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CustomShelfItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CustomShelfItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CustomShelfItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> shelfId = const Value.absent(),
+                Value<String> mediaItemId = const Value.absent(),
+                Value<int> orderIndex = const Value.absent(),
+                Value<DateTime> addedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CustomShelfItemsCompanion(
+                shelfId: shelfId,
+                mediaItemId: mediaItemId,
+                orderIndex: orderIndex,
+                addedAt: addedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String shelfId,
+                required String mediaItemId,
+                required int orderIndex,
+                required DateTime addedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CustomShelfItemsCompanion.insert(
+                shelfId: shelfId,
+                mediaItemId: mediaItemId,
+                orderIndex: orderIndex,
+                addedAt: addedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CustomShelfItemsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({shelfId = false, mediaItemId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (shelfId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.shelfId,
+                                referencedTable:
+                                    $$CustomShelfItemsTableReferences
+                                        ._shelfIdTable(db),
+                                referencedColumn:
+                                    $$CustomShelfItemsTableReferences
+                                        ._shelfIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (mediaItemId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.mediaItemId,
+                                referencedTable:
+                                    $$CustomShelfItemsTableReferences
+                                        ._mediaItemIdTable(db),
+                                referencedColumn:
+                                    $$CustomShelfItemsTableReferences
+                                        ._mediaItemIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CustomShelfItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CustomShelfItemsTable,
+      CustomShelfItem,
+      $$CustomShelfItemsTableFilterComposer,
+      $$CustomShelfItemsTableOrderingComposer,
+      $$CustomShelfItemsTableAnnotationComposer,
+      $$CustomShelfItemsTableCreateCompanionBuilder,
+      $$CustomShelfItemsTableUpdateCompanionBuilder,
+      (CustomShelfItem, $$CustomShelfItemsTableReferences),
+      CustomShelfItem,
+      PrefetchHooks Function({bool shelfId, bool mediaItemId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9457,4 +12384,11 @@ class $AppDatabaseManager {
       );
   $$ImportRecordsTableTableManager get importRecords =>
       $$ImportRecordsTableTableManager(_db, _db.importRecords);
+  $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
+  $$MediaTagAssignmentsTableTableManager get mediaTagAssignments =>
+      $$MediaTagAssignmentsTableTableManager(_db, _db.mediaTagAssignments);
+  $$CustomShelvesTableTableManager get customShelves =>
+      $$CustomShelvesTableTableManager(_db, _db.customShelves);
+  $$CustomShelfItemsTableTableManager get customShelfItems =>
+      $$CustomShelfItemsTableTableManager(_db, _db.customShelfItems);
 }

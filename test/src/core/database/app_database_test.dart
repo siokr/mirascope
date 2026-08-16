@@ -8,31 +8,38 @@ final _now = DateTime.utc(2026, 7, 28);
 final _constraintViolation = throwsA(isA<Exception>());
 
 void main() {
-  test('schema version is 5 and creates exactly the nine v5 tables', () async {
-    final database = createTestDatabase();
-    addTearDown(database.close);
+  test(
+    'schema version is 6 and creates exactly the thirteen v6 tables',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
 
-    final tableRows = await database
-        .customSelect(
-          "SELECT name FROM sqlite_master "
-          "WHERE type = 'table' AND name NOT LIKE 'sqlite_%' "
-          'ORDER BY name',
-        )
-        .get();
+      final tableRows = await database
+          .customSelect(
+            "SELECT name FROM sqlite_master "
+            "WHERE type = 'table' AND name NOT LIKE 'sqlite_%' "
+            'ORDER BY name',
+          )
+          .get();
 
-    expect(database.schemaVersion, 5);
-    expect(tableRows.map((row) => row.read<String>('name')).toList(), [
-      'bookmarks',
-      'content_units',
-      'import_records',
-      'library_entries',
-      'manga_pages',
-      'manga_reader_preferences',
-      'media_items',
-      'reader_preferences',
-      'reading_progress',
-    ]);
-  });
+      expect(database.schemaVersion, 6);
+      expect(tableRows.map((row) => row.read<String>('name')).toList(), [
+        'bookmarks',
+        'content_units',
+        'custom_shelf_items',
+        'custom_shelves',
+        'import_records',
+        'library_entries',
+        'manga_pages',
+        'manga_reader_preferences',
+        'media_items',
+        'media_tag_assignments',
+        'reader_preferences',
+        'reading_progress',
+        'tags',
+      ]);
+    },
+  );
 
   test('declares all required named indexes', () async {
     final database = createTestDatabase();
@@ -41,21 +48,25 @@ void main() {
     final indexRows = await database
         .customSelect(
           "SELECT name FROM sqlite_master WHERE type = 'index' "
-          "AND name IN (?, ?, ?, ?, ?) ORDER BY name",
+          "AND name IN (?, ?, ?, ?, ?, ?, ?) ORDER BY name",
           variables: [
             const Variable('media_items_type_updated_idx'),
             const Variable('reader_preferences_global_idx'),
             const Variable('reader_preferences_media_idx'),
             const Variable('import_records_fingerprint_idx'),
             const Variable('bookmarks_media_created_idx'),
+            const Variable('media_tag_assignments_media_idx'),
+            const Variable('custom_shelf_items_shelf_order_idx'),
           ],
         )
         .get();
 
     expect(indexRows.map((row) => row.read<String>('name')).toList(), [
       'bookmarks_media_created_idx',
+      'custom_shelf_items_shelf_order_idx',
       'import_records_fingerprint_idx',
       'media_items_type_updated_idx',
+      'media_tag_assignments_media_idx',
       'reader_preferences_global_idx',
       'reader_preferences_media_idx',
     ]);

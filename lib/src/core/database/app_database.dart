@@ -4,13 +4,17 @@ import 'package:drift/native.dart';
 import 'converters/date_time_millis_converter.dart';
 import 'tables/bookmarks.dart';
 import 'tables/content_units.dart';
+import 'tables/custom_shelf_items.dart';
+import 'tables/custom_shelves.dart';
 import 'tables/import_records.dart';
 import 'tables/library_entries.dart';
 import 'tables/manga_pages.dart';
 import 'tables/manga_reader_preferences.dart';
 import 'tables/media_items.dart';
+import 'tables/media_tag_assignments.dart';
 import 'tables/reader_preferences.dart';
 import 'tables/reading_progress_entries.dart';
+import 'tables/tags.dart';
 
 part 'app_database.g.dart';
 
@@ -25,6 +29,10 @@ part 'app_database.g.dart';
     ReaderPreferences,
     MangaReaderPreferences,
     ImportRecords,
+    Tags,
+    MediaTagAssignments,
+    CustomShelves,
+    CustomShelfItems,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -33,7 +41,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -63,6 +71,14 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 5 && to >= 5) {
         await migrator.alterTable(TableMigration(mangaReaderPreferences));
+      }
+      if (from < 6 && to >= 6) {
+        await migrator.createTable(tags);
+        await migrator.createTable(mediaTagAssignments);
+        await migrator.createTable(customShelves);
+        await migrator.createTable(customShelfItems);
+        await migrator.createIndex(mediaTagAssignmentsMediaIdx);
+        await migrator.createIndex(customShelfItemsShelfOrderIdx);
       }
     },
     beforeOpen: (details) async {

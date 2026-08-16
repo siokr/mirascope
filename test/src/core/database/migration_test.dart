@@ -35,7 +35,7 @@ void main() {
   });
 
   test(
-    'current AppDatabase onCreate matches the generated v5 schema',
+    'current AppDatabase onCreate matches the generated v6 schema',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -44,14 +44,14 @@ void main() {
 
       await verifier.migrateAndValidate(
         database,
-        5,
+        6,
         options: const ValidationOptions(validateDropped: true),
       );
     },
   );
 
   test(
-    'v5 enables foreign keys and contains every declared relation and index',
+    'v6 enables foreign keys and contains every declared relation and index',
     () async {
       final database = AppDatabase.inMemory();
       addTearDown(database.close);
@@ -74,6 +74,8 @@ void main() {
         'bookmarks',
         'manga_pages',
         'manga_reader_preferences',
+        'media_tag_assignments',
+        'custom_shelf_items',
       ]) {
         final rows = await database
             .customSelect('PRAGMA foreign_key_list($table)')
@@ -97,6 +99,10 @@ void main() {
         'bookmarks.content_unit_id -> content_units.id CASCADE',
         'manga_pages.content_unit_id -> content_units.id CASCADE',
         'manga_reader_preferences.media_item_id -> media_items.id CASCADE',
+        'media_tag_assignments.tag_id -> tags.id CASCADE',
+        'media_tag_assignments.media_item_id -> media_items.id CASCADE',
+        'custom_shelf_items.shelf_id -> custom_shelves.id CASCADE',
+        'custom_shelf_items.media_item_id -> media_items.id CASCADE',
       });
 
       final namedIndexes = await database
@@ -109,11 +115,67 @@ void main() {
           .get();
       expect(namedIndexes, [
         'bookmarks_media_created_idx',
+        'custom_shelf_items_shelf_order_idx',
         'import_records_fingerprint_idx',
         'media_items_type_updated_idx',
+        'media_tag_assignments_media_idx',
         'reader_preferences_global_idx',
         'reader_preferences_media_idx',
       ]);
+    },
+  );
+
+  test(
+    'v5 upgrades to v6 and preserves media while adding organization',
+    () async {
+      final schema = await verifier.schemaAt(5);
+      schema.rawDatabase.execute(
+        'INSERT INTO media_items '
+        '(id, media_type, title, created_at, updated_at) '
+        "VALUES ('organized-media', 'novel', 'Existing', 1, 1)",
+      );
+      final database = AppDatabase(schema.newConnection());
+      addTearDown(database.close);
+
+      await verifier.migrateAndValidate(
+        database,
+        6,
+        options: const ValidationOptions(validateDropped: true),
+      );
+
+      expect(
+        (await database.select(database.mediaItems).getSingle()).title,
+        'Existing',
+      );
+      await database.customStatement(
+        "INSERT INTO tags (id, name, normalized_name, created_at) "
+        "VALUES ('tag', '科幻', '科幻', 2)",
+      );
+      await database.customStatement(
+        "INSERT INTO media_tag_assignments (tag_id, media_item_id, created_at) "
+        "VALUES ('tag', 'organized-media', 2)",
+      );
+      await database.customStatement(
+        "INSERT INTO custom_shelves "
+        "(id, name, normalized_name, created_at, updated_at) "
+        "VALUES ('shelf', '待读', '待读', 2, 2)",
+      );
+      await database.customStatement(
+        "INSERT INTO custom_shelf_items "
+        "(shelf_id, media_item_id, order_index, added_at) "
+        "VALUES ('shelf', 'organized-media', 0, 2)",
+      );
+
+      await (database.delete(
+        database.mediaItems,
+      )..where((row) => row.id.equals('organized-media'))).go();
+      expect(
+        await database.select(database.mediaTagAssignments).get(),
+        isEmpty,
+      );
+      expect(await database.select(database.customShelfItems).get(), isEmpty);
+      expect(await database.select(database.tags).get(), hasLength(1));
+      expect(await database.select(database.customShelves).get(), hasLength(1));
     },
   );
 
@@ -170,7 +232,7 @@ void main() {
   });
 
   for (final legacyVersion in [1, 2]) {
-    test('v$legacyVersion upgrades directly to v5', () async {
+    test('v$legacyVersion upgrades directly to v6', () async {
       final schema = await verifier.schemaAt(legacyVersion);
       schema.rawDatabase.execute(
         'INSERT INTO media_items '
@@ -182,7 +244,7 @@ void main() {
 
       await verifier.migrateAndValidate(
         database,
-        5,
+        6,
         options: const ValidationOptions(validateDropped: true),
       );
 
@@ -194,7 +256,7 @@ void main() {
     });
   }
 
-  test('v3 upgrades to v5 and preserves existing novel data', () async {
+  test('v3 upgrades to v6 and preserves existing novel data', () async {
     final schema = await verifier.schemaAt(3);
     schema.rawDatabase.execute(
       'INSERT INTO media_items '
@@ -232,7 +294,7 @@ void main() {
 
     await verifier.migrateAndValidate(
       database,
-      5,
+      6,
       options: const ValidationOptions(validateDropped: true),
     );
 
