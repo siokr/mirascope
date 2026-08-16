@@ -4,6 +4,8 @@ import '../../features/importing/data/drift_import_repository.dart';
 import '../../features/importing/domain/import_repository.dart';
 import '../../features/importing/domain/source_relocation_repository.dart';
 import '../../features/library/data/drift_media_library_repository.dart';
+import '../../features/library/data/drift_library_organization_repository.dart';
+import '../../features/library/domain/library_organization_repository.dart';
 import '../../features/library/domain/media_library_repository.dart';
 import '../../features/novel/data/drift_reading_progress_repository.dart';
 import '../../features/novel/data/drift_bookmark_repository.dart';
@@ -26,6 +28,11 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 final mediaLibraryRepositoryProvider = Provider<MediaLibraryRepository>((ref) {
   return DriftMediaLibraryRepository(ref.watch(appDatabaseProvider));
 });
+
+final libraryOrganizationRepositoryProvider =
+    Provider<LibraryOrganizationRepository>((ref) {
+      return DriftLibraryOrganizationRepository(ref.watch(appDatabaseProvider));
+    });
 
 final readingProgressRepositoryProvider = Provider<ReadingProgressRepository>((
   ref,
