@@ -167,10 +167,12 @@ flutter build windows --release
 |---|---|---|
 | MVP 0.1 | 本地 TXT 小说闭环 | Windows |
 | MVP 0.2 | EPUB、Android、书签和公开 Release（已发布） | Windows、Android |
-| Version 0.3 | 本地漫画导入与阅读（规划启动） | Windows、Android |
-| Version 0.4 | 账号、设备和同步 | 客户端 + Go/PostgreSQL |
+| Version 0.3 | 本地漫画导入与阅读（已发布） | Windows、Android |
+| Version 0.4 | 本地媒体管理与阅读体验 | Windows、Android |
+| Version 0.5 | 在线资源与插件框架 | Windows、Android |
+| Version 0.6 | 账号、设备和同步 | 客户端 + Go/PostgreSQL |
 
-在线内容源、下载、番剧和 Rust 模块是候选方向，没有被包装成当前能力。
+在线内容源属于 Version 0.5 规划，但当前尚未实现；下载需要在在线浏览闭环稳定后单独进入任务。番剧和 Rust 模块仍是未排期候选方向。
 
 ## 贡献与许可证
 

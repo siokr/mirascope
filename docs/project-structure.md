@@ -6,7 +6,7 @@
 
 只有出现以下任一条件才重新评估顶层拆分：
 
-- Version 0.4 开始创建 Go 服务；
+- Version 0.6 开始创建 Go 服务；
 - 出现第二个独立客户端；
 - Flutter 工程需要作为更大仓库中的独立包发布；
 - 构建和 CI 已经因为根目录结构产生明确问题。
@@ -123,7 +123,9 @@ assets/
 
 - MVP 0.2：通常不新增顶层 feature，只扩展 `novel` 和平台适配；
 - Version 0.3：新增 `manga`；
-- Version 0.4：新增 `auth`、`sync`，并评估 `server/`；
+- Version 0.4：在现有媒体库边界内新增查询、组织、历史和备份能力；
+- Version 0.5：新增受隔离的 `sources` 插件边界，不提前创建具体站点模块；
+- Version 0.6：新增 `auth`、`sync`，并评估 `server/`；
 - Rust：只有对应 ADR 接受后新增核心模块目录。
 
 ## 9. 不建议

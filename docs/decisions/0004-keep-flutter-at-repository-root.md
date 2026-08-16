@@ -6,7 +6,7 @@
 
 ## 背景
 
-仓库当前是标准 Flutter 多端工程。Go 服务要到 Version 0.4 才进入，Rust 没有固定排期。现在迁移到 `client/flutter_app/` 会修改全部平台路径、工具命令和 CI，却不增加 MVP 0.1 用户价值。
+仓库当前是标准 Flutter 多端工程。路线图调整后 Go 服务要到 Version 0.6 才进入，Rust 没有固定排期。现在迁移到 `client/flutter_app/` 会修改全部平台路径、工具命令和 CI，却不增加当前用户价值。
 
 ## 评估标准
 
@@ -46,7 +46,7 @@ MVP 0.1 和 MVP 0.2 保留根目录 Flutter 工程。代码仅在 `lib/src` 内�
 
 代价：
 
-- Version 0.4 可能需要一次顶层目录决策；
+- Version 0.6 可能需要一次顶层目录决策；
 - 未来 monorepo 工具引入时需要更新脚本和文档。
 
 ## 复核条件

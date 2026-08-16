@@ -9,7 +9,7 @@
 
 ### 当前执行
 
-- [`m02-task-list.md`](m02-task-list.md)：MVP 0.2 当前任务、阶段门槛和状态。
+- [`m04-task-list.md`](m04-task-list.md)：Version 0.4 当前任务、阶段门槛和状态。
 - [`mvp-task-list.md`](mvp-task-list.md)：已完成的 MVP 0.1 任务与验收证据。
 - [`quality-strategy.md`](quality-strategy.md)：测试层级、质量门槛和性能基准方法。
 - [`release-checklist.md`](release-checklist.md)：候选版本与 GitHub Release 检查。
@@ -33,7 +33,9 @@
 - [`m03-task-list.md`](m03-task-list.md)：Version 0.3 当前任务、依赖和验收证据。
 - [`m03-cross-platform-acceptance.md`](m03-cross-platform-acceptance.md)：Version 0.3 Windows/Android 漫画人工验收清单。
 - [`releases/0.3.0-rc.1.md`](releases/0.3.0-rc.1.md)：Version 0.3 候选发布记录。
-- [`sync-protocol.md`](sync-protocol.md)：Version 0.4 同步语义。
+- [`releases/0.3.0.md`](releases/0.3.0.md)：Version 0.3 正式发布记录。
+- [`m04-task-list.md`](m04-task-list.md)：Version 0.4 本地媒体管理与阅读体验任务。
+- [`sync-protocol.md`](sync-protocol.md)：Version 0.6 同步语义。
 
 ### 设计与实施记录
 
@@ -50,7 +52,7 @@ Flutter 生成的 `ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md` �
 
 1. 根 README；
 2. `plan.md`；
-3. `m02-task-list.md`。
+3. `m04-task-list.md`。
 
 ### 开始 MVP 0.1
 
@@ -64,7 +66,9 @@ Flutter 生成的 `ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md` �
 ### 准备后续版本
 
 - Version 0.3 开始前复核漫画规格；
-- Version 0.4 开始前复核同步协议；
+- Version 0.4 按本地媒体管理任务清单推进；
+- Version 0.5 开始前完成在线插件权限与合规规格；
+- Version 0.6 开始前复核同步协议；
 - 每次发布使用发布检查清单。
 
 ## 3. 单一信息源
@@ -72,7 +76,7 @@ Flutter 生成的 `ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md` �
 | 信息 | 权威文件 |
 |---|---|
 | 版本包含与排除范围 | `plan.md` |
-| 当前任务和状态 | `m02-task-list.md` |
+| 当前任务和状态 | `m04-task-list.md` |
 | 本地实体和字段语义 | `data-model.md` |
 | 小说导入与阅读行为 | `novel-reader-spec.md` |
 | 本地漫画行为 | `manga-reader-spec.md` |

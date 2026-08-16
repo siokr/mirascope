@@ -118,7 +118,7 @@ MVP 0.1 的指纹由文件大小和内容哈希组成。可以先快速筛选候
 - 删除应用数据：确认后删除派生数据和从属记录，不删除引用的原文件；
 - 清理缓存：只删除可重建内容；
 - 恢复归档：重新激活原条目，不创建重复实体；
-- 为 Version 0.4 保留删除事件或 `deletedAt`，MVP 0.1 不实现云传播。
+- 为 Version 0.6 保留删除事件或 `deletedAt`，早期版本不实现云传播。
 
 ## 8. 索引与约束
 
@@ -168,4 +168,4 @@ BookmarkRepository
 
 ## 12. 同步约束
 
-Version 0.4 必须映射稳定 ID、`revision` 和删除语义。客户端 `updatedAt` 不能成为跨设备冲突的唯一依据，具体协议以 `docs/sync-protocol.md` 为准。
+Version 0.6 必须映射稳定 ID、`revision` 和删除语义。客户端 `updatedAt` 不能成为跨设备冲突的唯一依据，具体协议以 `docs/sync-protocol.md` 为准。
