@@ -1,18 +1,25 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/database/database_providers.dart';
 import '../data/dart_io_backup_exporter.dart';
+import '../data/dart_io_backup_committer.dart';
+import '../data/dart_io_backup_stager.dart';
 import '../data/drift_database_snapshotter.dart';
 import '../data/dart_io_backup_verifier.dart';
 import '../data/file_selector_backup_destination_picker.dart';
 import '../data/file_selector_backup_source_picker.dart';
 import '../domain/backup_destination_picker.dart';
+import '../domain/backup_committer.dart';
 import '../domain/backup_exporter.dart';
 import '../domain/backup_source_picker.dart';
 import '../domain/backup_verifier.dart';
+import '../domain/backup_stager.dart';
 import 'export_backup.dart';
 import 'preflight_backup.dart';
+import 'restore_backup.dart';
 
 final backupClockProvider = Provider<ExportBackupClock>((ref) {
   return () => DateTime.now().toUtc();
@@ -56,4 +63,34 @@ final preflightBackupProvider = Provider<PreflightBackup>((ref) {
     verifier: ref.watch(backupVerifierProvider),
     currentDatabaseSchemaVersion: ref.watch(appDatabaseProvider).schemaVersion,
   );
+});
+
+final backupStagerProvider = FutureProvider<BackupStager>((ref) async {
+  final support = await getApplicationSupportDirectory();
+  return DartIoBackupStager(
+    stagingRoot: Directory(
+      '${support.path}${Platform.pathSeparator}.mirascope-restore-staging',
+    ),
+  );
+});
+
+final backupCommitterProvider = FutureProvider<BackupCommitter>((ref) async {
+  return DartIoBackupCommitter(
+    supportDirectory: await getApplicationSupportDirectory(),
+  );
+});
+
+typedef RestoreBackupCommand =
+    Future<RestoreBackupResult> Function(String sourcePath);
+
+final restoreBackupCommandProvider = FutureProvider<RestoreBackupCommand>((
+  ref,
+) async {
+  final restore = RestoreBackup(
+    stager: await ref.watch(backupStagerProvider.future),
+    committer: await ref.watch(backupCommitterProvider.future),
+    closeDatabase: ref.watch(closeAppDatabaseProvider),
+    currentDatabaseSchemaVersion: ref.watch(appDatabaseProvider).schemaVersion,
+  );
+  return restore.call;
 });

@@ -159,6 +159,9 @@ const _managedPaths = [
     targetRelative: 'mirascope.sqlite',
     stageRelative: 'data/mirascope.sqlite',
   ),
+  _ManagedPath(targetRelative: 'mirascope.sqlite-wal'),
+  _ManagedPath(targetRelative: 'mirascope.sqlite-shm'),
+  _ManagedPath(targetRelative: 'mirascope.sqlite-journal'),
   _ManagedPath(
     targetRelative: 'derived_txt/content',
     stageRelative: 'data/derived_txt/content',

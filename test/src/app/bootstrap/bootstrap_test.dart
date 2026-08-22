@@ -62,6 +62,23 @@ void main() {
     expect(database.closeCount, 1);
   });
 
+  testWidgets('explicit restore close and unmount close the database once', (
+    tester,
+  ) async {
+    final database = _TrackingAppDatabase();
+    final root = await buildRootWidget(
+      initialize: () async => AppDependencies(database: database),
+    );
+    await tester.pumpWidget(root);
+    final appContext = tester.element(find.byType(MirascopeApp));
+    final container = ProviderScope.containerOf(appContext);
+
+    await container.read(closeAppDatabaseProvider)();
+    await _unmountAndFlush(tester);
+
+    expect(database.closeCount, 1);
+  });
+
   testWidgets('database factory failure builds a safe database error', (
     tester,
   ) async {

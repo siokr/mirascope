@@ -77,6 +77,7 @@ Widget _buildApplication(AppDatabase database) {
         ref.onDispose(closeDatabase);
         return database;
       }),
+      closeAppDatabaseProvider.overrideWithValue(closeDatabase),
     ],
     child: Consumer(
       builder: (context, ref, child) {

@@ -7,6 +7,7 @@ import '../../manga/application/manga_providers.dart';
 import '../../backup/application/backup_providers.dart';
 import '../../backup/application/export_backup.dart';
 import '../../backup/application/preflight_backup.dart';
+import '../../backup/application/restore_backup.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -96,17 +97,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           context,
         ).showSnackBar(SnackBar(content: Text(message)));
       case PreflightBackupReady():
-        await _showBackupPreview(result);
+        final confirmed = await _showBackupPreview(result);
+        if (confirmed == true) await _restoreBackup(result.sourcePath);
     }
   }
 
-  Future<void> _showBackupPreview(PreflightBackupReady preview) async {
+  Future<bool?> _showBackupPreview(PreflightBackupReady preview) async {
     final localDate = preview.createdAt.toLocal();
     final date =
         '${localDate.year.toString().padLeft(4, '0')}-'
         '${localDate.month.toString().padLeft(2, '0')}-'
         '${localDate.day.toString().padLeft(2, '0')}';
-    await showDialog<void>(
+    return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('备份校验通过'),
@@ -114,14 +116,66 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           '创建日期：$date\n'
           '数据库版本 ${preview.databaseSchemaVersion}\n'
           '包含 ${preview.fileCount} 个数据文件\n\n'
-          '本次仅完成只读校验，尚未修改当前数据。',
+          '恢复会替换当前媒体库、阅读状态和应用托管内容，原始媒体文件不会被修改。',
         ),
         actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
           FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('知道了'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('开始恢复'),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _restoreBackup(String sourcePath) async {
+    setState(() => _checkingBackup = true);
+    RestoreBackupResult result;
+    try {
+      result = await (await ref.read(restoreBackupCommandProvider.future))(
+        sourcePath,
+      );
+    } on Object {
+      result = const RestoreBackupRejected();
+    }
+    if (!mounted) return;
+    setState(() => _checkingBackup = false);
+    if (result is RestoreBackupRejected) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('备份在恢复前复验失败，当前数据未修改')));
+      return;
+    }
+    await _showRestoreTerminal(result);
+  }
+
+  Future<void> _showRestoreTerminal(RestoreBackupResult result) {
+    final (title, message) = switch (result) {
+      RestoreBackupSucceeded() => (
+        '恢复完成',
+        '备份数据已经恢复。请关闭并重新启动 Mirascope，以重新打开数据库。',
+      ),
+      RestoreBackupRestartRequired() => (
+        '恢复未完成',
+        '数据库连接已经关闭，恢复操作未能完成。请关闭并重新启动 Mirascope。',
+      ),
+      RestoreBackupManualRecoveryRequired(:final recoveryDirectory) => (
+        '需要人工恢复',
+        '自动回滚未能完成。旧数据副本保存在：\n$recoveryDirectory\n\n'
+            '请勿删除该目录，并关闭 Mirascope。',
+      ),
+      RestoreBackupRejected() => throw StateError('handled before terminal'),
+    };
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false,
+        child: AlertDialog(title: Text(title), content: Text(message)),
       ),
     );
   }

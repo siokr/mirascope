@@ -21,6 +21,9 @@ void main() {
 
   test('replaces only managed data and clears the manga cache', () async {
     await _write(support, 'mirascope.sqlite', 'old-db');
+    await _write(support, 'mirascope.sqlite-wal', 'old-wal');
+    await _write(support, 'mirascope.sqlite-shm', 'old-shm');
+    await _write(support, 'mirascope.sqlite-journal', 'old-journal');
     await _write(support, 'derived_txt/content/old.txt', 'old-text');
     await _write(support, 'derived_manga/cache/page.png', 'old-cache');
     await _write(support, 'unrelated/settings.keep', 'keep-me');
@@ -32,6 +35,18 @@ void main() {
     await DartIoBackupCommitter(supportDirectory: support).commit(stage);
 
     expect(await _read(support, 'mirascope.sqlite'), 'new-db');
+    expect(
+      await File('${support.path}/mirascope.sqlite-wal').exists(),
+      isFalse,
+    );
+    expect(
+      await File('${support.path}/mirascope.sqlite-shm').exists(),
+      isFalse,
+    );
+    expect(
+      await File('${support.path}/mirascope.sqlite-journal').exists(),
+      isFalse,
+    );
     expect(await _read(support, 'derived_txt/content/new.txt'), 'new-text');
     expect(
       await File('${support.path}/derived_txt/content/old.txt').exists(),

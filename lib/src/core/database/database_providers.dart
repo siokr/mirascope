@@ -23,8 +23,14 @@ import '../../features/manga/data/drift_manga_reader_preference_repository.dart'
 import '../../features/manga/domain/manga_reader_preference_repository.dart';
 import 'app_database.dart';
 
+typedef CloseAppDatabase = Future<void> Function();
+
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   throw StateError('AppDatabase has not been initialized');
+});
+
+final closeAppDatabaseProvider = Provider<CloseAppDatabase>((ref) {
+  throw StateError('AppDatabase lifecycle has not been initialized');
 });
 
 final mediaLibraryRepositoryProvider = Provider<MediaLibraryRepository>((ref) {
