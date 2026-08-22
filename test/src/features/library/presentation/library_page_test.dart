@@ -62,6 +62,44 @@ void main() {
     expect(organization.createdTags.single.name, '奇幻');
   });
 
+  testWidgets('centrally renames tags and confirms shelf deletion', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    final organization = _FakeOrganizationRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository, organization: organization);
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('open-organization-management')));
+    await tester.pumpAndSettle();
+    expect(find.text('标签与书架管理'), findsOneWidget);
+    expect(find.text('收藏'), findsOneWidget);
+    expect(find.text('待读'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('manage-tag-tag')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('重命名'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('organization-name-field')),
+      '喜爱',
+    );
+    await tester.tap(find.text('保存'));
+    await tester.pumpAndSettle();
+    expect(organization.renamedTags, {'tag': '喜爱'});
+
+    await tester.tap(find.byKey(const Key('manage-shelf-shelf')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('删除'));
+    await tester.pumpAndSettle();
+    expect(find.text('删除书架“待读”？'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, '删除'));
+    await tester.pumpAndSettle();
+    expect(organization.deletedShelfIds, ['shelf']);
+  });
+
   testWidgets('shows loading then the active empty state', (tester) async {
     final repository = FakeMediaLibraryRepository();
     addTearDown(repository.close);
@@ -608,6 +646,8 @@ final class _FakeOrganizationRepository
   final assignedTagIds = <String>{};
   final assignedShelfIds = <String>{};
   final createdTags = <MediaTag>[];
+  final renamedTags = <String, String>{};
+  final deletedShelfIds = <String>[];
 
   @override
   Stream<List<MediaTag>> watchTags() => Stream.value([
@@ -658,7 +698,8 @@ final class _FakeOrganizationRepository
       : assignedShelfIds.remove(shelfId);
 
   @override
-  Future<void> deleteShelf(String shelfId) async {}
+  Future<void> deleteShelf(String shelfId) async =>
+      deletedShelfIds.add(shelfId);
   @override
   Future<void> deleteTag(String tagId) async {}
   @override
@@ -668,7 +709,8 @@ final class _FakeOrganizationRepository
     DateTime updatedAt,
   ) async {}
   @override
-  Future<void> renameTag(String tagId, String name) async {}
+  Future<void> renameTag(String tagId, String name) async =>
+      renamedTags[tagId] = name;
 }
 
 final _candidate = TxtSourceCandidate(

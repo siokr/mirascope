@@ -135,6 +135,12 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             icon: const Icon(Icons.inventory_2_outlined),
           ),
           IconButton(
+            key: const Key('open-organization-management'),
+            onPressed: _openOrganizationManagement,
+            tooltip: '标签与书架管理',
+            icon: const Icon(Icons.label_outline),
+          ),
+          IconButton(
             key: const Key('open-settings'),
             onPressed: widget.onOpenSettings,
             tooltip: '设置',
@@ -546,6 +552,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     );
   }
 
+  Future<void> _openOrganizationManagement() {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const _OrganizationManagementSheet(),
+    );
+  }
+
   Future<void> _undoArchive(
     BuildContext context,
     WidgetRef ref,
@@ -693,6 +707,212 @@ class _OrganizationSheet extends ConsumerWidget {
   }
 }
 
+enum _OrganizationMenuAction { rename, delete }
+
+class _OrganizationManagementSheet extends ConsumerWidget {
+  const _OrganizationManagementSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tags = ref.watch(organizationTagsProvider);
+    final shelves = ref.watch(organizationShelvesProvider);
+    return SafeArea(
+      child: FractionallySizedBox(
+        heightFactor: 0.82,
+        child: ListView(
+          key: const Key('organization-management-sheet'),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          children: [
+            Text('标签与书架管理', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 20),
+            Text('标签', style: Theme.of(context).textTheme.titleMedium),
+            _ManagementList<MediaTag>(
+              values: tags,
+              emptyText: '还没有标签',
+              keyPrefix: 'manage-tag',
+              idOf: (tag) => tag.id,
+              nameOf: (tag) => tag.name,
+              onRename: (tag) => _renameTag(context, ref, tag),
+              onDelete: (tag) => _deleteTag(context, ref, tag),
+            ),
+            const Divider(height: 32),
+            Text('自定义书架', style: Theme.of(context).textTheme.titleMedium),
+            _ManagementList<CustomShelf>(
+              values: shelves,
+              emptyText: '还没有自定义书架',
+              keyPrefix: 'manage-shelf',
+              idOf: (shelf) => shelf.id,
+              nameOf: (shelf) => shelf.name,
+              onRename: (shelf) => _renameShelf(context, ref, shelf),
+              onDelete: (shelf) => _deleteShelf(context, ref, shelf),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _renameTag(
+    BuildContext context,
+    WidgetRef ref,
+    MediaTag tag,
+  ) async {
+    final name = await _requestOrganizationName(
+      context,
+      '重命名标签',
+      initialValue: tag.name,
+      actionLabel: '保存',
+    );
+    if (name == null || name == tag.name) return;
+    try {
+      await ref
+          .read(libraryOrganizationRepositoryProvider)
+          .renameTag(tag.id, name);
+    } on Object {
+      if (context.mounted) _showOrganizationFailure(context);
+    }
+  }
+
+  Future<void> _renameShelf(
+    BuildContext context,
+    WidgetRef ref,
+    CustomShelf shelf,
+  ) async {
+    final name = await _requestOrganizationName(
+      context,
+      '重命名书架',
+      initialValue: shelf.name,
+      actionLabel: '保存',
+    );
+    if (name == null || name == shelf.name) return;
+    try {
+      await ref
+          .read(libraryOrganizationRepositoryProvider)
+          .renameShelf(shelf.id, name, DateTime.now().toUtc());
+    } on Object {
+      if (context.mounted) _showOrganizationFailure(context);
+    }
+  }
+
+  Future<void> _deleteTag(
+    BuildContext context,
+    WidgetRef ref,
+    MediaTag tag,
+  ) async {
+    if (!await _confirmOrganizationDelete(context, '标签', tag.name)) return;
+    try {
+      await ref.read(libraryOrganizationRepositoryProvider).deleteTag(tag.id);
+    } on Object {
+      if (context.mounted) _showOrganizationFailure(context);
+    }
+  }
+
+  Future<void> _deleteShelf(
+    BuildContext context,
+    WidgetRef ref,
+    CustomShelf shelf,
+  ) async {
+    if (!await _confirmOrganizationDelete(context, '书架', shelf.name)) return;
+    try {
+      await ref
+          .read(libraryOrganizationRepositoryProvider)
+          .deleteShelf(shelf.id);
+    } on Object {
+      if (context.mounted) _showOrganizationFailure(context);
+    }
+  }
+}
+
+class _ManagementList<T> extends StatelessWidget {
+  const _ManagementList({
+    required this.values,
+    required this.emptyText,
+    required this.keyPrefix,
+    required this.idOf,
+    required this.nameOf,
+    required this.onRename,
+    required this.onDelete,
+  });
+
+  final AsyncValue<List<T>> values;
+  final String emptyText;
+  final String keyPrefix;
+  final String Function(T) idOf;
+  final String Function(T) nameOf;
+  final ValueChanged<T> onRename;
+  final ValueChanged<T> onDelete;
+
+  @override
+  Widget build(BuildContext context) => values.when(
+    loading: () => const Center(child: CircularProgressIndicator()),
+    error: (_, _) => const Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Text('加载失败，请重试。'),
+    ),
+    data: (items) => items.isEmpty
+        ? Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(emptyText),
+          )
+        : Column(
+            children: [
+              for (final value in items)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(nameOf(value)),
+                  trailing: PopupMenuButton<_OrganizationMenuAction>(
+                    key: Key('$keyPrefix-${idOf(value)}'),
+                    tooltip: '管理${nameOf(value)}',
+                    onSelected: (action) {
+                      switch (action) {
+                        case _OrganizationMenuAction.rename:
+                          onRename(value);
+                        case _OrganizationMenuAction.delete:
+                          onDelete(value);
+                      }
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(
+                        value: _OrganizationMenuAction.rename,
+                        child: Text('重命名'),
+                      ),
+                      PopupMenuItem(
+                        value: _OrganizationMenuAction.delete,
+                        child: Text('删除'),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+  );
+}
+
+Future<bool> _confirmOrganizationDelete(
+  BuildContext context,
+  String type,
+  String name,
+) async {
+  return await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('删除$type“$name”？'),
+          content: Text('只会删除$type及其整理关系，不会删除媒体或原始文件。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('删除'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
+}
+
 class _OrganizationHeader extends StatelessWidget {
   const _OrganizationHeader({
     required this.title,
@@ -782,9 +1002,11 @@ void _showOrganizationFailure(BuildContext context) {
 
 Future<String?> _requestOrganizationName(
   BuildContext context,
-  String title,
-) async {
-  final controller = TextEditingController();
+  String title, {
+  String initialValue = '',
+  String actionLabel = '创建',
+}) async {
+  final controller = TextEditingController(text: initialValue);
   final result = await showDialog<String>(
     context: context,
     builder: (dialogContext) => AlertDialog(
@@ -806,7 +1028,7 @@ Future<String?> _requestOrganizationName(
             final name = controller.text.trim();
             if (name.isNotEmpty) Navigator.pop(dialogContext, name);
           },
-          child: const Text('创建'),
+          child: Text(actionLabel),
         ),
       ],
     ),
