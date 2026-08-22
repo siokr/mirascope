@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/importing/data/drift_import_repository.dart';
+import '../../features/history/data/drift_reading_history_repository.dart';
+import '../../features/history/domain/reading_history_repository.dart';
 import '../../features/importing/domain/import_repository.dart';
 import '../../features/importing/domain/source_relocation_repository.dart';
 import '../../features/library/data/drift_media_library_repository.dart';
@@ -74,3 +76,9 @@ final sourceRelocationRepositoryProvider = Provider<SourceRelocationRepository>(
     return DriftImportRepository(ref.watch(appDatabaseProvider));
   },
 );
+
+final readingHistoryRepositoryProvider = Provider<ReadingHistoryRepository>((
+  ref,
+) {
+  return DriftReadingHistoryRepository(ref.watch(appDatabaseProvider));
+});
