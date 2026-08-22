@@ -5,6 +5,9 @@ import '../../importing/application/importing_providers.dart';
 import '../../importing/application/relocate_txt_source.dart';
 import '../../importing/domain/import_record.dart';
 import '../../importing/domain/manga_source.dart';
+import '../../library/domain/media_item.dart';
+import '../../library/presentation/edit_media_metadata_dialog.dart';
+import '../../library/presentation/media_metadata_summary.dart';
 import '../application/manga_providers.dart';
 
 class MangaDetailsPage extends ConsumerStatefulWidget {
@@ -38,10 +41,24 @@ class _MangaDetailsPageState extends ConsumerState<MangaDetailsPage> {
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              Text(
-                value.mediaItem.title,
-                style: Theme.of(context).textTheme.headlineMedium,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      value.mediaItem.title,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  IconButton(
+                    key: const Key('edit-media-metadata'),
+                    onPressed: () => _editMetadata(value.mediaItem),
+                    tooltip: '编辑作品信息',
+                    icon: const Icon(Icons.edit_outlined),
+                  ),
+                ],
               ),
+              MediaMetadataSummary(mediaItem: value.mediaItem),
               const SizedBox(height: 8),
               Text('共 ${value.chapters.length} 章 · ${value.pageCount} 页'),
               const SizedBox(height: 16),
@@ -94,6 +111,18 @@ class _MangaDetailsPageState extends ConsumerState<MangaDetailsPage> {
         },
       ),
     );
+  }
+
+  Future<void> _editMetadata(MediaItem mediaItem) async {
+    final saved = await showEditMediaMetadataDialog(
+      context,
+      mediaItem: mediaItem,
+    );
+    if (!mounted || !saved) return;
+    ref.invalidate(mangaDetailsProvider(widget.mediaItemId));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('作品信息已保存')));
   }
 
   Future<void> _relocate(ImportSourceKind? sourceKind) async {

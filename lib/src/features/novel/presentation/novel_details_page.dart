@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../importing/application/importing_providers.dart';
 import '../../importing/application/relocate_txt_source.dart';
 import '../../importing/domain/import_record.dart';
+import '../../library/presentation/edit_media_metadata_dialog.dart';
+import '../../library/presentation/media_metadata_summary.dart';
 import '../application/novel_providers.dart';
 import '../domain/novel_details.dart';
 
@@ -42,12 +44,25 @@ class _NovelDetailsPageState extends ConsumerState<NovelDetailsPage> {
             : _DetailsBody(
                 details: value,
                 onStartReading: widget.onStartReading,
+                onEditMetadata: () => _editMetadata(value),
                 onRelocateSource:
                     widget.onRelocateSource ??
                     (_relocating ? null : _relocateSource),
               ),
       ),
     );
+  }
+
+  Future<void> _editMetadata(NovelDetails details) async {
+    final saved = await showEditMediaMetadataDialog(
+      context,
+      mediaItem: details.mediaItem,
+    );
+    if (!mounted || !saved) return;
+    ref.invalidate(novelDetailsProvider(widget.mediaItemId));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('作品信息已保存')));
   }
 
   Future<void> _relocateSource() async {
@@ -101,11 +116,13 @@ class _DetailsBody extends StatelessWidget {
   const _DetailsBody({
     required this.details,
     required this.onStartReading,
+    required this.onEditMetadata,
     this.onRelocateSource,
   });
 
   final NovelDetails details;
   final ValueChanged<String?> onStartReading;
+  final VoidCallback onEditMetadata;
   final VoidCallback? onRelocateSource;
 
   @override
@@ -118,10 +135,24 @@ class _DetailsBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  details.mediaItem.title,
-                  style: Theme.of(context).textTheme.headlineMedium,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        details.mediaItem.title,
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                    ),
+                    IconButton(
+                      key: const Key('edit-media-metadata'),
+                      onPressed: onEditMetadata,
+                      tooltip: '编辑作品信息',
+                      icon: const Icon(Icons.edit_outlined),
+                    ),
+                  ],
                 ),
+                MediaMetadataSummary(mediaItem: details.mediaItem),
                 const SizedBox(height: 8),
                 Text('共 ${details.chapters.length} 章'),
                 const SizedBox(height: 16),

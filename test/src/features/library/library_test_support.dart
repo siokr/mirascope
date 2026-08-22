@@ -15,6 +15,7 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
 
   final openedAt = <String, DateTime>{};
   final favoriteValues = <String, bool>{};
+  final metadataUpdates = <MetadataUpdate>[];
   final archivedAt = <String, DateTime>{};
   final restored = <String>[];
   final deleted = <String>[];
@@ -83,7 +84,18 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
     String? creator,
     String? description,
     required DateTime updatedAt,
-  }) async {}
+  }) async {
+    metadataUpdates.add(
+      MetadataUpdate(
+        mediaItemId: mediaItemId,
+        title: title,
+        subtitle: subtitle,
+        creator: creator,
+        description: description,
+        updatedAt: updatedAt,
+      ),
+    );
+  }
 
   @override
   Future<void> archive(String mediaItemId, DateTime archivedAt) async {
@@ -111,6 +123,24 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
     deleted.add(mediaItemId);
     return deletedContentRefs ?? {'content/$mediaItemId.txt'};
   }
+}
+
+final class MetadataUpdate {
+  const MetadataUpdate({
+    required this.mediaItemId,
+    required this.title,
+    required this.subtitle,
+    required this.creator,
+    required this.description,
+    required this.updatedAt,
+  });
+
+  final String mediaItemId;
+  final String title;
+  final String? subtitle;
+  final String? creator;
+  final String? description;
+  final DateTime updatedAt;
 }
 
 final class FakeDerivedTxtStore implements DerivedTxtStore {

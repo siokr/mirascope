@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
+import 'package:mirascope/src/features/library/application/library_providers.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details.dart';
 import 'package:mirascope/src/features/importing/domain/import_record.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
 import 'package:mirascope/src/features/novel/presentation/novel_details_page.dart';
+
+import '../../library/library_test_support.dart';
 
 void main() {
   testWidgets('shows title, ordered directory and opens reader', (
@@ -36,6 +39,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Book'), findsOneWidget);
+    expect(find.text('副标题'), findsOneWidget);
+    expect(find.text('作者：作者名'), findsOneWidget);
+    expect(find.text('作品简介'), findsOneWidget);
     expect(find.text('共 2 章'), findsOneWidget);
     expect(find.text('First'), findsOneWidget);
     expect(find.text('Second'), findsOneWidget);
@@ -88,6 +94,99 @@ void main() {
     await tester.tap(find.text('重新定位源文件'));
     expect(relocated, isTrue);
   });
+
+  testWidgets('edits local metadata from the details page', (tester) async {
+    final library = FakeMediaLibraryRepository();
+    addTearDown(library.close);
+    final updatedAt = DateTime.utc(2026, 8, 22, 12);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          novelDetailsRepositoryProvider.overrideWithValue(
+            _Repository(_details(sourceAvailable: true)),
+          ),
+          mediaLibraryRepositoryProvider.overrideWithValue(library),
+          libraryClockProvider.overrideWithValue(() => updatedAt),
+        ],
+        child: MaterialApp(
+          home: NovelDetailsPage(
+            mediaItemId: 'media-1',
+            onStartReading: (_) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('edit-media-metadata')));
+    await tester.pumpAndSettle();
+    expect(find.text('编辑作品信息'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Book'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('metadata-title-field')),
+      '  新书名  ',
+    );
+    await tester.enterText(
+      find.byKey(const Key('metadata-subtitle-field')),
+      '副标题',
+    );
+    await tester.enterText(
+      find.byKey(const Key('metadata-creator-field')),
+      '作者',
+    );
+    await tester.enterText(
+      find.byKey(const Key('metadata-description-field')),
+      '简介',
+    );
+    await tester.tap(find.text('保存'));
+    await tester.pumpAndSettle();
+
+    expect(library.metadataUpdates, hasLength(1));
+    final update = library.metadataUpdates.single;
+    expect(update.mediaItemId, 'media-1');
+    expect(update.title, '  新书名  ');
+    expect(update.subtitle, '副标题');
+    expect(update.creator, '作者');
+    expect(update.description, '简介');
+    expect(update.updatedAt, updatedAt);
+    expect(find.text('作品信息已保存'), findsOneWidget);
+  });
+
+  testWidgets('keeps metadata editor open when title is blank', (tester) async {
+    final library = FakeMediaLibraryRepository();
+    addTearDown(library.close);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          novelDetailsRepositoryProvider.overrideWithValue(
+            _Repository(_details(sourceAvailable: true)),
+          ),
+          mediaLibraryRepositoryProvider.overrideWithValue(library),
+        ],
+        child: MaterialApp(
+          home: NovelDetailsPage(
+            mediaItemId: 'media-1',
+            onStartReading: (_) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('edit-media-metadata')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('metadata-title-field')),
+      '   ',
+    );
+    await tester.tap(find.text('保存'));
+    await tester.pump();
+
+    expect(find.text('请输入书名'), findsOneWidget);
+    expect(find.text('编辑作品信息'), findsOneWidget);
+    expect(library.metadataUpdates, isEmpty);
+  });
 }
 
 NovelDetails _details({required bool sourceAvailable}) {
@@ -97,6 +196,9 @@ NovelDetails _details({required bool sourceAvailable}) {
       id: 'media-1',
       mediaType: MediaType.novel,
       title: 'Book',
+      subtitle: '副标题',
+      creator: '作者名',
+      description: '作品简介',
       createdAt: now,
       updatedAt: now,
     ),
