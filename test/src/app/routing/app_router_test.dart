@@ -12,6 +12,9 @@ import 'package:mirascope/src/features/novel/domain/bookmark.dart';
 import 'package:mirascope/src/features/novel/domain/bookmark_repository.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details.dart';
 import 'package:mirascope/src/features/importing/domain/import_record.dart';
+import 'package:mirascope/src/features/history/domain/library_statistics.dart';
+import 'package:mirascope/src/features/history/domain/reading_history_item.dart';
+import 'package:mirascope/src/features/history/domain/reading_history_repository.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details_repository.dart';
 import 'package:mirascope/src/features/novel/domain/novel_reader_repository.dart';
 import 'package:mirascope/src/features/novel/domain/reader_book.dart';
@@ -26,6 +29,38 @@ import 'package:mirascope/src/features/novel/application/novel_providers.dart';
 import '../../features/library/library_test_support.dart';
 
 void main() {
+  testWidgets('opens reading history with local statistics', (tester) async {
+    final router = createAppRouter();
+    addTearDown(router.dispose);
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+
+    await _pumpApp(tester, router, repository);
+    await tester.tap(find.byKey(const Key('open-reading-history')));
+    await _pumpRoute(tester);
+
+    expect(find.text('阅读历史'), findsOneWidget);
+    expect(find.text('媒体 2'), findsOneWidget);
+    expect(find.text('已开始 1'), findsOneWidget);
+    expect(find.text('Book book-42'), findsOneWidget);
+  });
+
+  testWidgets('opens novel details from reading history', (tester) async {
+    final router = createAppRouter();
+    addTearDown(router.dispose);
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+
+    await _pumpApp(tester, router, repository);
+    await tester.tap(find.byKey(const Key('open-reading-history')));
+    await _pumpRoute(tester);
+    await tester.tap(find.byKey(const Key('history-book-42')));
+    await _pumpRoute(tester);
+
+    expect(find.text('小说详情'), findsOneWidget);
+    expect(find.text('Book book-42'), findsOneWidget);
+  });
+
   testWidgets('opens settings from the library', (tester) async {
     final router = createAppRouter();
     addTearDown(router.dispose);
@@ -189,12 +224,42 @@ Future<void> _pumpApp(
         bookmarkRepositoryProvider.overrideWithValue(
           const _RouteBookmarkRepository(),
         ),
+        readingHistoryRepositoryProvider.overrideWithValue(
+          const _RouteReadingHistoryRepository(),
+        ),
       ],
       child: MirascopeApp(router: router),
     ),
   );
   repository.activeController.add([]);
   await _pumpRoute(tester);
+}
+
+final class _RouteReadingHistoryRepository implements ReadingHistoryRepository {
+  const _RouteReadingHistoryRepository();
+
+  @override
+  Stream<List<ReadingHistoryItem>> watchRecent({int limit = 50}) =>
+      Stream.value([
+        ReadingHistoryItem(
+          mediaItemId: 'book-42',
+          title: 'Book book-42',
+          mediaType: MediaType.novel,
+          lastOpenedAt: DateTime.utc(2026, 8, 22, 8),
+          fraction: 0.5,
+        ),
+      ]);
+
+  @override
+  Stream<LibraryStatistics> watchStatistics() => Stream.value(
+    const LibraryStatistics(
+      totalMedia: 2,
+      startedMedia: 1,
+      favoriteMedia: 1,
+      novelMedia: 1,
+      mangaMedia: 1,
+    ),
+  );
 }
 
 final class _RouteNovelDetailsRepository implements NovelDetailsRepository {

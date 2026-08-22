@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mirascope/src/app/routing/app_routes.dart';
 import 'package:mirascope/src/features/library/presentation/archived_library_page.dart';
 import 'package:mirascope/src/features/library/presentation/library_page.dart';
+import 'package:mirascope/src/features/history/presentation/reading_history_page.dart';
 import 'package:mirascope/src/features/novel/presentation/novel_details_page.dart';
 import 'package:mirascope/src/features/novel/presentation/novel_reader_page.dart';
 import 'package:mirascope/src/features/settings/presentation/settings_page.dart';
@@ -19,6 +20,7 @@ GoRouter createAppRouter() {
         builder: (context, state) => LibraryPage(
           onOpenSettings: () => context.push(AppRoutes.settings),
           onOpenArchive: () => context.push(AppRoutes.libraryArchive),
+          onOpenHistory: () => context.push(AppRoutes.readingHistory),
           onOpenNovel: (mediaItemId) =>
               context.push(AppRoutes.novelDetails(mediaItemId)),
           onOpenManga: (mediaItemId) =>
@@ -28,6 +30,15 @@ GoRouter createAppRouter() {
       GoRoute(
         path: AppRoutes.libraryArchive,
         builder: (context, state) => const ArchivedLibraryPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.readingHistory,
+        builder: (context, state) => ReadingHistoryPage(
+          onOpenNovel: (mediaItemId) =>
+              context.push(AppRoutes.novelDetails(mediaItemId)),
+          onOpenManga: (mediaItemId) =>
+              context.push(AppRoutes.mangaDetails(mediaItemId)),
+        ),
       ),
       GoRoute(
         path: AppRoutes.settings,

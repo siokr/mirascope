@@ -1,6 +1,7 @@
 abstract final class AppRoutes {
   static const library = '/library';
   static const libraryArchive = '/library/archive';
+  static const readingHistory = '/library/history';
   static const settings = '/settings';
 
   static String novelDetails(String mediaItemId) =>

@@ -49,6 +49,7 @@ class LibraryPage extends ConsumerStatefulWidget {
   const LibraryPage({
     required this.onOpenSettings,
     required this.onOpenArchive,
+    this.onOpenHistory,
     required this.onOpenNovel,
     this.onOpenManga,
     this.prepareTxtForImport,
@@ -62,6 +63,7 @@ class LibraryPage extends ConsumerStatefulWidget {
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenArchive;
+  final VoidCallback? onOpenHistory;
   final ValueChanged<String> onOpenNovel;
   final ValueChanged<String>? onOpenManga;
   final PrepareTxtForImport? prepareTxtForImport;
@@ -127,6 +129,12 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                   ? Icons.filter_alt
                   : Icons.filter_alt_outlined,
             ),
+          ),
+          IconButton(
+            key: const Key('open-reading-history'),
+            onPressed: widget.onOpenHistory,
+            tooltip: '阅读历史与统计',
+            icon: const Icon(Icons.history),
           ),
           IconButton(
             key: const Key('open-archive'),
