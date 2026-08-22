@@ -382,6 +382,7 @@ void main() {
       database,
       id: 'media-1',
       title: 'Book',
+      coverRef: 'custom/media-1/cover.png',
       archivedAt: _now,
     );
     await database
@@ -438,7 +439,7 @@ void main() {
 
     final contentRefs = await repository.deleteApplicationData('media-1');
 
-    expect(contentRefs, {'content/unit-1'});
+    expect(contentRefs, {'content/unit-1', 'custom/media-1/cover.png'});
     expect(await repository.findMediaItem('media-1'), isNull);
     expect(await database.select(database.libraryEntries).get(), isEmpty);
     expect(await database.select(database.contentUnits).get(), isEmpty);
@@ -586,6 +587,24 @@ void main() {
 
     expect((await repository.findMediaItem('book'))?.title, 'Original');
   });
+
+  test('updates a managed custom cover reference', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(database, id: 'book', title: 'Book');
+    final updatedAt = DateTime.utc(2026, 8, 22, 10);
+
+    await repository.updateCoverRef(
+      mediaItemId: 'book',
+      coverRef: 'custom/book/cover.png',
+      updatedAt: updatedAt,
+    );
+
+    final item = await repository.findMediaItem('book');
+    expect(item?.coverRef, 'custom/book/cover.png');
+    expect(item?.updatedAt, updatedAt);
+  });
 }
 
 Future<void> _insertMediaAndLibraryEntry(
@@ -596,6 +615,7 @@ Future<void> _insertMediaAndLibraryEntry(
   String mediaType = 'novel',
   String? subtitle,
   String? creator,
+  String? coverRef,
   bool favorite = false,
   DateTime? addedAt,
   DateTime? lastOpenedAt,
@@ -610,6 +630,7 @@ Future<void> _insertMediaAndLibraryEntry(
           title: title,
           subtitle: Value(subtitle),
           creator: Value(creator),
+          coverRef: Value(coverRef),
           createdAt: _now,
           updatedAt: _now,
         ),

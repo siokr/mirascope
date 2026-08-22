@@ -208,6 +208,24 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
+  Future<void> updateCoverRef({
+    required String mediaItemId,
+    required String coverRef,
+    required DateTime updatedAt,
+  }) async {
+    final updated =
+        await (database.update(
+          database.mediaItems,
+        )..where((row) => row.id.equals(mediaItemId))).write(
+          MediaItemsCompanion(
+            coverRef: Value(coverRef),
+            updatedAt: Value(updatedAt.toUtc()),
+          ),
+        );
+    if (updated != 1) throw StateError('media_item_not_found');
+  }
+
+  @override
   Future<void> archive(String mediaItemId, DateTime archivedAt) async {
     final updated =
         await (database.update(database.libraryEntries)..where(
@@ -249,6 +267,9 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
       if (archivedEntry == null) {
         throw StateError('library_entry_not_archived');
       }
+      final mediaItem = await (database.select(
+        database.mediaItems,
+      )..where((row) => row.id.equals(mediaItemId))).getSingleOrNull();
       final units = await (database.select(
         database.contentUnits,
       )..where((row) => row.mediaItemId.equals(mediaItemId))).get();
@@ -258,7 +279,12 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
       if (deleted != 1) {
         throw StateError('media_item_not_found');
       }
-      return {for (final unit in units) unit.contentRef};
+      return {
+        for (final unit in units) unit.contentRef,
+        if (mediaItem?.coverRef case final coverRef?
+            when coverRef.startsWith('custom/'))
+          coverRef,
+      };
     });
   }
 

@@ -5,6 +5,8 @@ import '../../importing/application/importing_providers.dart';
 import '../../importing/application/relocate_txt_source.dart';
 import '../../importing/domain/import_record.dart';
 import '../../importing/domain/manga_source.dart';
+import '../../library/application/custom_cover_providers.dart';
+import '../../library/application/set_custom_cover.dart';
 import '../../library/domain/media_item.dart';
 import '../../library/presentation/edit_media_metadata_dialog.dart';
 import '../../library/presentation/media_metadata_summary.dart';
@@ -27,6 +29,7 @@ class MangaDetailsPage extends ConsumerStatefulWidget {
 
 class _MangaDetailsPageState extends ConsumerState<MangaDetailsPage> {
   var _relocating = false;
+  var _changingCover = false;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +52,12 @@ class _MangaDetailsPageState extends ConsumerState<MangaDetailsPage> {
                       value.mediaItem.title,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
+                  ),
+                  IconButton(
+                    key: const Key('change-media-cover'),
+                    onPressed: _changingCover ? null : _changeCover,
+                    tooltip: '更换封面',
+                    icon: const Icon(Icons.image_outlined),
                   ),
                   IconButton(
                     key: const Key('edit-media-metadata'),
@@ -123,6 +132,28 @@ class _MangaDetailsPageState extends ConsumerState<MangaDetailsPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('作品信息已保存')));
+  }
+
+  Future<void> _changeCover() async {
+    setState(() => _changingCover = true);
+    final result = await (await ref.read(setCustomCoverProvider.future))(
+      widget.mediaItemId,
+    );
+    if (!mounted) return;
+    setState(() => _changingCover = false);
+    switch (result) {
+      case SetCustomCoverResult.cancelled:
+        return;
+      case SetCustomCoverResult.succeeded:
+        ref.invalidate(mangaDetailsProvider(widget.mediaItemId));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('封面已更新')));
+      case SetCustomCoverResult.failed:
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('无法使用这张图片，请选择其他图片')));
+    }
   }
 
   Future<void> _relocate(ImportSourceKind? sourceKind) async {

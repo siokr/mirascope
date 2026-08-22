@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/domain/media_item.dart';
 import 'package:mirascope/src/features/library/application/library_providers.dart';
+import 'package:mirascope/src/features/library/application/custom_cover_providers.dart';
+import 'package:mirascope/src/features/library/application/set_custom_cover.dart';
+import 'package:mirascope/src/features/library/domain/cover_image_picker.dart';
+import 'package:mirascope/src/features/library/domain/custom_cover_store.dart';
 import 'package:mirascope/src/features/novel/domain/content_unit.dart';
 import 'package:mirascope/src/features/novel/domain/novel_details.dart';
 import 'package:mirascope/src/features/importing/domain/import_record.dart';
@@ -187,6 +193,40 @@ void main() {
     expect(find.text('编辑作品信息'), findsOneWidget);
     expect(library.metadataUpdates, isEmpty);
   });
+
+  testWidgets('sets a custom cover from the details page', (tester) async {
+    final library = FakeMediaLibraryRepository();
+    addTearDown(library.close);
+    final useCase = SetCustomCover(
+      picker: const _CoverPicker('C:/cover.jpg'),
+      store: _CoverStore(),
+      repository: library,
+      clock: () => DateTime.utc(2026, 8, 22),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          novelDetailsRepositoryProvider.overrideWithValue(
+            _Repository(_details(sourceAvailable: true)),
+          ),
+          setCustomCoverProvider.overrideWith((ref) async => useCase),
+        ],
+        child: MaterialApp(
+          home: NovelDetailsPage(
+            mediaItemId: 'media-1',
+            onStartReading: (_) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('change-media-cover')));
+    await tester.pumpAndSettle();
+
+    expect(library.coverUpdates.single.coverRef, 'custom/media-1/cover.png');
+    expect(find.text('封面已更新'), findsOneWidget);
+  });
 }
 
 NovelDetails _details({required bool sourceAvailable}) {
@@ -225,4 +265,25 @@ final class _Repository implements NovelDetailsRepository {
 
   @override
   Future<NovelDetails?> findDetails(String mediaItemId) async => details;
+}
+
+final class _CoverPicker implements CoverImagePicker {
+  const _CoverPicker(this.path);
+  final String? path;
+  @override
+  Future<String?> pickImage() async => path;
+}
+
+final class _CoverStore implements CustomCoverStore {
+  @override
+  Future<String> replaceFromFile({
+    required String mediaItemId,
+    required String sourcePath,
+  }) async => 'custom/$mediaItemId/cover.png';
+
+  @override
+  Future<void> remove(String mediaItemId) async {}
+
+  @override
+  Future<File?> resolve(String coverRef) async => null;
 }

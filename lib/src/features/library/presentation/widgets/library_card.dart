@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/library_item.dart';
-import '../../../manga/application/manga_providers.dart';
+import '../../application/custom_cover_providers.dart';
 import '../../domain/media_item.dart';
 
 enum LibraryCardAction { favorite, organize, archive, restore, delete }
@@ -182,8 +182,8 @@ class _Cover extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final media = item.mediaItem;
     final coverRef = media.coverRef;
-    if (media.mediaType == MediaType.manga && coverRef != null) {
-      final cover = ref.watch(mangaCoverFileProvider(coverRef));
+    if (coverRef != null) {
+      final cover = ref.watch(mediaCoverFileProvider(coverRef));
       if (cover.value case final file?) {
         return Image.file(
           file,

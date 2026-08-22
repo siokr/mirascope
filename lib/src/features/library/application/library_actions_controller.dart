@@ -4,6 +4,7 @@ import '../../../core/database/database_providers.dart';
 import '../../../core/errors/app_error_code.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../importing/application/importing_providers.dart';
+import 'custom_cover_providers.dart';
 import 'library_providers.dart';
 
 enum LibraryActionResult { succeeded, busy, failed }
@@ -72,7 +73,15 @@ final class LibraryActionsController extends Notifier<Set<String>> {
             .deleteApplicationData(mediaItemId);
         try {
           for (final contentRef in contentRefs) {
-            if (contentRef.startsWith('epub/')) {
+            if (contentRef.startsWith('custom/')) {
+              final match = RegExp(
+                r'^custom/([A-Za-z0-9_-]+)/cover\.png$',
+              ).firstMatch(contentRef);
+              if (match != null) {
+                final store = await ref.read(customCoverStoreProvider.future);
+                await store.remove(match.group(1)!);
+              }
+            } else if (contentRef.startsWith('epub/')) {
               final epubStore = await ref.read(derivedEpubStoreProvider.future);
               await epubStore.removeCommittedRef(contentRef);
             } else if (contentRef.startsWith('manga/')) {

@@ -17,6 +17,11 @@ abstract interface class MediaLibraryRepository {
     String? description,
     required DateTime updatedAt,
   });
+  Future<void> updateCoverRef({
+    required String mediaItemId,
+    required String coverRef,
+    required DateTime updatedAt,
+  });
   Future<void> archive(String mediaItemId, DateTime archivedAt);
   Future<void> restore(String mediaItemId);
   Future<Set<String>> deleteApplicationData(String mediaItemId);

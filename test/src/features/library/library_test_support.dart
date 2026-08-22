@@ -16,6 +16,7 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   final openedAt = <String, DateTime>{};
   final favoriteValues = <String, bool>{};
   final metadataUpdates = <MetadataUpdate>[];
+  final coverUpdates = <CoverUpdate>[];
   final archivedAt = <String, DateTime>{};
   final restored = <String>[];
   final deleted = <String>[];
@@ -98,6 +99,21 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
+  Future<void> updateCoverRef({
+    required String mediaItemId,
+    required String coverRef,
+    required DateTime updatedAt,
+  }) async {
+    coverUpdates.add(
+      CoverUpdate(
+        mediaItemId: mediaItemId,
+        coverRef: coverRef,
+        updatedAt: updatedAt,
+      ),
+    );
+  }
+
+  @override
   Future<void> archive(String mediaItemId, DateTime archivedAt) async {
     if (archiveError case final error?) {
       throw error;
@@ -140,6 +156,18 @@ final class MetadataUpdate {
   final String? subtitle;
   final String? creator;
   final String? description;
+  final DateTime updatedAt;
+}
+
+final class CoverUpdate {
+  const CoverUpdate({
+    required this.mediaItemId,
+    required this.coverRef,
+    required this.updatedAt,
+  });
+
+  final String mediaItemId;
+  final String coverRef;
   final DateTime updatedAt;
 }
 

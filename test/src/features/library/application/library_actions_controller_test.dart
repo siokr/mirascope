@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/features/library/application/library_actions_controller.dart';
 import 'package:mirascope/src/features/library/application/library_providers.dart';
+import 'package:mirascope/src/features/library/application/custom_cover_providers.dart';
+import 'package:mirascope/src/features/library/domain/custom_cover_store.dart';
 import 'package:mirascope/src/features/importing/application/importing_providers.dart';
 import 'package:mirascope/src/features/importing/domain/derived_epub_store.dart';
 import 'package:mirascope/src/features/importing/domain/epub_container.dart';
@@ -131,12 +134,30 @@ void main() {
     expect(result, LibraryActionResult.succeeded);
     expect(epubStore.removedRefs, hasLength(2));
   });
+
+  test('delete removes a managed custom cover', () async {
+    final repository = FakeMediaLibraryRepository(
+      deletedContentRefs: const {'custom/book-1/cover.png'},
+    );
+    final coverStore = _FakeCustomCoverStore();
+    addTearDown(repository.close);
+    final container = _container(repository, coverStore: coverStore);
+    addTearDown(container.dispose);
+
+    final result = await container
+        .read(libraryActionsProvider.notifier)
+        .delete('book-1');
+
+    expect(result, LibraryActionResult.succeeded);
+    expect(coverStore.removed, ['book-1']);
+  });
 }
 
 ProviderContainer _container(
   FakeMediaLibraryRepository repository, {
   FakeDerivedTxtStore? store,
   _FakeDerivedEpubStore? epubStore,
+  _FakeCustomCoverStore? coverStore,
 }) {
   return ProviderContainer(
     overrides: [
@@ -146,8 +167,26 @@ ProviderContainer _container(
         derivedTxtStoreProvider.overrideWith((ref) async => store),
       if (epubStore != null)
         derivedEpubStoreProvider.overrideWith((ref) async => epubStore),
+      if (coverStore != null)
+        customCoverStoreProvider.overrideWith((ref) async => coverStore),
     ],
   );
+}
+
+final class _FakeCustomCoverStore implements CustomCoverStore {
+  final removed = <String>[];
+
+  @override
+  Future<void> remove(String mediaItemId) async => removed.add(mediaItemId);
+
+  @override
+  Future<String> replaceFromFile({
+    required String mediaItemId,
+    required String sourcePath,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<File?> resolve(String coverRef) async => null;
 }
 
 final class _FakeDerivedEpubStore implements DerivedEpubStore {

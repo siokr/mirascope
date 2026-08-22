@@ -105,6 +105,7 @@ void main() {
 
     expect(find.text('编辑作品信息'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, '漫画'), findsOneWidget);
+    expect(find.byKey(const Key('change-media-cover')), findsOneWidget);
   });
 }
 
