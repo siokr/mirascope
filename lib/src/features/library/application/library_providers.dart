@@ -38,6 +38,34 @@ final class LibraryQueryController extends Notifier<LibraryQuery> {
   void resetFilters() {
     state = LibraryQuery(searchText: state.searchText);
   }
+
+  void browseTag(MediaTag tag) {
+    state = _organizationQuery(tagId: tag.id, label: '标签：${tag.name}');
+  }
+
+  void browseShelf(CustomShelf shelf) {
+    state = _organizationQuery(shelfId: shelf.id, label: '书架：${shelf.name}');
+  }
+
+  void clearOrganization() {
+    state = _organizationQuery();
+  }
+
+  LibraryQuery _organizationQuery({
+    String? tagId,
+    String? shelfId,
+    String? label,
+  }) {
+    return LibraryQuery(
+      searchText: state.searchText,
+      mediaTypes: state.mediaTypes,
+      favoriteOnly: state.favoriteOnly,
+      sort: state.sort,
+      tagId: tagId,
+      shelfId: shelfId,
+      organizationLabel: label,
+    );
+  }
 }
 
 final activeLibraryProvider = StreamProvider<List<LibraryItem>>((ref) {

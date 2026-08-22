@@ -14,6 +14,9 @@ final class LibraryQuery {
     this.mediaTypes = const {},
     this.favoriteOnly = false,
     this.sort = LibrarySort.recentlyOpened,
+    this.tagId,
+    this.shelfId,
+    this.organizationLabel,
   });
 
   final bool archived;
@@ -21,12 +24,17 @@ final class LibraryQuery {
   final Set<MediaType> mediaTypes;
   final bool favoriteOnly;
   final LibrarySort sort;
+  final String? tagId;
+  final String? shelfId;
+  final String? organizationLabel;
 
   String get normalizedSearchText => searchText.trim().toLowerCase();
 
   bool get hasActiveFilters =>
       mediaTypes.isNotEmpty ||
       favoriteOnly ||
+      tagId != null ||
+      shelfId != null ||
       sort != LibrarySort.recentlyOpened;
 
   LibraryQuery copyWith({
@@ -35,6 +43,9 @@ final class LibraryQuery {
     Set<MediaType>? mediaTypes,
     bool? favoriteOnly,
     LibrarySort? sort,
+    String? tagId,
+    String? shelfId,
+    String? organizationLabel,
   }) {
     return LibraryQuery(
       archived: archived ?? this.archived,
@@ -42,6 +53,9 @@ final class LibraryQuery {
       mediaTypes: mediaTypes ?? this.mediaTypes,
       favoriteOnly: favoriteOnly ?? this.favoriteOnly,
       sort: sort ?? this.sort,
+      tagId: tagId ?? this.tagId,
+      shelfId: shelfId ?? this.shelfId,
+      organizationLabel: organizationLabel ?? this.organizationLabel,
     );
   }
 }

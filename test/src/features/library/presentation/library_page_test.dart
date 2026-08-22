@@ -115,6 +115,47 @@ void main() {
     expect(organization.deletedShelfIds, ['shelf']);
   });
 
+  testWidgets('browses media by tag and exits the organization scope', (
+    tester,
+  ) async {
+    final repository = FakeMediaLibraryRepository();
+    final organization = _FakeOrganizationRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository, organization: organization);
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('open-organization-management')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('browse-tag-tag')));
+    await tester.pumpAndSettle();
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+
+    expect(repository.lastQuery?.tagId, 'tag');
+    expect(find.text('标签：收藏'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('clear-organization-filter')));
+    await tester.pump();
+    expect(repository.lastQuery?.tagId, isNull);
+  });
+
+  testWidgets('browses media by custom shelf', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    final organization = _FakeOrganizationRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository, organization: organization);
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('open-organization-management')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('browse-shelf-shelf')));
+    await tester.pumpAndSettle();
+
+    expect(repository.lastQuery?.shelfId, 'shelf');
+    expect(find.text('书架：待读'), findsOneWidget);
+  });
+
   testWidgets('shows loading then the active empty state', (tester) async {
     final repository = FakeMediaLibraryRepository();
     addTearDown(repository.close);

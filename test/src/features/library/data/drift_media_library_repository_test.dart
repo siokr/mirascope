@@ -485,6 +485,60 @@ void main() {
       );
     },
   );
+
+  test('query limits results to one tag', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(database, id: 'tagged', title: 'Tagged');
+    await _insertMediaAndLibraryEntry(database, id: 'plain', title: 'Plain');
+    await database.customStatement(
+      "INSERT INTO tags (id, name, normalized_name, created_at) "
+      "VALUES ('tag', '收藏', '收藏', 1)",
+    );
+    await database.customStatement(
+      "INSERT INTO media_tag_assignments (tag_id, media_item_id, created_at) "
+      "VALUES ('tag', 'tagged', 1)",
+    );
+    final query = const LibraryQuery().copyWith(
+      tagId: 'tag',
+      organizationLabel: '标签：收藏',
+    );
+
+    final items = await repository.watchLibrary(query).first;
+
+    expect(items.map((item) => item.mediaItem.id), ['tagged']);
+  });
+
+  test('query limits results to one custom shelf', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'shelved',
+      title: 'Shelved',
+    );
+    await _insertMediaAndLibraryEntry(database, id: 'plain', title: 'Plain');
+    await database.customStatement(
+      "INSERT INTO custom_shelves "
+      "(id, name, normalized_name, created_at, updated_at) "
+      "VALUES ('shelf', '待读', '待读', 1, 1)",
+    );
+    await database.customStatement(
+      "INSERT INTO custom_shelf_items "
+      "(shelf_id, media_item_id, order_index, added_at) "
+      "VALUES ('shelf', 'shelved', 0, 1)",
+    );
+    final query = const LibraryQuery().copyWith(
+      shelfId: 'shelf',
+      organizationLabel: '书架：待读',
+    );
+
+    final items = await repository.watchLibrary(query).first;
+
+    expect(items.map((item) => item.mediaItem.id), ['shelved']);
+  });
 }
 
 Future<void> _insertMediaAndLibraryEntry(

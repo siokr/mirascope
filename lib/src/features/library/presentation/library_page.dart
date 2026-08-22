@@ -148,46 +148,70 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           ),
         ],
       ),
-      body: library.when(
-        loading: () => const LibraryLoadingGrid(),
-        error: (_, _) => LibraryErrorState(
-          onRetry: () => ref.invalidate(activeLibraryProvider),
-        ),
-        data: (items) {
-          if (items.isEmpty) {
-            if (query.normalizedSearchText.isNotEmpty ||
-                query.hasActiveFilters) {
-              final searching = query.normalizedSearchText.isNotEmpty;
-              return EmptyState(
-                icon: Icons.search_off_outlined,
-                title: '没有找到匹配内容',
-                message: searching ? '试试其他书名或作者关键词。' : '试试减少筛选条件。',
-                action: TextButton(
-                  key: const Key('clear-library-search'),
-                  onPressed: searching ? _clearSearch : _resetFilters,
-                  child: Text(searching ? '清除搜索' : '重置筛选'),
+      body: Column(
+        children: [
+          if (query.organizationLabel case final label?)
+            Material(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              child: ListTile(
+                dense: true,
+                leading: const Icon(Icons.folder_open_outlined),
+                title: Text(label),
+                trailing: IconButton(
+                  key: const Key('clear-organization-filter'),
+                  onPressed: ref
+                      .read(libraryQueryProvider.notifier)
+                      .clearOrganization,
+                  tooltip: '返回全部媒体',
+                  icon: const Icon(Icons.close),
                 ),
-              );
-            }
-            return const EmptyState(
-              icon: Icons.menu_book_outlined,
-              title: '媒体库还是空的',
-              message: '导入 TXT 或 EPUB 小说后，它会出现在这里。',
-            );
-          }
-          return LibraryGrid(
-            items: items,
-            archived: false,
-            busyMediaIds: busyMediaIds,
-            onOpen: (item) => unawaited(_open(context, ref, item)),
-            onArchive: (item) => unawaited(_confirmArchive(context, ref, item)),
-            onRestore: (_) {},
-            onDelete: (_) {},
-            onOrganize: (item) => unawaited(_openOrganization(item)),
-            onSetFavorite: (item, favorite) =>
-                unawaited(_setFavorite(item, favorite)),
-          );
-        },
+              ),
+            ),
+          Expanded(
+            child: library.when(
+              loading: () => const LibraryLoadingGrid(),
+              error: (_, _) => LibraryErrorState(
+                onRetry: () => ref.invalidate(activeLibraryProvider),
+              ),
+              data: (items) {
+                if (items.isEmpty) {
+                  if (query.normalizedSearchText.isNotEmpty ||
+                      query.hasActiveFilters) {
+                    final searching = query.normalizedSearchText.isNotEmpty;
+                    return EmptyState(
+                      icon: Icons.search_off_outlined,
+                      title: '没有找到匹配内容',
+                      message: searching ? '试试其他书名或作者关键词。' : '试试减少筛选条件。',
+                      action: TextButton(
+                        key: const Key('clear-library-search'),
+                        onPressed: searching ? _clearSearch : _resetFilters,
+                        child: Text(searching ? '清除搜索' : '重置筛选'),
+                      ),
+                    );
+                  }
+                  return const EmptyState(
+                    icon: Icons.menu_book_outlined,
+                    title: '媒体库还是空的',
+                    message: '导入 TXT 或 EPUB 小说后，它会出现在这里。',
+                  );
+                }
+                return LibraryGrid(
+                  items: items,
+                  archived: false,
+                  busyMediaIds: busyMediaIds,
+                  onOpen: (item) => unawaited(_open(context, ref, item)),
+                  onArchive: (item) =>
+                      unawaited(_confirmArchive(context, ref, item)),
+                  onRestore: (_) {},
+                  onDelete: (_) {},
+                  onOrganize: (item) => unawaited(_openOrganization(item)),
+                  onSetFavorite: (item, favorite) =>
+                      unawaited(_setFavorite(item, favorite)),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
@@ -741,8 +765,10 @@ class _OrganizationManagementSheet extends ConsumerWidget {
               values: tags,
               emptyText: '还没有标签',
               keyPrefix: 'manage-tag',
+              browseKeyPrefix: 'tag',
               idOf: (tag) => tag.id,
               nameOf: (tag) => tag.name,
+              onBrowse: (tag) => _browseTag(context, ref, tag),
               onRename: (tag) => _renameTag(context, ref, tag),
               onDelete: (tag) => _deleteTag(context, ref, tag),
             ),
@@ -752,8 +778,10 @@ class _OrganizationManagementSheet extends ConsumerWidget {
               values: shelves,
               emptyText: '还没有自定义书架',
               keyPrefix: 'manage-shelf',
+              browseKeyPrefix: 'shelf',
               idOf: (shelf) => shelf.id,
               nameOf: (shelf) => shelf.name,
+              onBrowse: (shelf) => _browseShelf(context, ref, shelf),
               onRename: (shelf) => _renameShelf(context, ref, shelf),
               onDelete: (shelf) => _deleteShelf(context, ref, shelf),
             ),
@@ -761,6 +789,16 @@ class _OrganizationManagementSheet extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _browseTag(BuildContext context, WidgetRef ref, MediaTag tag) {
+    ref.read(libraryQueryProvider.notifier).browseTag(tag);
+    Navigator.pop(context);
+  }
+
+  void _browseShelf(BuildContext context, WidgetRef ref, CustomShelf shelf) {
+    ref.read(libraryQueryProvider.notifier).browseShelf(shelf);
+    Navigator.pop(context);
   }
 
   Future<void> _renameTag(
@@ -839,8 +877,10 @@ class _ManagementList<T> extends StatelessWidget {
     required this.values,
     required this.emptyText,
     required this.keyPrefix,
+    required this.browseKeyPrefix,
     required this.idOf,
     required this.nameOf,
+    required this.onBrowse,
     required this.onRename,
     required this.onDelete,
   });
@@ -848,8 +888,10 @@ class _ManagementList<T> extends StatelessWidget {
   final AsyncValue<List<T>> values;
   final String emptyText;
   final String keyPrefix;
+  final String browseKeyPrefix;
   final String Function(T) idOf;
   final String Function(T) nameOf;
+  final ValueChanged<T> onBrowse;
   final ValueChanged<T> onRename;
   final ValueChanged<T> onDelete;
 
@@ -869,8 +911,11 @@ class _ManagementList<T> extends StatelessWidget {
             children: [
               for (final value in items)
                 ListTile(
+                  key: Key('browse-$browseKeyPrefix-${idOf(value)}'),
                   contentPadding: EdgeInsets.zero,
                   title: Text(nameOf(value)),
+                  subtitle: const Text('点击查看其中的媒体'),
+                  onTap: () => onBrowse(value),
                   trailing: PopupMenuButton<_OrganizationMenuAction>(
                     key: Key('$keyPrefix-${idOf(value)}'),
                     tooltip: '管理${nameOf(value)}',

@@ -40,6 +40,18 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
     if (libraryQuery.favoriteOnly) {
       query.where(database.libraryEntries.favorite.equals(true));
     }
+    if (libraryQuery.tagId case final tagId?) {
+      final taggedMedia = database.selectOnly(database.mediaTagAssignments)
+        ..addColumns([database.mediaTagAssignments.mediaItemId])
+        ..where(database.mediaTagAssignments.tagId.equals(tagId));
+      query.where(database.mediaItems.id.isInQuery(taggedMedia));
+    }
+    if (libraryQuery.shelfId case final shelfId?) {
+      final shelvedMedia = database.selectOnly(database.customShelfItems)
+        ..addColumns([database.customShelfItems.mediaItemId])
+        ..where(database.customShelfItems.shelfId.equals(shelfId));
+      query.where(database.mediaItems.id.isInQuery(shelvedMedia));
+    }
     if (libraryQuery.mediaTypes.isNotEmpty) {
       query.where(
         database.mediaItems.mediaType.isIn(
