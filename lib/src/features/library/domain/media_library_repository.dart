@@ -9,6 +9,14 @@ abstract interface class MediaLibraryRepository {
   Future<MediaItem?> findMediaItem(String mediaItemId);
   Future<void> markOpened(String mediaItemId, DateTime openedAt);
   Future<void> setFavorite(String mediaItemId, bool favorite);
+  Future<void> updateMetadata({
+    required String mediaItemId,
+    required String title,
+    String? subtitle,
+    String? creator,
+    String? description,
+    required DateTime updatedAt,
+  });
   Future<void> archive(String mediaItemId, DateTime archivedAt);
   Future<void> restore(String mediaItemId);
   Future<Set<String>> deleteApplicationData(String mediaItemId);

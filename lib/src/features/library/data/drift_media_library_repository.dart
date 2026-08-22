@@ -175,6 +175,39 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
+  Future<void> updateMetadata({
+    required String mediaItemId,
+    required String title,
+    String? subtitle,
+    String? creator,
+    String? description,
+    required DateTime updatedAt,
+  }) async {
+    final cleanTitle = title.trim();
+    if (cleanTitle.isEmpty) {
+      throw ArgumentError.value(title, 'title', '书名不能为空');
+    }
+    final updated =
+        await (database.update(
+          database.mediaItems,
+        )..where((row) => row.id.equals(mediaItemId))).write(
+          MediaItemsCompanion(
+            title: Value(cleanTitle),
+            subtitle: Value(_optionalMetadata(subtitle)),
+            creator: Value(_optionalMetadata(creator)),
+            description: Value(_optionalMetadata(description)),
+            updatedAt: Value(updatedAt.toUtc()),
+          ),
+        );
+    if (updated != 1) throw StateError('media_item_not_found');
+  }
+
+  String? _optionalMetadata(String? value) {
+    final clean = value?.trim();
+    return clean == null || clean.isEmpty ? null : clean;
+  }
+
+  @override
   Future<void> archive(String mediaItemId, DateTime archivedAt) async {
     final updated =
         await (database.update(database.libraryEntries)..where(

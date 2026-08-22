@@ -539,6 +539,53 @@ void main() {
 
     expect(items.map((item) => item.mediaItem.id), ['shelved']);
   });
+
+  test('updates local metadata and clears optional blank fields', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(
+      database,
+      id: 'book',
+      title: 'Old title',
+      subtitle: 'Old subtitle',
+      creator: 'Old author',
+    );
+
+    await repository.updateMetadata(
+      mediaItemId: 'book',
+      title: '  New title  ',
+      subtitle: '   ',
+      creator: ' New author ',
+      description: ' Local description ',
+      updatedAt: DateTime.utc(2026, 8, 22, 9),
+    );
+
+    final item = await repository.findMediaItem('book');
+    expect(item?.title, 'New title');
+    expect(item?.subtitle, isNull);
+    expect(item?.creator, 'New author');
+    expect(item?.description, 'Local description');
+    expect(item?.mediaType, domain.MediaType.novel);
+  });
+
+  test('rejects a blank title without changing existing metadata', () async {
+    final database = createTestDatabase();
+    addTearDown(database.close);
+    final repository = DriftMediaLibraryRepository(database);
+    await _insertMediaAndLibraryEntry(database, id: 'book', title: 'Original');
+
+    await expectLater(
+      repository.updateMetadata(
+        mediaItemId: 'book',
+        title: '   ',
+        updatedAt: DateTime.utc(2026, 8, 22, 9),
+      ),
+      throwsArgumentError,
+    );
+
+    expect((await repository.findMediaItem('book'))?.title, 'Original');
+  });
 }
 
 Future<void> _insertMediaAndLibraryEntry(

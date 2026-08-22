@@ -76,6 +76,16 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
+  Future<void> updateMetadata({
+    required String mediaItemId,
+    required String title,
+    String? subtitle,
+    String? creator,
+    String? description,
+    required DateTime updatedAt,
+  }) async {}
+
+  @override
   Future<void> archive(String mediaItemId, DateTime archivedAt) async {
     if (archiveError case final error?) {
       throw error;
