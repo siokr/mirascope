@@ -10,6 +10,10 @@ import 'package:mirascope/src/features/settings/domain/reader_preference_reposit
 import 'package:mirascope/src/features/settings/presentation/settings_page.dart';
 import 'package:mirascope/src/features/manga/application/manga_providers.dart';
 import 'package:mirascope/src/features/manga/domain/manga_page_cache.dart';
+import 'package:mirascope/src/features/backup/application/backup_providers.dart';
+import 'package:mirascope/src/features/backup/application/export_backup.dart';
+import 'package:mirascope/src/features/backup/domain/backup_destination_picker.dart';
+import 'package:mirascope/src/features/backup/domain/backup_exporter.dart';
 
 void main() {
   testWidgets('settings remain usable on a narrow screen with large text', (
@@ -95,6 +99,51 @@ void main() {
       expect(find.text('漫画页面缓存已清理'), findsOneWidget);
     },
   );
+
+  testWidgets('exports a backup from settings and reports success', (
+    tester,
+  ) async {
+    final exporter = _BackupExporter();
+    final useCase = ExportBackup(
+      destinationPicker: _BackupPicker('D:/backup.zip'),
+      exporter: exporter,
+      clock: () => DateTime.utc(2026, 8, 22),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          readerPreferenceRepositoryProvider.overrideWithValue(_Repository()),
+          exportBackupProvider.overrideWith((ref) async => useCase),
+        ],
+        child: const MaterialApp(home: SettingsPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).last, const Offset(0, -500));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('export-backup')));
+    await tester.pumpAndSettle();
+
+    expect(exporter.paths, ['D:/backup.zip']);
+    expect(find.text('备份已导出'), findsOneWidget);
+  });
+}
+
+final class _BackupPicker implements BackupDestinationPicker {
+  const _BackupPicker(this.path);
+  final String? path;
+  @override
+  Future<String?> pickDestination({required String suggestedName}) async =>
+      path;
+}
+
+final class _BackupExporter implements BackupExporter {
+  final paths = <String>[];
+  @override
+  Future<BackupExportSummary> exportTo(String targetPath) async {
+    paths.add(targetPath);
+    return BackupExportSummary(path: targetPath, fileCount: 1, byteLength: 1);
+  }
 }
 
 final class _PageCache implements MangaPageCache {

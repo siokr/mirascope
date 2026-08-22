@@ -5,23 +5,12 @@ import 'package:archive/archive_io.dart';
 import 'package:crypto/crypto.dart';
 
 import 'backup_archive_validator.dart';
+import '../domain/backup_exporter.dart';
 
 typedef BackupClock = DateTime Function();
 typedef DatabaseSnapshotter = Future<void> Function(File target);
 
-final class BackupExportResult {
-  const BackupExportResult({
-    required this.path,
-    required this.fileCount,
-    required this.byteLength,
-  });
-
-  final String path;
-  final int fileCount;
-  final int byteLength;
-}
-
-final class DartIoBackupExporter {
+final class DartIoBackupExporter implements BackupExporter {
   const DartIoBackupExporter({
     required this.supportDirectory,
     required this.databaseSchemaVersion,
@@ -36,7 +25,8 @@ final class DartIoBackupExporter {
   final DatabaseSnapshotter snapshotDatabase;
   final BackupArchiveValidator validator;
 
-  Future<BackupExportResult> exportTo(String targetPath) async {
+  @override
+  Future<BackupExportSummary> exportTo(String targetPath) async {
     final target = File(targetPath);
     if (await target.exists()) {
       throw StateError('backup_target_already_exists');
@@ -127,7 +117,7 @@ final class DartIoBackupExporter {
       validator.validate(await stagedArchive.readAsBytes());
       final byteLength = await stagedArchive.length();
       await stagedArchive.rename(target.path);
-      return BackupExportResult(
+      return BackupExportSummary(
         path: target.path,
         fileCount: files.length,
         byteLength: byteLength,

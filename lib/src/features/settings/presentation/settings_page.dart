@@ -4,12 +4,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../application/reader_settings_controller.dart';
 import '../application/settings_providers.dart';
 import '../../manga/application/manga_providers.dart';
+import '../../backup/application/backup_providers.dart';
+import '../../backup/application/export_backup.dart';
 
-class SettingsPage extends ConsumerWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  var _exportingBackup = false;
+
+  @override
+  Widget build(BuildContext context) {
     final controller = ref.watch(globalReaderSettingsControllerProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('设置')),
@@ -24,6 +33,8 @@ class SettingsPage extends ConsumerWidget {
         ),
         data: (value) => _GlobalReaderSettings(
           controller: value,
+          exportingBackup: _exportingBackup,
+          exportBackup: _exportingBackup ? null : _exportBackup,
           clearMangaCache: () async {
             final messenger = ScaffoldMessenger.of(context);
             try {
@@ -41,15 +52,41 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _exportBackup() async {
+    setState(() => _exportingBackup = true);
+    ExportBackupResult result;
+    try {
+      result = await (await ref.read(exportBackupProvider.future))();
+    } on Object {
+      result = ExportBackupResult.failed;
+    }
+    if (!mounted) return;
+    setState(() => _exportingBackup = false);
+    final message = switch (result) {
+      ExportBackupResult.succeeded => '备份已导出',
+      ExportBackupResult.failed => '导出失败，请重试',
+      ExportBackupResult.cancelled => null,
+    };
+    if (message != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
 }
 
 class _GlobalReaderSettings extends StatelessWidget {
   const _GlobalReaderSettings({
     required this.controller,
     required this.clearMangaCache,
+    required this.exportingBackup,
+    required this.exportBackup,
   });
   final ReaderSettingsController controller;
   final Future<void> Function() clearMangaCache;
+  final bool exportingBackup;
+  final Future<void> Function()? exportBackup;
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +148,17 @@ class _GlobalReaderSettings extends StatelessWidget {
                   onPressed: controller.resetToInherited,
                   child: const Text('恢复程序默认值'),
                 ),
+              ),
+              const Divider(height: 32),
+              Text('数据备份', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              ListTile(
+                key: const Key('export-backup'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.save_alt_outlined),
+                title: Text(exportingBackup ? '正在导出备份' : '导出备份'),
+                subtitle: const Text('包含媒体库、阅读状态和应用托管内容，不包含原始媒体文件'),
+                onTap: exportBackup,
               ),
               const Divider(height: 32),
               ListTile(
