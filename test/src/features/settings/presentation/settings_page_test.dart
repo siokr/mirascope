@@ -12,8 +12,12 @@ import 'package:mirascope/src/features/manga/application/manga_providers.dart';
 import 'package:mirascope/src/features/manga/domain/manga_page_cache.dart';
 import 'package:mirascope/src/features/backup/application/backup_providers.dart';
 import 'package:mirascope/src/features/backup/application/export_backup.dart';
+import 'package:mirascope/src/features/backup/application/preflight_backup.dart';
 import 'package:mirascope/src/features/backup/domain/backup_destination_picker.dart';
 import 'package:mirascope/src/features/backup/domain/backup_exporter.dart';
+import 'package:mirascope/src/features/backup/domain/backup_source_picker.dart';
+import 'package:mirascope/src/features/backup/domain/backup_validation.dart';
+import 'package:mirascope/src/features/backup/domain/backup_verifier.dart';
 
 void main() {
   testWidgets('settings remain usable on a narrow screen with large text', (
@@ -127,6 +131,59 @@ void main() {
     expect(exporter.paths, ['D:/backup.zip']);
     expect(find.text('备份已导出'), findsOneWidget);
   });
+
+  testWidgets('preflights a backup and shows a read-only restore preview', (
+    tester,
+  ) async {
+    final useCase = PreflightBackup(
+      sourcePicker: const _BackupSourcePicker('D:/backup.zip'),
+      verifier: _BackupVerifier(),
+      currentDatabaseSchemaVersion: 6,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          readerPreferenceRepositoryProvider.overrideWithValue(_Repository()),
+          preflightBackupProvider.overrideWith((ref) => useCase),
+        ],
+        child: const MaterialApp(home: SettingsPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).last, const Offset(0, -600));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('preflight-backup')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('备份校验通过'), findsOneWidget);
+    expect(find.textContaining('2026-08-22'), findsOneWidget);
+    expect(find.textContaining('数据库版本 6'), findsOneWidget);
+    expect(find.text('开始恢复'), findsNothing);
+  });
+}
+
+final class _BackupSourcePicker implements BackupSourcePicker {
+  const _BackupSourcePicker(this.path);
+  final String? path;
+  @override
+  Future<String?> pickSource() async => path;
+}
+
+final class _BackupVerifier implements BackupVerifier {
+  @override
+  Future<BackupManifest> verify(String sourcePath) async => BackupManifest(
+    schemaVersion: 1,
+    databaseSchemaVersion: 6,
+    createdAt: DateTime.utc(2026, 8, 22, 12),
+    files: const [
+      BackupFileManifest(
+        path: 'data/mirascope.sqlite',
+        size: 4,
+        sha256:
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      ),
+    ],
+  );
 }
 
 final class _BackupPicker implements BackupDestinationPicker {

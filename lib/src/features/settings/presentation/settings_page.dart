@@ -6,6 +6,7 @@ import '../application/settings_providers.dart';
 import '../../manga/application/manga_providers.dart';
 import '../../backup/application/backup_providers.dart';
 import '../../backup/application/export_backup.dart';
+import '../../backup/application/preflight_backup.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -16,6 +17,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   var _exportingBackup = false;
+  var _checkingBackup = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           controller: value,
           exportingBackup: _exportingBackup,
           exportBackup: _exportingBackup ? null : _exportBackup,
+          checkingBackup: _checkingBackup,
+          preflightBackup: _checkingBackup ? null : _preflightBackup,
           clearMangaCache: () async {
             final messenger = ScaffoldMessenger.of(context);
             try {
@@ -74,6 +78,53 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
+
+  Future<void> _preflightBackup() async {
+    setState(() => _checkingBackup = true);
+    final result = await ref.read(preflightBackupProvider)();
+    if (!mounted) return;
+    setState(() => _checkingBackup = false);
+    switch (result) {
+      case PreflightBackupCancelled():
+        return;
+      case PreflightBackupRejected(:final failure):
+        final message = switch (failure) {
+          PreflightBackupFailure.invalidBackup => '备份文件无效或已损坏',
+          PreflightBackupFailure.incompatibleVersion => '备份来自更高版本，当前应用无法恢复',
+        };
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      case PreflightBackupReady():
+        await _showBackupPreview(result);
+    }
+  }
+
+  Future<void> _showBackupPreview(PreflightBackupReady preview) async {
+    final localDate = preview.createdAt.toLocal();
+    final date =
+        '${localDate.year.toString().padLeft(4, '0')}-'
+        '${localDate.month.toString().padLeft(2, '0')}-'
+        '${localDate.day.toString().padLeft(2, '0')}';
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('备份校验通过'),
+        content: Text(
+          '创建日期：$date\n'
+          '数据库版本 ${preview.databaseSchemaVersion}\n'
+          '包含 ${preview.fileCount} 个数据文件\n\n'
+          '本次仅完成只读校验，尚未修改当前数据。',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('知道了'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _GlobalReaderSettings extends StatelessWidget {
@@ -82,11 +133,15 @@ class _GlobalReaderSettings extends StatelessWidget {
     required this.clearMangaCache,
     required this.exportingBackup,
     required this.exportBackup,
+    required this.checkingBackup,
+    required this.preflightBackup,
   });
   final ReaderSettingsController controller;
   final Future<void> Function() clearMangaCache;
   final bool exportingBackup;
   final Future<void> Function()? exportBackup;
+  final bool checkingBackup;
+  final Future<void> Function()? preflightBackup;
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +214,14 @@ class _GlobalReaderSettings extends StatelessWidget {
                 title: Text(exportingBackup ? '正在导出备份' : '导出备份'),
                 subtitle: const Text('包含媒体库、阅读状态和应用托管内容，不包含原始媒体文件'),
                 onTap: exportBackup,
+              ),
+              ListTile(
+                key: const Key('preflight-backup'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.restore_outlined),
+                title: Text(checkingBackup ? '正在检查备份' : '检查备份文件'),
+                subtitle: const Text('恢复前只读检查完整性和版本兼容性，不会修改当前数据'),
+                onTap: preflightBackup,
               ),
               const Divider(height: 32),
               ListTile(
