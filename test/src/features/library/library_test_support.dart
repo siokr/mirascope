@@ -14,6 +14,7 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
   final archivedController = StreamController<List<LibraryItem>>.broadcast();
 
   final openedAt = <String, DateTime>{};
+  final favoriteValues = <String, bool>{};
   final archivedAt = <String, DateTime>{};
   final restored = <String>[];
   final deleted = <String>[];
@@ -67,6 +68,11 @@ final class FakeMediaLibraryRepository implements MediaLibraryRepository {
     }
     this.openedAt[mediaItemId] = openedAt;
     await markOpenedGate?.future;
+  }
+
+  @override
+  Future<void> setFavorite(String mediaItemId, bool favorite) async {
+    favoriteValues[mediaItemId] = favorite;
   }
 
   @override

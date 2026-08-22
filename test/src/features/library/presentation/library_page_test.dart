@@ -62,6 +62,21 @@ void main() {
     expect(organization.createdTags.single.name, '奇幻');
   });
 
+  testWidgets('toggles favorite from the book menu', (tester) async {
+    final repository = FakeMediaLibraryRepository();
+    addTearDown(repository.close);
+    await _pumpPage(tester, repository);
+    repository.activeController.add([_item('book-1', '长夜书简')]);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('library-menu-book-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('添加收藏'));
+    await tester.pump();
+
+    expect(repository.favoriteValues, {'book-1': true});
+  });
+
   testWidgets('centrally renames tags and confirms shelf deletion', (
     tester,
   ) async {

@@ -5,7 +5,7 @@ import '../../domain/library_item.dart';
 import '../../../manga/application/manga_providers.dart';
 import '../../domain/media_item.dart';
 
-enum LibraryCardAction { organize, archive, restore, delete }
+enum LibraryCardAction { favorite, organize, archive, restore, delete }
 
 class LibraryCard extends ConsumerWidget {
   const LibraryCard({
@@ -17,6 +17,7 @@ class LibraryCard extends ConsumerWidget {
     required this.onRestore,
     required this.onDelete,
     this.onOrganize,
+    this.onSetFavorite,
     super.key,
   });
 
@@ -28,6 +29,7 @@ class LibraryCard extends ConsumerWidget {
   final VoidCallback onRestore;
   final VoidCallback onDelete;
   final VoidCallback? onOrganize;
+  final ValueChanged<bool>? onSetFavorite;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -112,6 +114,8 @@ class LibraryCard extends ConsumerWidget {
                         tooltip: '更多操作',
                         onSelected: (action) {
                           switch (action) {
+                            case LibraryCardAction.favorite:
+                              onSetFavorite?.call(!item.libraryEntry.favorite);
                             case LibraryCardAction.organize:
                               onOrganize?.call();
                             case LibraryCardAction.archive:
@@ -132,12 +136,18 @@ class LibraryCard extends ConsumerWidget {
                               value: LibraryCardAction.delete,
                               child: Text('永久删除'),
                             ),
-                          ] else ...const [
+                          ] else ...[
                             PopupMenuItem(
+                              value: LibraryCardAction.favorite,
+                              child: Text(
+                                item.libraryEntry.favorite ? '取消收藏' : '添加收藏',
+                              ),
+                            ),
+                            const PopupMenuItem(
                               value: LibraryCardAction.organize,
                               child: Text('标签与书架'),
                             ),
-                            PopupMenuItem(
+                            const PopupMenuItem(
                               value: LibraryCardAction.archive,
                               child: Text('移入归档'),
                             ),

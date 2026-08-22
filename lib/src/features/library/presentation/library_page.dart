@@ -184,6 +184,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             onRestore: (_) {},
             onDelete: (_) {},
             onOrganize: (item) => unawaited(_openOrganization(item)),
+            onSetFavorite: (item, favorite) =>
+                unawaited(_setFavorite(item, favorite)),
           );
         },
       ),
@@ -550,6 +552,15 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       isScrollControlled: true,
       builder: (_) => _OrganizationSheet(item: item),
     );
+  }
+
+  Future<void> _setFavorite(LibraryItem item, bool favorite) async {
+    final result = await ref
+        .read(libraryActionsProvider.notifier)
+        .setFavorite(item.mediaItem.id, favorite);
+    if (mounted && result == LibraryActionResult.failed) {
+      _showMessage(context, '无法更新收藏，请重试。');
+    }
   }
 
   Future<void> _openOrganizationManagement() {

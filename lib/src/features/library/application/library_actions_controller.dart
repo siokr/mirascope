@@ -43,6 +43,16 @@ final class LibraryActionsController extends Notifier<Set<String>> {
     );
   }
 
+  Future<LibraryActionResult> setFavorite(String mediaItemId, bool favorite) {
+    return _run(
+      mediaItemId,
+      failureCode: AppErrorCode.libraryLoadFailed,
+      operation: () => ref
+          .read(mediaLibraryRepositoryProvider)
+          .setFavorite(mediaItemId, favorite),
+    );
+  }
+
   Future<LibraryActionResult> restore(String mediaItemId) {
     return _run(
       mediaItemId,

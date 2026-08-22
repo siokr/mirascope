@@ -462,6 +462,29 @@ void main() {
     );
     expect(await repository.findMediaItem('active'), isNotNull);
   });
+
+  test(
+    'favorite changes are persisted and emitted by the library stream',
+    () async {
+      final database = createTestDatabase();
+      addTearDown(database.close);
+      final repository = DriftMediaLibraryRepository(database);
+      await _insertMediaAndLibraryEntry(database, id: 'book', title: 'Book');
+
+      await repository.setFavorite('book', true);
+
+      final favorites =
+          await repository
+                  .watchLibrary(const LibraryQuery(favoriteOnly: true))
+                  .first
+              as List<Object?>;
+      expect(favorites, hasLength(1));
+      expect(
+        (await database.select(database.libraryEntries).getSingle()).favorite,
+        isTrue,
+      );
+    },
+  );
 }
 
 Future<void> _insertMediaAndLibraryEntry(

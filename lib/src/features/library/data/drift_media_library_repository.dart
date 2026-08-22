@@ -152,6 +152,17 @@ final class DriftMediaLibraryRepository implements MediaLibraryRepository {
   }
 
   @override
+  Future<void> setFavorite(String mediaItemId, bool favorite) async {
+    final updated =
+        await (database.update(database.libraryEntries)..where(
+              (row) =>
+                  row.mediaItemId.equals(mediaItemId) & row.archivedAt.isNull(),
+            ))
+            .write(LibraryEntriesCompanion(favorite: Value(favorite)));
+    if (updated != 1) throw StateError('library_entry_not_active');
+  }
+
+  @override
   Future<void> archive(String mediaItemId, DateTime archivedAt) async {
     final updated =
         await (database.update(database.libraryEntries)..where(

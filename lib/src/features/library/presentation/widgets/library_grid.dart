@@ -13,6 +13,7 @@ class LibraryGrid extends StatelessWidget {
     required this.onRestore,
     required this.onDelete,
     this.onOrganize,
+    this.onSetFavorite,
     super.key,
   });
 
@@ -24,6 +25,7 @@ class LibraryGrid extends StatelessWidget {
   final ValueChanged<LibraryItem> onRestore;
   final ValueChanged<LibraryItem> onDelete;
   final ValueChanged<LibraryItem>? onOrganize;
+  final void Function(LibraryItem, bool)? onSetFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +61,9 @@ class LibraryGrid extends StatelessWidget {
                   onOrganize: onOrganize == null
                       ? null
                       : () => onOrganize!(item),
+                  onSetFavorite: onSetFavorite == null
+                      ? null
+                      : (favorite) => onSetFavorite!(item, favorite),
                 );
               },
             );

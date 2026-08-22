@@ -8,6 +8,7 @@ abstract interface class MediaLibraryRepository {
   Stream<List<LibraryItem>> watchArchivedLibrary();
   Future<MediaItem?> findMediaItem(String mediaItemId);
   Future<void> markOpened(String mediaItemId, DateTime openedAt);
+  Future<void> setFavorite(String mediaItemId, bool favorite);
   Future<void> archive(String mediaItemId, DateTime archivedAt);
   Future<void> restore(String mediaItemId);
   Future<Set<String>> deleteApplicationData(String mediaItemId);
