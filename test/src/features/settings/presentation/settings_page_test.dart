@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -133,9 +134,10 @@ void main() {
     expect(find.text('备份已导出'), findsOneWidget);
   });
 
-  testWidgets('confirms a verified backup and enters restart-only state', (
+  testWidgets('keeps restore status visible while the database is replaced', (
     tester,
   ) async {
+    final restoreResult = Completer<RestoreBackupResult>();
     final useCase = PreflightBackup(
       sourcePicker: const _BackupSourcePicker('D:/backup.zip'),
       verifier: _BackupVerifier(),
@@ -148,7 +150,7 @@ void main() {
           preflightBackupProvider.overrideWith((ref) => useCase),
           restoreBackupCommandProvider.overrideWith(
             (ref) async =>
-                (path) async => const RestoreBackupSucceeded(),
+                (path) => restoreResult.future,
           ),
         ],
         child: const MaterialApp(home: SettingsPage()),
@@ -164,6 +166,12 @@ void main() {
     expect(find.textContaining('2026-08-22'), findsOneWidget);
     expect(find.textContaining('数据库版本 6'), findsOneWidget);
     await tester.tap(find.text('开始恢复'));
+    await tester.pump();
+
+    expect(find.text('正在恢复备份'), findsOneWidget);
+    expect(find.textContaining('请勿关闭应用'), findsOneWidget);
+
+    restoreResult.complete(const RestoreBackupSucceeded());
     await tester.pumpAndSettle();
 
     expect(find.text('恢复完成'), findsOneWidget);

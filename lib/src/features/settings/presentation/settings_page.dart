@@ -134,26 +134,65 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _restoreBackup(String sourcePath) async {
     setState(() => _checkingBackup = true);
+    final command = ref.read(restoreBackupCommandProvider.future);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          _RestoreStatusDialog(sourcePath: sourcePath, command: command),
+    );
+    if (!mounted) return;
+    setState(() => _checkingBackup = false);
+  }
+}
+
+class _RestoreStatusDialog extends StatefulWidget {
+  const _RestoreStatusDialog({required this.sourcePath, required this.command});
+
+  final String sourcePath;
+  final Future<RestoreBackupCommand> command;
+
+  @override
+  State<_RestoreStatusDialog> createState() => _RestoreStatusDialogState();
+}
+
+class _RestoreStatusDialogState extends State<_RestoreStatusDialog> {
+  RestoreBackupResult? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    _restore();
+  }
+
+  Future<void> _restore() async {
     RestoreBackupResult result;
     try {
-      result = await (await ref.read(restoreBackupCommandProvider.future))(
-        sourcePath,
-      );
+      result = await (await widget.command)(widget.sourcePath);
     } on Object {
       result = const RestoreBackupRejected();
     }
-    if (!mounted) return;
-    setState(() => _checkingBackup = false);
-    if (result is RestoreBackupRejected) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('备份在恢复前复验失败，当前数据未修改')));
-      return;
-    }
-    await _showRestoreTerminal(result);
+    if (mounted) setState(() => _result = result);
   }
 
-  Future<void> _showRestoreTerminal(RestoreBackupResult result) {
+  @override
+  Widget build(BuildContext context) {
+    final result = _result;
+    if (result == null) {
+      return const PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: Text('正在恢复备份'),
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Expanded(child: Text('正在复验并恢复数据，请勿关闭应用。')),
+            ],
+          ),
+        ),
+      );
+    }
     final (title, message) = switch (result) {
       RestoreBackupSucceeded() => (
         '恢复完成',
@@ -168,14 +207,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         '自动回滚未能完成。旧数据副本保存在：\n$recoveryDirectory\n\n'
             '请勿删除该目录，并关闭 Mirascope。',
       ),
-      RestoreBackupRejected() => throw StateError('handled before terminal'),
+      RestoreBackupRejected() => ('恢复未开始', '备份在恢复前复验失败，当前数据未修改。'),
     };
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => PopScope(
-        canPop: false,
-        child: AlertDialog(title: Text(title), content: Text(message)),
+    final rejected = result is RestoreBackupRejected;
+    return PopScope(
+      canPop: rejected,
+      child: AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: rejected
+            ? [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('返回设置'),
+                ),
+              ]
+            : null,
       ),
     );
   }
