@@ -19,16 +19,23 @@ void main() {
 
   test('stages before closing the database and committing', () async {
     final events = <String>[];
+    final phases = <RestoreBackupPhase>[];
     final stage = await _stage(sandbox);
     final useCase = RestoreBackup(
       stager: _Stager(stage, events),
       committer: _Committer(events),
       closeDatabase: () async => events.add('close'),
       currentDatabaseSchemaVersion: 6,
+      reportPhase: phases.add,
     );
 
     expect(await useCase('D:/backup.zip'), const RestoreBackupSucceeded());
     expect(events, ['stage', 'close', 'commit']);
+    expect(phases, [
+      RestoreBackupPhase.staging,
+      RestoreBackupPhase.closingDatabase,
+      RestoreBackupPhase.committing,
+    ]);
   });
 
   test('keeps the open database untouched when staging fails', () async {

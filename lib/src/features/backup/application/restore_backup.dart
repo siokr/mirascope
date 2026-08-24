@@ -2,6 +2,9 @@ import '../domain/backup_committer.dart';
 import '../domain/backup_stager.dart';
 
 typedef CloseDatabase = Future<void> Function();
+typedef ReportRestorePhase = void Function(RestoreBackupPhase phase);
+
+enum RestoreBackupPhase { staging, closingDatabase, committing }
 
 sealed class RestoreBackupResult {
   const RestoreBackupResult();
@@ -60,15 +63,18 @@ final class RestoreBackup {
     required this.committer,
     required this.closeDatabase,
     required this.currentDatabaseSchemaVersion,
+    this.reportPhase,
   });
 
   final BackupStager stager;
   final BackupCommitter committer;
   final CloseDatabase closeDatabase;
   final int currentDatabaseSchemaVersion;
+  final ReportRestorePhase? reportPhase;
 
   Future<RestoreBackupResult> call(String sourcePath) async {
     late final BackupStage stage;
+    reportPhase?.call(RestoreBackupPhase.staging);
     try {
       stage = await stager.stage(sourcePath);
     } on Object {
@@ -79,12 +85,14 @@ final class RestoreBackup {
       await stage.dispose();
       return const RestoreBackupRejected();
     }
+    reportPhase?.call(RestoreBackupPhase.closingDatabase);
     try {
       await closeDatabase();
     } on Object {
       await stage.dispose();
       return const RestoreBackupRestartRequired(restored: false);
     }
+    reportPhase?.call(RestoreBackupPhase.committing);
     try {
       await committer.commit(stage);
       return const RestoreBackupSucceeded();

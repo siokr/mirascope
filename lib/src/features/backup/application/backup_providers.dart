@@ -20,6 +20,7 @@ import '../domain/backup_stager.dart';
 import 'export_backup.dart';
 import 'preflight_backup.dart';
 import 'restore_backup.dart';
+import 'restore_status.dart';
 
 final backupClockProvider = Provider<ExportBackupClock>((ref) {
   return () => DateTime.now().toUtc();
@@ -91,6 +92,7 @@ final restoreBackupCommandProvider = FutureProvider<RestoreBackupCommand>((
     committer: await ref.watch(backupCommitterProvider.future),
     closeDatabase: ref.watch(closeAppDatabaseProvider),
     currentDatabaseSchemaVersion: ref.watch(appDatabaseProvider).schemaVersion,
+    reportPhase: ref.read(restoreStatusProvider.notifier).report,
   );
   return restore.call;
 });

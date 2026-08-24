@@ -15,6 +15,7 @@ import 'package:mirascope/src/features/backup/application/backup_providers.dart'
 import 'package:mirascope/src/features/backup/application/export_backup.dart';
 import 'package:mirascope/src/features/backup/application/preflight_backup.dart';
 import 'package:mirascope/src/features/backup/application/restore_backup.dart';
+import 'package:mirascope/src/features/backup/application/restore_status.dart';
 import 'package:mirascope/src/features/backup/domain/backup_destination_picker.dart';
 import 'package:mirascope/src/features/backup/domain/backup_exporter.dart';
 import 'package:mirascope/src/features/backup/domain/backup_source_picker.dart';
@@ -134,7 +135,7 @@ void main() {
     expect(find.text('备份已导出'), findsOneWidget);
   });
 
-  testWidgets('keeps restore status visible while the database is replaced', (
+  testWidgets('publishes restore status before replacing the database', (
     tester,
   ) async {
     final restoreResult = Completer<RestoreBackupResult>();
@@ -165,17 +166,25 @@ void main() {
     expect(find.text('备份校验通过'), findsOneWidget);
     expect(find.textContaining('2026-08-22'), findsOneWidget);
     expect(find.textContaining('数据库版本 6'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SettingsPage)),
+    );
     await tester.tap(find.text('开始恢复'));
     await tester.pump();
 
-    expect(find.text('正在恢复备份'), findsOneWidget);
-    expect(find.textContaining('请勿关闭应用'), findsOneWidget);
+    expect(
+      container.read(restoreStatusProvider).phase,
+      RestoreStatusPhase.preparing,
+    );
 
     restoreResult.complete(const RestoreBackupSucceeded());
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump();
 
-    expect(find.text('恢复完成'), findsOneWidget);
-    expect(find.textContaining('重新启动'), findsOneWidget);
+    expect(
+      container.read(restoreStatusProvider).phase,
+      RestoreStatusPhase.succeeded,
+    );
   });
 }
 
