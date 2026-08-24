@@ -11,6 +11,7 @@ import '../data/drift_database_snapshotter.dart';
 import '../data/dart_io_backup_verifier.dart';
 import '../data/file_selector_backup_destination_picker.dart';
 import '../data/file_selector_backup_source_picker.dart';
+import '../data/file_pending_restore_store.dart';
 import '../domain/backup_destination_picker.dart';
 import '../domain/backup_committer.dart';
 import '../domain/backup_exporter.dart';
@@ -21,6 +22,8 @@ import 'export_backup.dart';
 import 'preflight_backup.dart';
 import 'restore_backup.dart';
 import 'restore_status.dart';
+import 'schedule_restore.dart';
+import 'apply_pending_restore.dart';
 
 final backupClockProvider = Provider<ExportBackupClock>((ref) {
   return () => DateTime.now().toUtc();
@@ -81,18 +84,24 @@ final backupCommitterProvider = FutureProvider<BackupCommitter>((ref) async {
   );
 });
 
+final pendingRestoreStoreProvider = FutureProvider<PendingRestoreStore>((
+  ref,
+) async {
+  return FilePendingRestoreStore(await getApplicationSupportDirectory());
+});
+
 typedef RestoreBackupCommand =
     Future<RestoreBackupResult> Function(String sourcePath);
 
 final restoreBackupCommandProvider = FutureProvider<RestoreBackupCommand>((
   ref,
 ) async {
-  final restore = RestoreBackup(
+  final restore = ScheduleRestore(
     stager: await ref.watch(backupStagerProvider.future),
-    committer: await ref.watch(backupCommitterProvider.future),
-    closeDatabase: ref.watch(closeAppDatabaseProvider),
-    currentDatabaseSchemaVersion: ref.watch(appDatabaseProvider).schemaVersion,
-    reportPhase: ref.read(restoreStatusProvider.notifier).report,
+    pendingRestore: await ref.watch(pendingRestoreStoreProvider.future),
   );
-  return restore.call;
+  return (sourcePath) {
+    ref.read(restoreStatusProvider.notifier).report(RestoreBackupPhase.staging);
+    return restore(sourcePath);
+  };
 });

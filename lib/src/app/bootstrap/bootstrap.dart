@@ -7,6 +7,12 @@ import 'package:mirascope/src/core/database/database_connection.dart';
 import 'package:mirascope/src/core/database/database_providers.dart';
 import 'package:mirascope/src/core/errors/app_error_code.dart';
 import 'package:mirascope/src/core/logging/app_logger.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:mirascope/src/features/backup/application/apply_pending_restore.dart';
+import 'package:mirascope/src/features/backup/data/dart_io_backup_committer.dart';
+import 'package:mirascope/src/features/backup/data/dart_io_backup_stager.dart';
+import 'package:mirascope/src/features/backup/data/file_pending_restore_store.dart';
+import 'dart:io';
 
 final class AppDependencies {
   const AppDependencies({required this.database});
@@ -35,7 +41,7 @@ Future<Widget> buildRootWidget({
   late final AppDependencies dependencies;
   try {
     dependencies =
-        await (initialize ?? () => _initializeDatabase(openDatabase))();
+        await (initialize ?? () => _initializeApplication(openDatabase))();
   } on Object {
     logAppError(AppErrorCode.databaseOpenFailed.value, stage: 'database_open');
     return StartupErrorApp(code: AppErrorCode.databaseOpenFailed.value);
@@ -58,6 +64,25 @@ Future<AppDependencies> _initializeDatabase(
     await database?.close();
     rethrow;
   }
+}
+
+Future<AppDependencies> _initializeApplication(
+  AppDatabaseFactory openDatabase,
+) async {
+  if (openDatabase != openAppDatabase) {
+    return _initializeDatabase(openDatabase);
+  }
+  final support = await getApplicationSupportDirectory();
+  await ApplyPendingRestore(
+    pendingRestore: FilePendingRestoreStore(support),
+    stager: DartIoBackupStager(
+      stagingRoot: Directory(
+        '${support.path}${Platform.pathSeparator}.mirascope-restore-staging',
+      ),
+    ),
+    committer: DartIoBackupCommitter(supportDirectory: support),
+  )();
+  return _initializeDatabase(openDatabase);
 }
 
 Widget _buildApplication(AppDatabase database) {

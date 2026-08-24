@@ -78,8 +78,8 @@ class _RestoreStatusPage extends ConsumerWidget {
       ),
       RestoreStatusPhase.rejected => ('恢复未开始', '备份在恢复前复验失败，当前数据未修改。', false),
       RestoreStatusPhase.restartRequired => (
-        '恢复未完成',
-        '数据库已关闭，但恢复操作未能完成。请关闭并重新启动 Mirascope。',
+        '恢复已准备',
+        '备份已安全登记。请关闭并重新启动 Mirascope，应用会在打开数据库前完成恢复。',
         false,
       ),
       RestoreStatusPhase.manualRecovery => (
